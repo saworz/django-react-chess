@@ -1,0 +1,1 @@
+docker run -it -d -p 3000:3000 --name react-front react-frontend:1.0
