@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+  backend:
+    build: .
+    volumes:
+      - .:/django-backend
+    ports:
+      - 8000:8000
+    image: backend:django-backend
+    container_name: backend-container
+    command: python manage.py runserver 0.0.0.0:8000
