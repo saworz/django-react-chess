@@ -1,11 +1,11 @@
 import { IRegisterUserData, ILoginUserData } from "../../shared/types";
 import axios from "axios";
 
-const API_URL = "/api/users/";
+const API_URL = "http://localhost:8000/api/users/";
 
 //Register user
 const register = async (userData: IRegisterUserData) => {
-  const response = await axios.post(API_URL + "register", userData);
+  const response = await axios.post(API_URL + "register/", userData);
 
   if (response.data) {
     localStorage.setItem("user", JSON.stringify(response.data));
