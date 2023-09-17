@@ -10,7 +10,6 @@ const Providers = (props: Props) => {
   return (
     <ChakraProvider theme={AppTheme}>
       <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-
       <Layout>
         <RouterProvider />
       </Layout>

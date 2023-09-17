@@ -42,7 +42,11 @@ const HomePage = (props: Props) => {
             >
               Sign in
             </Button>
-            <Button colorScheme="orange" variant="outline">
+            <Button
+              onClick={() => navigate("/register")}
+              colorScheme="orange"
+              variant="outline"
+            >
               Sign up
             </Button>
           </HStack>
