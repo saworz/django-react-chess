@@ -9,8 +9,8 @@ export interface IAuthState {
 export interface IRegisterUserData {
   login: string;
   email: string;
-  password: string;
-  passwordRepeat: string;
+  password1: string;
+  password2: string;
 }
 
 export interface ILoginUserData {

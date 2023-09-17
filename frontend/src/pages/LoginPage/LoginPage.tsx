@@ -12,10 +12,29 @@ import {
   useColorModeValue,
   ScaleFade,
 } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { RootState } from "../../app/store";
+import { useSelector } from "react-redux";
 
 const LoginPage = () => {
+  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+
   const navigate = useNavigate();
+  const { user, isError, message } = useSelector(
+    (state: RootState) => state.auth
+  );
+
+  useEffect(() => {
+    if (isError) {
+      console.log(message);
+    }
+
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate, isError, message]);
 
   return (
     <Flex
@@ -42,11 +61,19 @@ const LoginPage = () => {
             <Stack spacing={4}>
               <FormControl id="email">
                 <FormLabel>Email address</FormLabel>
-                <Input type="email" />
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </FormControl>
               <FormControl id="password">
                 <FormLabel>Password</FormLabel>
-                <Input type="password" />
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </FormControl>
               <Stack spacing={10}>
                 <Stack
