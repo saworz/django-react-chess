@@ -8,7 +8,7 @@ type Props = {
 
 const Layout = ({ children }: Props) => {
   return (
-    <Flex direction="column" minH="100vh" p={5}>
+    <Flex direction="column" minH="100vh">
       <Flex ml={"auto"} p={"10px"}>
         <ColorModeSwitcher />
       </Flex>

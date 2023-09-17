@@ -9,11 +9,13 @@ import {
   Center,
 } from "@chakra-ui/react";
 import { ReactComponent as PawnImage } from "../../images/homepage_pawn.svg";
+import { useNavigate } from "react-router-dom";
 
 type Props = {};
 
 const HomePage = (props: Props) => {
   const mainColor = useColorModeValue(theme.colors.black, theme.colors.white);
+  const navigate = useNavigate();
 
   return (
     <Flex
@@ -33,11 +35,15 @@ const HomePage = (props: Props) => {
             Chess Game
           </Text>
           <HStack justify="center">
-            <Button colorScheme="orange" variant="solid">
-              Login
+            <Button
+              onClick={() => navigate("/login")}
+              colorScheme="orange"
+              variant="solid"
+            >
+              Sign in
             </Button>
             <Button colorScheme="orange" variant="outline">
-              Register
+              Sign up
             </Button>
           </HStack>
         </Center>
