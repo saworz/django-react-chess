@@ -40,7 +40,7 @@ const RegisterPage = () => {
 
   const handleRegister = () => {
     const loginData: SharedTypes.IRegisterUserData = {
-      login: userLogin,
+      username: userLogin,
       email,
       password1: password,
       password2: repeatPassword,
