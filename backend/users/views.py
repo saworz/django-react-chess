@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from .forms import UserRegisterForm
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+import json
 
 
 def get_errors(form_errors):
@@ -18,8 +19,8 @@ def get_errors(form_errors):
 @csrf_exempt
 def register(request):
     if request.method == 'POST':
-        print(request.POST)
-        form = UserRegisterForm(request.POST)
+        data = json.loads(request.body.decode('utf-8'))
+        form = UserRegisterForm(data)
         if form.is_valid():
             form.save()
             username = form.cleaned_data.get('username')
