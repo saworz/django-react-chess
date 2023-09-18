@@ -16,10 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from . import views
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('api/', include('app_core.urls')),
     path('api/users/', include('users.urls')),
+
+    path('schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('schema/swagger-ui/',
+         SpectacularSwaggerView.as_view(url_name='schema'),
+         name='swagger-ui'),
 ]

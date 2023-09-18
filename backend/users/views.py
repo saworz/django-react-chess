@@ -1,31 +1,46 @@
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from .forms import UserRegisterForm
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import json
+from rest_framework.views import APIView
+from .serializers import UserRegisterFormSerializer, UserSuccessResponseSerializer, UserErrorResponseSerializer
+
+from drf_spectacular.utils import extend_schema, OpenApiResponse
+from django.utils.decorators import method_decorator
 
 
-def get_errors(form_errors):
-    errors_list = []
-    for _, errors in form_errors.items():
-        for error in errors:
-            errors_list.append(error)
-    return errors_list
+@extend_schema(
+    responses={
+        201: OpenApiResponse(response=UserSuccessResponseSerializer, description='User created'),
+        400: OpenApiResponse(response=UserErrorResponseSerializer, description='Bad request'),
+    },
+)
+@method_decorator(csrf_exempt, name='dispatch')
+class RegisterView(APIView):
+    serializer_class = UserRegisterFormSerializer
 
+    @staticmethod
+    def reformat_error(error: str) -> str:
+        min_length = 8
+        return error % {'min_length': min_length}
 
-@csrf_exempt
-def register(request):
-    if request.method == 'POST':
-        data = json.loads(request.body.decode('utf-8'))
-        form = UserRegisterForm(data)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            messages.success(request, f'Account created for {username}!')
-            return JsonResponse({"message": "Registration successful"}, status=201)
+    def get_errors(self, form_errors: dict) -> dict:
+        errors_dict = {}
+        for field, errors in form_errors.items():
+            for error in errors:
+                if '%(min_length)d' in error:
+                    errors_dict[str(field)] = self.reformat_error(error)
+                else:
+                    errors_dict[str(field)] = error
+        return errors_dict
 
-        errors = get_errors(form.errors)
-        return JsonResponse({"message": "Registration failed", "errors": errors}, status=400)
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            form = serializer.save()
+            if form.is_valid():
+                form.save()
+                return JsonResponse({"message": "Registration successful."}, status=201)
+            errors = self.get_errors(form.errors)
+        else:
+            errors = self.get_errors(serializer.errors)
+        return JsonResponse({"message": "Registration failed.", "errors": errors},
+                            status=400)

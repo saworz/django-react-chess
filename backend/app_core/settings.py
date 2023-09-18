@@ -32,6 +32,8 @@ ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     'app_core',
+    'drf_spectacular',
+    'rest_framework',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -128,3 +130,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ORIGIN_ALLOW_ALL = True
 
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Django React Chess',
+}
