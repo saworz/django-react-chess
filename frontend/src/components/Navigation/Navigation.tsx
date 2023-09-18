@@ -15,6 +15,9 @@ import {
   Stack,
 } from "@chakra-ui/react";
 import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../../app/store";
+import { logout } from "../../features/auth/authSlice";
 
 interface Props {
   children: React.ReactNode;
@@ -44,6 +47,7 @@ const NavLink = (props: Props) => {
 
 const Navigation = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const dispatch: AppDispatch = useDispatch();
 
   return (
     <Box bg={useColorModeValue("gray.100", "gray.900")} px={4}>
@@ -83,7 +87,7 @@ const Navigation = () => {
               <MenuItem>Link 1</MenuItem>
               <MenuItem>Link 2</MenuItem>
               <MenuDivider />
-              <MenuItem>Logout</MenuItem>
+              <MenuItem onClick={() => dispatch(logout())}>Logout</MenuItem>
             </MenuList>
           </Menu>
         </Flex>
