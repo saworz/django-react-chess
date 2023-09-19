@@ -8,13 +8,8 @@ class UserRegisterFormSerializer(serializers.Serializer):
     password1 = serializers.CharField(max_length=128)
     password2 = serializers.CharField(max_length=128)
 
-    def create(self, validated_data):
+    def create(self, validated_data) -> UserRegisterForm:
         return UserRegisterForm(validated_data)
-
-    def update(self, instance, validated_data):
-        # Implement the logic to update user data based on the validated data.
-        # Typically, you won't use this method for registration.
-        pass
 
 
 class UserSuccessResponseSerializer(serializers.Serializer):
@@ -31,4 +26,3 @@ class UserErrorDictSerializer(serializers.Serializer):
 class UserErrorResponseSerializer(serializers.Serializer):
     message = serializers.CharField()
     errors = UserErrorDictSerializer()
-

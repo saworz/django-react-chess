@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
+from rest_framework import status
 from .serializers import UserRegisterFormSerializer, UserSuccessResponseSerializer, UserErrorResponseSerializer
 
 from drf_spectacular.utils import extend_schema, OpenApiResponse
@@ -32,15 +33,15 @@ class RegisterView(APIView):
                     errors_dict[str(field)] = error
         return errors_dict
 
-    def post(self, request):
+    def post(self, request) -> JsonResponse:
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             form = serializer.save()
             if form.is_valid():
                 form.save()
-                return JsonResponse({"message": "Registration successful."}, status=201)
+                return JsonResponse({"message": "Registration successful."}, status=status.HTTP_201_CREATED)
             errors = self.get_errors(form.errors)
         else:
             errors = self.get_errors(serializer.errors)
         return JsonResponse({"message": "Registration failed.", "errors": errors},
-                            status=400)
+                            status=status.HTTP_400_BAD_REQUEST)
