@@ -26,3 +26,23 @@ class UserErrorDictSerializer(serializers.Serializer):
 class UserErrorResponseSerializer(serializers.Serializer):
     message = serializers.CharField()
     errors = UserErrorDictSerializer()
+
+
+class UserLoginSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=100)
+    password = serializers.CharField(max_length=128)
+
+
+class ProfileSuccessDictSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    email = serializers.CharField()
+    image_url = serializers.CharField()
+
+
+class ProfileSuccessResponseSerializer(serializers.Serializer):
+    message = serializers.CharField()
+    user = ProfileSuccessDictSerializer()
+
+
+class ProfileErrorResponseSerializer(serializers.Serializer):
+    message = serializers.CharField()
