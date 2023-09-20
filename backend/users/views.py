@@ -8,6 +8,7 @@ from .serializers import (UserRegisterFormSerializer, UserSuccessResponseSeriali
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 
 @extend_schema(
@@ -71,7 +72,13 @@ class LoginView(APIView):
                 user_data = {"username": user.username,
                              "email": user.email,
                              "image_url": request.build_absolute_uri(user.profile.image.url)}
-                return JsonResponse({"message": "Login successful", "user": user_data}, status=status.HTTP_200_OK)
+
+                jwt_access_token = str(AccessToken.for_user(user))
+                jwt_refresh_token = str(RefreshToken.for_user(user))
+
+                return JsonResponse({"message": "Login successful", "user": user_data,
+                                     "jwt_access_token": jwt_access_token, "jwt_refresh_token": jwt_refresh_token},
+                                    status=status.HTTP_200_OK)
 
             return JsonResponse({"message": "Invalid username or password"},
                                 status=status.HTTP_401_UNAUTHORIZED)
