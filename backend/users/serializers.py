@@ -12,7 +12,7 @@ class UserRegisterFormSerializer(serializers.Serializer):
         return UserRegisterForm(validated_data)
 
 
-class UserSuccessResponseSerializer(serializers.Serializer):
+class MessageResponseSerializer(serializers.Serializer):
     message = serializers.CharField()
 
 
@@ -33,16 +33,14 @@ class UserLoginSerializer(serializers.Serializer):
     password = serializers.CharField(max_length=128)
 
 
-class ProfileSuccessDictSerializer(serializers.Serializer):
+class LoginSuccessDictSerializer(serializers.Serializer):
     username = serializers.CharField()
     email = serializers.CharField()
     image_url = serializers.CharField()
 
 
-class ProfileSuccessResponseSerializer(serializers.Serializer):
+class LoginSuccessResponseSerializer(serializers.Serializer):
     message = serializers.CharField()
-    user = ProfileSuccessDictSerializer()
-
-
-class ProfileErrorResponseSerializer(serializers.Serializer):
-    message = serializers.CharField()
+    user = LoginSuccessDictSerializer()
+    jwt_access_token = serializers.CharField()
+    jwt_refresh_token = serializers.CharField()
