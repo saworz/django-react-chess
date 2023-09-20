@@ -3,23 +3,38 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from rest_framework import status
 from .serializers import (UserRegisterFormSerializer, UserErrorResponseSerializer,
-                          UserLoginSerializer, LoginSuccessResponseSerializer, MessageResponseSerializer)
+                          UserLoginSerializer, LoginSuccessResponseSerializer, MessageResponseSerializer,)
 
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, OpenApiExample
+from drf_spectacular.types import OpenApiTypes
 from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate, login, logout
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from django.contrib.auth.models import User
 
 
-@extend_schema(
-    responses={
-        201: OpenApiResponse(response=MessageResponseSerializer, description='User created'),
-        400: OpenApiResponse(response=UserErrorResponseSerializer, description='Bad request'),
-    },
-)
 @method_decorator(csrf_exempt, name='dispatch')
 class RegisterView(APIView):
     serializer_class = UserRegisterFormSerializer
+
+    @extend_schema(
+        responses={
+            201: OpenApiResponse(response=MessageResponseSerializer, description='User created'),
+            400: OpenApiResponse(response=UserErrorResponseSerializer, description='Bad request'),
+        },
+    )
+    def post(self, request) -> JsonResponse:
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            form = serializer.save()
+            if form.is_valid():
+                form.save()
+                return JsonResponse({"message": "Registration successful."}, status=status.HTTP_201_CREATED)
+            errors = self.get_errors(form.errors)
+        else:
+            errors = self.get_errors(serializer.errors)
+        return JsonResponse({"message": "Registration failed.", "errors": errors},
+                            status=status.HTTP_400_BAD_REQUEST)
 
     @staticmethod
     def reformat_error(error: str) -> str:
@@ -35,19 +50,6 @@ class RegisterView(APIView):
                 else:
                     errors_dict[str(field)] = error
         return errors_dict
-
-    def post(self, request) -> JsonResponse:
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            form = serializer.save()
-            if form.is_valid():
-                form.save()
-                return JsonResponse({"message": "Registration successful."}, status=status.HTTP_201_CREATED)
-            errors = self.get_errors(form.errors)
-        else:
-            errors = self.get_errors(serializer.errors)
-        return JsonResponse({"message": "Registration failed.", "errors": errors},
-                            status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(
@@ -92,10 +94,42 @@ class LoginView(APIView):
 )
 class LogoutView(APIView):
     """
-    Parameters:
+    Request body:
     - No request data is expected for this endpoint.
     """
     serializer_class = None
+
     def post(self, request):
         logout(request)
         return JsonResponse({"message": "User logged out"}, status=status.HTTP_200_OK)
+
+
+class ListProfilesView(APIView):
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='search_string', description='Partial string to search in database',
+                             type=str, location=OpenApiParameter.QUERY
+                             ),
+        ],
+        responses={
+            200: OpenApiResponse(response=MessageResponseSerializer, description='Results returned'),
+            400: OpenApiResponse(response=MessageResponseSerializer, description='Wrong request')
+        },
+    )
+    def get(self, request):
+
+        search_string = request.GET.get("search_string")
+        users_list = []
+
+        try:
+            if len(search_string) > 0:
+                users = User.objects.filter(username__contains=search_string)
+
+                for user in users:
+                    results = {'name': user.username, 'email': user.email, 'image_url': user.profile.image.url}
+                    users_list.append(results)
+
+        except TypeError:
+            return JsonResponse({"error": "Incorrect query parameter"}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({"search_results": users_list}, status=status.HTTP_200_OK)
