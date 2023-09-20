@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 import { AppDispatch, RootState } from "../../app/store";
 import { useDispatch, useSelector } from "react-redux";
 import { register } from "../../features/auth/authSlice";
+import { toast } from "react-toastify";
 import * as SharedTypes from "../../shared/types";
 
 const RegisterPage = () => {
@@ -39,13 +40,43 @@ const RegisterPage = () => {
   );
 
   const handleRegister = () => {
-    const loginData: SharedTypes.IRegisterUserData = {
+    const registerData: SharedTypes.IRegisterUserData = {
       username: userLogin,
       email,
       password1: password,
       password2: repeatPassword,
     };
-    dispatch(register(loginData));
+    dispatch(register(registerData)).then((response) => {
+      if (response.meta.requestStatus === "fulfilled") {
+        toast.success(`${response.payload.message.slice(0, -1)}`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+        navigate("/login");
+      } else if (response.meta.requestStatus === "rejected") {
+        toast.error(
+          `${response.payload.message.slice(0, -1)} - ${
+            response.payload.errors[Object.keys(response.payload.errors)[0]]
+          }`,
+          {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          }
+        );
+      }
+    });
   };
 
   useEffect(() => {
