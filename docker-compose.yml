@@ -1,19 +1,46 @@
-version: '3'
+version: '3.8'
+
 services:
-  backend:
-    build: ./backend
-    ports:
-      - "8000:8000"
+  db:
+    container_name: mysql-container
+    image: mysql:8.0
+    restart: always
+    command: mysqld --default-authentication-plugin=mysql_native_password
     volumes:
-      - ./backend:/backend
-    command: python manage.py runserver 0.0.0.0:8000
-    # Add other configuration options as needed
+      - ./mysql:/var/lib/mysql
+    env_file:
+      - ../django_react_chess/.env.dev
+    environment:
+      - MYSQL_ROOT_PASSWORD=${SQL_ROOT_PASSWORD}
+      - MYSQL_USER=${SQL_USER}
+      - MYSQL_PASSWORD=${SQL_PASSWORD}
+      - MYSQL_DATABASE=${SQL_DATABASE}
+    ports:
+      - 3307:3306
 
   frontend:
+    container_name: react-web
     build:
       context: ./frontend
+      dockerfile: Dockerfile
     volumes:
-      - ./frontend:/frontend
+      - ./frontend:/usr/src/frontend
     ports:
-      - "3000:3000"
-    # Add other configuration options as needed
+      - 3000:3000
+
+  web:
+    container_name: django-web
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend/:/usr/src/backend/
+    env_file:
+      - ../django_react_chess/.env.dev
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    links:
+      - db
