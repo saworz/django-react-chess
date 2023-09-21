@@ -15,9 +15,9 @@ import { useNavigate } from "react-router-dom";
 import { AppDispatch } from "../../../app/store";
 import { toast } from "react-toastify";
 import { register } from "../../../features/auth/authSlice";
+import { useState } from "react";
 
 import * as SharedStyles from "./../../../shared/styles";
-import { useState } from "react";
 
 const SignupSchema = Yup.object().shape({
   username: Yup.string()
