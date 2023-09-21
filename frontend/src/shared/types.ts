@@ -14,7 +14,7 @@ export interface IRegisterUserData {
 }
 
 export interface ILoginUserData {
-  email: string;
+  username: string;
   password: string;
 }
 

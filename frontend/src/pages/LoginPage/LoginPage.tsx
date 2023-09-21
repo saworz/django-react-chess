@@ -1,26 +1,19 @@
 import {
   Flex,
   Box,
-  FormControl,
-  FormLabel,
-  Input,
-  Checkbox,
   Stack,
   Button,
   Heading,
-  Text,
   useColorModeValue,
   ScaleFade,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../app/store";
 import { useSelector } from "react-redux";
+import LoginForm from "../../components/LoginPage/LoginForm";
 
 const LoginPage = () => {
-  const [password, setPassword] = useState("");
-  const [email, setEmail] = useState("");
-
   const navigate = useNavigate();
   const { user, isError, message } = useSelector(
     (state: RootState) => state.auth
@@ -59,42 +52,14 @@ const LoginPage = () => {
             p={8}
           >
             <Stack spacing={4}>
-              <FormControl id="email">
-                <FormLabel>Email address</FormLabel>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </FormControl>
-              <FormControl id="password">
-                <FormLabel>Password</FormLabel>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </FormControl>
-              <Stack spacing={10}>
-                <Stack
-                  direction={{ base: "column", sm: "row" }}
-                  align={"start"}
-                  justify={"space-between"}
-                >
-                  <Checkbox>Remember me</Checkbox>
-                  <Text color={"blue.400"}>Forgot password?</Text>
-                </Stack>
-                <Button colorScheme="orange" variant="solid">
-                  Sign in
-                </Button>
-                <Button
-                  onClick={() => navigate("/")}
-                  colorScheme="orange"
-                  variant="outlined"
-                >
-                  Back
-                </Button>
-              </Stack>
+              <LoginForm />
+              <Button
+                onClick={() => navigate("/")}
+                colorScheme="orange"
+                variant="outlined"
+              >
+                Back
+              </Button>
             </Stack>
           </Box>
         </Stack>
