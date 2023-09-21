@@ -1,3 +1,6 @@
+# USE THIS TO RUN
+# docker compose --env-file .env.dev up --build
+
 version: '3.8'
 
 services:
