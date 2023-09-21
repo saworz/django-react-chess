@@ -12,7 +12,7 @@ services:
     volumes:
       - ./mysql:/var/lib/mysql
     env_file:
-      - ../django_react_chess/.env.dev
+      - ../django-react-chess/.env.dev
     environment:
       - MYSQL_ROOT_PASSWORD=${SQL_ROOT_PASSWORD}
       - MYSQL_USER=${SQL_USER}
@@ -40,7 +40,7 @@ services:
     volumes:
       - ./backend/:/usr/src/backend/
     env_file:
-      - ../django_react_chess/.env.dev
+      - ../django-react-chess/.env.dev
     ports:
       - 8000:8000
     depends_on:
