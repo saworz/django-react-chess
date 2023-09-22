@@ -11,9 +11,7 @@ import {
 import { ReactComponent as PawnImage } from "../../images/homepage_pawn.svg";
 import { useNavigate } from "react-router-dom";
 
-type Props = {};
-
-const HomePage = (props: Props) => {
+const HomePage = () => {
   const mainColor = useColorModeValue(theme.colors.black, theme.colors.white);
   const navigate = useNavigate();
 

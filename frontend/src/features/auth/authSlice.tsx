@@ -83,6 +83,7 @@ export const authSlice = createSlice({
       .addCase(logout.fulfilled, (state) => {
         state.user = null!;
         localStorage.removeItem("user");
+        localStorage.removeItem("token");
       })
       .addCase(login.pending, (state) => {
         state.isLoading = true;
@@ -91,8 +92,9 @@ export const authSlice = createSlice({
         state.isLoading = false;
         state.isSuccess = true;
         state.user = action.payload.user;
+        localStorage.setItem("user", JSON.stringify(action.payload.user));
         localStorage.setItem(
-          "user",
+          "token",
           JSON.stringify({
             accessToken: action.payload.jwt_access_token,
             refreshToken: action.payload.jwt_refresh_token,

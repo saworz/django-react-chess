@@ -19,8 +19,12 @@ export interface ILoginUserData {
 }
 
 export interface IUserData {
-  _id: string;
-  login: string;
+  username: string;
   email: string;
-  token: string;
+  image_url: string;
+}
+
+export interface TokenData {
+  accessToken: string;
+  refreshToken: string;
 }

@@ -6,19 +6,13 @@ import { Flex, Text } from "@chakra-ui/react";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
-  const { user, isError, message } = useSelector(
-    (state: RootState) => state.auth
-  );
+  const { isError, message } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     if (isError) {
       console.log(message);
     }
-
-    if (!user) {
-      navigate("/login");
-    }
-  }, [user, navigate, isError, message]);
+  }, [navigate, isError, message]);
 
   function getCookie(name: string) {
     let cookieValue = null;

@@ -18,19 +18,13 @@ import RegisterForm from "../../components/RegisterPage/RegisterForm";
 const RegisterPage = () => {
   const navigate = useNavigate();
 
-  const { user, isError, message } = useSelector(
-    (state: RootState) => state.auth
-  );
+  const { isError, message } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     if (isError) {
       console.log(message);
     }
-
-    if (user) {
-      navigate("/dashboard");
-    }
-  }, [user, navigate, isError, message]);
+  }, [navigate, isError, message]);
 
   return (
     <Flex
