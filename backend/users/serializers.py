@@ -33,7 +33,7 @@ class UserLoginSerializer(serializers.Serializer):
     password = serializers.CharField(max_length=128)
 
 
-class LoginSuccessDictSerializer(serializers.Serializer):
+class UserDataDictSerializer(serializers.Serializer):
     username = serializers.CharField()
     email = serializers.CharField()
     image_url = serializers.CharField()
@@ -41,6 +41,6 @@ class LoginSuccessDictSerializer(serializers.Serializer):
 
 class LoginSuccessResponseSerializer(serializers.Serializer):
     message = serializers.CharField()
-    user = LoginSuccessDictSerializer()
+    user = UserDataDictSerializer()
     jwt_access_token = serializers.CharField()
     jwt_refresh_token = serializers.CharField()

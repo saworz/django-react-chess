@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from rest_framework import status
 from .serializers import (UserRegisterFormSerializer, UserErrorResponseSerializer,
-                          UserLoginSerializer, LoginSuccessResponseSerializer, MessageResponseSerializer,)
+                          UserLoginSerializer, UserDataDictSerializer, MessageResponseSerializer,)
 
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
@@ -11,6 +11,10 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate, login, logout
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from django.contrib.auth.models import User
+from django.views.generic.detail import DetailView
+from .models import Profile
+from django.shortcuts import get_object_or_404
+from django.http import Http404
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -54,7 +58,7 @@ class RegisterView(APIView):
 
 @extend_schema(
     responses={
-        200: OpenApiResponse(response=LoginSuccessResponseSerializer, description='User logged in'),
+        200: OpenApiResponse(response=UserDataDictSerializer, description='User logged in'),
         400: OpenApiResponse(response=MessageResponseSerializer, description='Bad request'),
         401: OpenApiResponse(response=MessageResponseSerializer, description='Wrong credentials'),
     },
@@ -133,3 +137,29 @@ class ListProfilesView(APIView):
         except TypeError:
             return JsonResponse({"error": "Incorrect query parameter"}, status=status.HTTP_400_BAD_REQUEST)
         return JsonResponse({"search_results": users_list}, status=status.HTTP_200_OK)
+
+
+class UserDetailView(APIView):
+    model = User
+    serializer_class = None
+
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(response=UserDataDictSerializer, description='Results returned'),
+            404: OpenApiResponse(response=MessageResponseSerializer, description='Wrong request')
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        username = self.kwargs.get('username')
+
+        try:
+            user = get_object_or_404(User, username=username)
+            user_data = {
+                'username': user.username,
+                'email': user.email,
+                'image': user.profile.image.url,
+            }
+            return JsonResponse(user_data, status=status.HTTP_200_OK)
+
+        except Http404:
+            return JsonResponse({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
