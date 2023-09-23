@@ -5,12 +5,21 @@ from .models import FriendRequest
 from django.contrib.auth.models import User
 
 
-class FriendsStatusView(APIView):
-
-    def get(self, request, *args, **kwargs):
-
-        logged_user = request.user
-        other_user = User.objects.get(pk=self.kwargs.get('pk'))
+class SendRequestView(APIView):
+    pass
 
 
-        return JsonResponse({"request": self.kwargs, "user_logged": request.user.username})
+class AcceptRequestView(APIView):
+    pass
+
+
+class DeclineRequestView(APIView):
+    pass
+
+
+class UndoRequestView(APIView):
+    pass
+
+
+class RemoveFriendView(APIView):
+    pass

@@ -42,7 +42,7 @@ class UserDataDictSerializer(serializers.Serializer):
     image_url = serializers.CharField()
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class LoggedUserSerializer(serializers.Serializer):
     id = serializers.ReadOnlyField(source='user.id')
     username = serializers.ReadOnlyField(source='user.username')
     email = serializers.ReadOnlyField(source='user.email')
@@ -57,7 +57,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             return obj.image.url
 
 
-class UsersListSerializer(UserProfileSerializer):
+class OtherUserSerializer(LoggedUserSerializer):
     is_friend = serializers.SerializerMethodField()
     pending_request = serializers.SerializerMethodField()
     request_sender = serializers.SerializerMethodField()
@@ -68,27 +68,36 @@ class UsersListSerializer(UserProfileSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.logged_user = self.context['request'].user
+        self.logged_user = None
         self.other_user = None
 
-    def get_is_friend(self, obj):
+    def get_is_friend(self, obj) -> bool:
+        self.logged_user = self.context['request'].user
         self.other_user = User.objects.get(pk=obj.id)
 
         if User.objects.get(pk=obj.id) in self.context['request'].user.profile.friends.all():
             return True
         return False
 
-    def get_pending_request(self, obj):
+    def get_pending_request(self, obj) -> bool:
 
         if FriendRequest.objects.filter(from_user=self.logged_user, to_user=self.other_user).exists() or \
                 FriendRequest.objects.filter(from_user=self.other_user, to_user=self.logged_user).exists():
             return True
         return False
 
-    def get_request_sender(self, obj):
+    def get_request_sender(self, obj) -> str | None:
         pending_request = self.get_pending_request(obj)
 
         if pending_request:
             if FriendRequest.objects.filter(from_user=self.logged_user, to_user=self.other_user).exists():
                 return self.logged_user.username
             return self.other_user.username
+
+
+class UsersListSerializer(OtherUserSerializer):
+
+    class Meta:
+        model = Profile
+        fields = ['id', 'username', 'email', 'image', 'is_friend', 'pending_request', 'request_sender']
+

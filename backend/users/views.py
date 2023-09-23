@@ -5,8 +5,8 @@ from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.filters import SearchFilter
 from rest_framework import status
 from .serializers import (UserRegisterFormSerializer, UserErrorResponseSerializer,
-                          UserLoginSerializer, UserDataDictSerializer, MessageResponseSerializer, UserProfileSerializer,
-                          UsersListSerializer)
+                          UserLoginSerializer, UserDataDictSerializer, MessageResponseSerializer, LoggedUserSerializer,
+                          UsersListSerializer, OtherUserSerializer)
 
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
@@ -114,18 +114,18 @@ class LogoutView(APIView):
 
 @extend_schema(
     responses={
-        200: OpenApiResponse(response=UserProfileSerializer, description='Retrieved user data'),
+        200: OpenApiResponse(response=OtherUserSerializer, description='Retrieved user data'),
         400: OpenApiResponse(response=MessageResponseSerializer, description='Incorrect or empty query parameter'),
     },
 )
 class UserDataRetrieveAPIView(RetrieveAPIView):
     queryset = Profile.objects.all()
-    serializer_class = UserProfileSerializer
+    serializer_class = OtherUserSerializer
 
 
 @extend_schema(
     responses={
-        200: OpenApiResponse(response=UserProfileSerializer, description='Retrieved users list'),
+        200: OpenApiResponse(response=UsersListSerializer, description='Retrieved users list'),
         400: OpenApiResponse(response=MessageResponseSerializer, description='Incorrect or empty query parameter'),
     },
 )
