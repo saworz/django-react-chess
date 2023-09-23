@@ -49,7 +49,7 @@ const FriendsPage = () => {
 
   return (
     <Flex alignItems={"center"} flex={1} direction="column">
-      <Stack w="50%" alignItems={"center"}>
+      <Stack w={{ base: "100%", lg: "50%" }} alignItems={"center"}>
         <Text
           marginLeft="5"
           fontSize={"2rem"}
@@ -63,7 +63,7 @@ const FriendsPage = () => {
           bg={useColorModeValue("white", "gray.700")}
           boxShadow={"lg"}
           w="100%"
-          maxH="80vh"
+          maxH={{ base: "", md: "80vh" }}
           marginBottom="10"
           p={8}
           textAlign="center"

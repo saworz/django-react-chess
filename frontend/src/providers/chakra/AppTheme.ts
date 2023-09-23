@@ -18,8 +18,18 @@ export const textTheme = defineStyleConfig({
   variants: { basic },
 });
 
+const breakpoints = {
+  base: "0px",
+  sm: "320px",
+  md: "500px",
+  lg: "960px",
+  xl: "1200px",
+  "2xl": "1536px",
+};
+
 const theme = extendTheme({
   config,
+  breakpoints,
   colors: {
     red: "FC0000",
     green: "00FC00",

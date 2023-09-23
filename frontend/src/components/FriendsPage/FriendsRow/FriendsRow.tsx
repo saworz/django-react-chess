@@ -11,19 +11,25 @@ import * as SharedTypes from "./FriendsRow.types";
 const FriendsRow = ({ email, name, image_url }: SharedTypes.IProps) => {
   return (
     <Stack
-      direction="row"
+      direction={{ base: "column", md: "row" }}
       justifyContent="inherit"
       bg={useColorModeValue("white", "gray.600")}
       p={4}
       rounded={"xl"}
     >
       <Image
+        alignSelf={{ base: "center", md: "left" }}
         src={"http://localhost:8000" + image_url}
         alt={"Avatar " + name}
         boxSize="110px"
         height={{ base: "135px", "2xl": "110px" }}
       ></Image>
-      <Box w="100%" alignSelf="center" textAlign="left" p={2}>
+      <Box
+        w="100%"
+        alignSelf="center"
+        textAlign={{ base: "center", md: "left" }}
+        p={2}
+      >
         <Text fontWeight="black">{name}</Text>
         <Text fontWeight="normal">{email}</Text>
       </Box>
