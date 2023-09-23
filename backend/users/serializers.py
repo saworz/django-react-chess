@@ -47,6 +47,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
     username = serializers.ReadOnlyField(source='user.username')
     email = serializers.ReadOnlyField(source='user.email')
     image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ['id', 'username', 'email', 'image']
+
+    def get_image(self, obj) -> str:
+        if obj.image:
+            return obj.image.url
+
+
+class UsersListSerializer(UserProfileSerializer):
     is_friend = serializers.SerializerMethodField()
     pending_request = serializers.SerializerMethodField()
     request_sender = serializers.SerializerMethodField()
@@ -59,10 +70,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
         self.logged_user = self.context['request'].user
         self.other_user = None
-
-    def get_image(self, obj) -> str:
-        if obj.image:
-            return obj.image.url
 
     def get_is_friend(self, obj):
         self.other_user = User.objects.get(pk=obj.id)
