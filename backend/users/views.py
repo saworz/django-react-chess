@@ -5,7 +5,8 @@ from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.filters import SearchFilter
 from rest_framework import status
 from .serializers import (UserRegisterFormSerializer, UserErrorResponseSerializer,
-                          UserLoginSerializer, UserDataDictSerializer, MessageResponseSerializer, UserProfileSerializer)
+                          UserLoginSerializer, UserDataDictSerializer, MessageResponseSerializer, UserProfileSerializer,
+                          UsersListSerializer)
 
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
@@ -130,7 +131,7 @@ class UserDataRetrieveAPIView(RetrieveAPIView):
 )
 class UsersDataListView(ListAPIView):
     queryset = Profile.objects.all()
-    serializer_class = UserProfileSerializer
+    serializer_class = UsersListSerializer
 
     def get_queryset(self):
         queryset = super().get_queryset()
