@@ -43,14 +43,9 @@ const isUserLogged = () => {
     const token: SharedTypes.TokenData = JSON.parse(tokenData);
 
     if (token && token.refreshToken && token.accessToken && user) {
-      console.log(
-        "Auth:",
-        token && token.refreshToken && token.accessToken && user
-      );
       return true;
     }
   }
-  console.log("Auth:", false);
   return false;
 };
 

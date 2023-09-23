@@ -50,7 +50,9 @@ const Navigation = () => {
         <HStack spacing={8} alignItems={"center"}>
           <Box>
             <HStack>
-              <Text fontWeight="black">Chess Game</Text>
+              <Text display={{ base: "none", sm: "block" }} fontWeight="black">
+                Chess Game
+              </Text>
               <PawnLogo style={{ stroke: `${mainColor}` }} />
             </HStack>
           </Box>
