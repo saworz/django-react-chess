@@ -1,4 +1,11 @@
-import { Box, Flex, Stack, Text, useColorModeValue } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Skeleton,
+  Stack,
+  Text,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import SearchForm from "../../components/FriendsPage/SearchForm";
 import FriendsCountIndex from "../../components/FriendsPage/FriendsCountIndex";
 import FriendsRowList from "../../components/FriendsPage/FriendsRowList";
@@ -10,12 +17,16 @@ const API_URL = "http://localhost:8000/api/users/";
 const FriendsPage = () => {
   const [suggestionsList, setSuggestionsList] = useState([]);
   const [searchInput, setSearchInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const getData = async () => {
-    const response = await axios.get(
-      API_URL + `list_profiles?search_string=${searchInput}`
-    );
-    setSuggestionsList(response.data.search_results);
+    setIsLoading(true);
+    await axios
+      .get(API_URL + `list_profiles?search_string=${searchInput}`)
+      .then((response) => {
+        setSuggestionsList(response.data.search_results);
+        setIsLoading(false);
+      });
   };
 
   useEffect(() => {
@@ -28,7 +39,16 @@ const FriendsPage = () => {
   }, [searchInput]);
 
   const renderResults = () => {
-    if (suggestionsList.length > 0 && searchInput) {
+    if (isLoading) {
+      return (
+        <Stack h="72vh">
+          <Skeleton height="142px" bg="blue.500" color="white" />
+          <Skeleton height="142px" bg="blue.500" color="white" />
+          <Skeleton height="142px" bg="blue.500" color="white" />
+          <Skeleton height="142px" bg="blue.500" color="white" />
+        </Stack>
+      );
+    } else if (suggestionsList.length > 0 && searchInput) {
       return <FriendsRowList suggestionList={suggestionsList} />;
     } else if (searchInput !== "" && suggestionsList.length === 0) {
       return (
