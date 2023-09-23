@@ -140,4 +140,10 @@ class UsersDataListView(ListAPIView):
             raise ValidationError("Incorrect or empty query parameter")
 
         queryset = queryset.filter(user__username__icontains=partial_string)
-        return queryset
+        new_queryset = []
+
+        for profile in queryset:
+            if self.request.user.profile != User.objects.get(pk=profile.pk).profile:
+                new_queryset.append(profile)
+
+        return new_queryset

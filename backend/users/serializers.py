@@ -46,13 +46,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
     username = serializers.ReadOnlyField(source='user.username')
     email = serializers.ReadOnlyField(source='user.email')
     image = serializers.SerializerMethodField()
+    is_friends = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
-        fields = ['id', 'username', 'email', 'image']
+        fields = ['id', 'username', 'email', 'image', 'is_friends']
 
     def get_image(self, obj) -> str:
         if obj.image:
             return obj.image.url
         return None
 
+    def get_is_friends(self, obj):
+        print(self.context['request'].user)
+        return True
