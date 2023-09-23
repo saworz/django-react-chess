@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .forms import UserRegisterForm
+from django.contrib.auth.models import User
+from .models import Profile
 
 
 class UserRegisterFormSerializer(serializers.Serializer):
@@ -39,8 +41,18 @@ class UserDataDictSerializer(serializers.Serializer):
     image_url = serializers.CharField()
 
 
-class LoginSuccessResponseSerializer(serializers.Serializer):
-    message = serializers.CharField()
-    user = UserDataDictSerializer()
-    jwt_access_token = serializers.CharField()
-    jwt_refresh_token = serializers.CharField()
+class UserProfileSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='user.id')
+    username = serializers.ReadOnlyField(source='user.username')
+    email = serializers.ReadOnlyField(source='user.email')
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ['id', 'username', 'email', 'image']
+
+    def get_image(self, obj) -> str:
+        if obj.image:
+            return obj.image.url
+        return None
+
