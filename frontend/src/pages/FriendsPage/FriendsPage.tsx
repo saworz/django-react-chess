@@ -22,9 +22,9 @@ const FriendsPage = () => {
   const getData = async () => {
     setIsLoading(true);
     await axios
-      .get(API_URL + `list_profiles?search_string=${searchInput}`)
+      .get(API_URL + `list_profiles/${searchInput}`)
       .then((response) => {
-        setSuggestionsList(response.data.search_results);
+        setSuggestionsList(response.data);
         setIsLoading(false);
       });
   };
@@ -71,7 +71,7 @@ const FriendsPage = () => {
     <Flex alignItems={"center"} flex={1} direction="column">
       <Stack w={{ base: "100%", lg: "50%" }} alignItems={"center"}>
         <Text
-          marginLeft="5"
+          marginLeft="3"
           fontSize={"2rem"}
           fontWeight="black"
           alignSelf="flex-start"
