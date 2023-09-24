@@ -74,7 +74,8 @@ class LoginView(APIView):
             user = authenticate(username=validated_data['username'], password=validated_data['password'])
 
             if user is not None:
-                user_data = {"username": user.username,
+                user_data = {"id": user.pk,
+                             "username": user.username,
                              "email": user.email,
                              "image_url": request.build_absolute_uri(user.profile.image.url)}
 

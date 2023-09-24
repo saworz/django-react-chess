@@ -37,6 +37,7 @@ class UserLoginSerializer(serializers.Serializer):
 
 
 class UserDataDictSerializer(serializers.Serializer):
+    id = serializers.CharField()
     username = serializers.CharField()
     email = serializers.CharField()
     image_url = serializers.CharField()
@@ -75,7 +76,7 @@ class OtherUserSerializer(LoggedUserSerializer):
         self.logged_user = self.context['request'].user
         self.other_user = User.objects.get(pk=obj.id)
 
-        if User.objects.get(pk=obj.id) in self.context['request'].user.profile.friends.all():
+        if User.objects.get(pk=obj.id).profile in self.context['request'].user.profile.friends.all():
             return True
         return False
 
