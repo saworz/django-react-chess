@@ -31,8 +31,8 @@ class SendRequestView(UsersView):
         logged_user = self.get_logged_user()
         other_user = self.get_other_user()
 
-        FriendRequest.objects.create(from_user=logged_user,
-                                     to_user=other_user)
+        FriendRequest.objects.get_or_create(from_user=logged_user,
+                                            to_user=other_user)
 
         return JsonResponse({"message": "Request sent"}, status=status.HTTP_200_OK)
 
