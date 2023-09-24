@@ -71,7 +71,7 @@ class RemoveFriendView(UsersView):
         logged_user = self.get_logged_user()
         other_user = self.get_other_user()
 
-        other_user.profile.friends.remove(logged_user)
-        logged_user.profile.friends.remove(other_user)
+        other_user.profile.friends.remove(logged_user.profile)
+        logged_user.profile.friends.remove(other_user.profile)
 
         return JsonResponse({"message": "Friend removed"}, status=status.HTTP_200_OK)
