@@ -2,23 +2,19 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView, ListAPIView
-from rest_framework.filters import SearchFilter
 from rest_framework import status
 from .serializers import (UserRegisterFormSerializer, UserErrorResponseSerializer,
                           UserLoginSerializer, UserDataDictSerializer, MessageResponseSerializer, LoggedUserSerializer,
                           UsersListSerializer, OtherUserSerializer)
 
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, OpenApiExample
-from drf_spectacular.types import OpenApiTypes
 from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate, login, logout
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from django.contrib.auth.models import User
-from django.views.generic.detail import DetailView
 from .models import Profile
-from django.shortcuts import get_object_or_404
-from django.http import Http404
 from rest_framework.exceptions import ValidationError
+from django.contrib.auth.decorators import login_required
 
 
 @method_decorator(csrf_exempt, name='dispatch')
