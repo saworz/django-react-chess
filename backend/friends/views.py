@@ -4,10 +4,19 @@ from django.http import JsonResponse
 from .models import FriendRequest
 from django.contrib.auth.models import User
 from .serializers import FriendsRequestSerializer, CoupledUsersSerializer
+from users.serializers import MessageResponseSerializer
 from rest_framework import status
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 
+@extend_schema(
+    responses={
+        200: OpenApiResponse(response=MessageResponseSerializer, description='Request done'),
+    },
+)
 class UsersView(APIView):
+    serializer_class = None
+
     def get_logged_user(self):
         return self.request.user
 
@@ -17,6 +26,7 @@ class UsersView(APIView):
 
 
 class SendRequestView(UsersView):
+
     def post(self, request, *args, **kwargs):
         logged_user = self.get_logged_user()
         other_user = self.get_other_user()
@@ -28,6 +38,7 @@ class SendRequestView(UsersView):
 
 
 class AcceptRequestView(UsersView):
+
     def post(self, request, *args, **kwargs):
         logged_user = self.get_logged_user()
         other_user = self.get_other_user()
@@ -43,6 +54,7 @@ class AcceptRequestView(UsersView):
 
 
 class DeclineRequestView(UsersView):
+
     def post(self, request, *args, **kwargs):
         logged_user = self.get_logged_user()
         other_user = self.get_other_user()
@@ -55,6 +67,7 @@ class DeclineRequestView(UsersView):
 
 
 class UndoRequestView(UsersView):
+
     def post(self, request, *args, **kwargs):
         logged_user = self.get_logged_user()
         other_user = self.get_other_user()
@@ -67,6 +80,7 @@ class UndoRequestView(UsersView):
 
 
 class RemoveFriendView(UsersView):
+
     def post(self, request, *args, **kwargs):
         logged_user = self.get_logged_user()
         other_user = self.get_other_user()
