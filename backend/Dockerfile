@@ -8,6 +8,8 @@ WORKDIR /backend
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+
+
 # install mysql dependencies
 RUN apt-get update
 RUN apt-get install gcc default-libmysqlclient-dev -y
@@ -16,6 +18,11 @@ RUN apt-get install gcc default-libmysqlclient-dev -y
 RUN pip install -U pip setuptools wheel
 RUN pip install --upgrade pip
 COPY ./requirements.txt .
+
+# to fix pip install mysql error
+RUN apt install -y pkg-config
+RUN apt-get install -y default-libmysqlclient-dev
+
 RUN pip install -r requirements.txt --no-cache-dir
 
 # copy project

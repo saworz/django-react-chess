@@ -93,7 +93,7 @@ WSGI_APPLICATION = 'api.wsgi.application'
 #
 
 env_path = os.path.join(BASE_DIR.parent, ".env.dev")
-# load_dotenv(env_path)
+load_dotenv(env_path)
 
 DATABASES = {
     "default": {
