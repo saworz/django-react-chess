@@ -9,4 +9,5 @@ urlpatterns = [
     path('accept_request/<int:pk>/', login_required(views.AcceptRequestView.as_view())),
     path('decline_request/<int:pk>/', login_required(views.DeclineRequestView.as_view())),
     path('remove_friend/<int:pk>/', login_required(views.RemoveFriendView.as_view())),
+    path('get_friends_list/', login_required(views.GetFriendListView.as_view())),
 ]

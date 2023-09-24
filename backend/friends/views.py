@@ -4,9 +4,11 @@ from django.http import JsonResponse
 from .models import FriendRequest
 from django.contrib.auth.models import User
 from .serializers import FriendsRequestSerializer, CoupledUsersSerializer
-from users.serializers import MessageResponseSerializer
+from users.serializers import MessageResponseSerializer, LoggedUserSerializer
 from rest_framework import status
 from drf_spectacular.utils import extend_schema, OpenApiResponse
+from rest_framework.generics import ListAPIView
+from users.models import Profile
 
 
 @extend_schema(
@@ -89,3 +91,18 @@ class RemoveFriendView(UsersView):
         logged_user.profile.friends.remove(other_user.profile)
 
         return JsonResponse({"message": "Friend removed"}, status=status.HTTP_200_OK)
+
+
+class GetFriendListView(ListAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = LoggedUserSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        filtered_queryset = []
+
+        for profile in queryset:
+            if self.request.user.profile in profile.friends.all():
+                filtered_queryset.append(profile)
+
+        return filtered_queryset
