@@ -1,5 +1,6 @@
 export interface IProps {
-  name: string;
+  id: number;
+  username: string;
   email: string;
-  image_url: string;
+  image: string;
 }

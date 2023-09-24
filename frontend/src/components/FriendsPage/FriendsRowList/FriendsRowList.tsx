@@ -7,10 +7,11 @@ const FriendsRowList = ({ suggestionList }: Types.IProps) => {
     <Stack spacing={5}>
       {suggestionList.map((user) => (
         <FriendsRow
-          name={user.name}
+          id={user.id}
+          username={user.username}
           email={user.email}
-          image_url={user.image_url}
-          key={user.name}
+          image={user.image}
+          key={user.id}
         />
       ))}
     </Stack>

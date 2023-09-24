@@ -102,5 +102,3 @@ class UsersListSerializer(OtherUserSerializer):
     class Meta:
         model = Profile
         fields = ['id', 'username', 'email', 'image', 'is_friend', 'pending_request', 'request_sender']
-
-

@@ -76,8 +76,9 @@ const Navigation = () => {
               <Avatar size={"sm"} src={user.image_url} />
             </MenuButton>
             <MenuList>
-              <MenuItem>Link 1</MenuItem>
-              <MenuItem>Link 2</MenuItem>
+              <MenuItem>
+                <NavLink to="/account">Account settings</NavLink>
+              </MenuItem>
               <MenuDivider />
               <MenuItem onClick={() => dispatch(logout())}>Logout</MenuItem>
             </MenuList>

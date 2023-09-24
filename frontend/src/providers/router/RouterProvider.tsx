@@ -6,6 +6,7 @@ import LoginPage from "../../pages/LoginPage";
 import RegisterPage from "../../pages/RegisterPage";
 import DashboardPage from "../../pages/DashboardPage";
 import FriendsPage from "../../pages/FriendsPage";
+import AccountPage from "../../pages/AccountPage";
 import PrivateRoutes from "../../utils/PrivateRoutes";
 import PublicRoutes from "../../utils/PublicRoutes";
 import Navigation from "../../components/Navigation";
@@ -21,6 +22,7 @@ const RouterProvider = () => {
         <Route element={<PrivateRoutes />}>
           <Route path="/dashboard" element={<DashboardPage />}></Route>
           <Route path="/friends" element={<FriendsPage />}></Route>
+          <Route path="/account" element={<AccountPage />}></Route>
         </Route>
         <Route element={<PublicRoutes />}>
           <Route path="/" element={<HomePage />}></Route>

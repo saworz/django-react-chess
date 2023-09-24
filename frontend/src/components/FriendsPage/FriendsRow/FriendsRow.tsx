@@ -8,7 +8,7 @@ import {
 } from "@chakra-ui/react";
 import * as SharedTypes from "./FriendsRow.types";
 
-const FriendsRow = ({ email, name, image_url }: SharedTypes.IProps) => {
+const FriendsRow = ({ email, username, image, id }: SharedTypes.IProps) => {
   return (
     <Stack
       direction={{ base: "column", md: "row" }}
@@ -19,8 +19,8 @@ const FriendsRow = ({ email, name, image_url }: SharedTypes.IProps) => {
     >
       <Image
         alignSelf={{ base: "center", md: "left" }}
-        src={"http://localhost:8000" + image_url}
-        alt={"Avatar " + name}
+        src={"http://localhost:8000" + image}
+        alt={"Avatar " + username}
         boxSize="110px"
         height={{ base: "135px", "2xl": "110px" }}
       ></Image>
@@ -30,7 +30,7 @@ const FriendsRow = ({ email, name, image_url }: SharedTypes.IProps) => {
         textAlign={{ base: "center", md: "left" }}
         p={2}
       >
-        <Text fontWeight="black">{name}</Text>
+        <Text fontWeight="black">{username}</Text>
         <Text fontWeight="normal">{email}</Text>
       </Box>
       <Box alignSelf="center">
