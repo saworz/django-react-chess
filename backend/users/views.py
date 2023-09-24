@@ -2,22 +2,19 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView, ListAPIView
-from rest_framework.filters import SearchFilter
 from rest_framework import status
 from .serializers import (UserRegisterFormSerializer, UserErrorResponseSerializer,
-                          UserLoginSerializer, UserDataDictSerializer, MessageResponseSerializer, UserProfileSerializer)
+                          UserLoginSerializer, UserDataDictSerializer, MessageResponseSerializer, LoggedUserSerializer,
+                          UsersListSerializer, OtherUserSerializer)
 
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, OpenApiExample
-from drf_spectacular.types import OpenApiTypes
 from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate, login, logout
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from django.contrib.auth.models import User
-from django.views.generic.detail import DetailView
 from .models import Profile
-from django.shortcuts import get_object_or_404
-from django.http import Http404
 from rest_framework.exceptions import ValidationError
+from django.contrib.auth.decorators import login_required
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -77,7 +74,8 @@ class LoginView(APIView):
             user = authenticate(username=validated_data['username'], password=validated_data['password'])
 
             if user is not None:
-                user_data = {"username": user.username,
+                user_data = {"id": user.pk,
+                             "username": user.username,
                              "email": user.email,
                              "image_url": request.build_absolute_uri(user.profile.image.url)}
 
@@ -113,24 +111,24 @@ class LogoutView(APIView):
 
 @extend_schema(
     responses={
-        200: OpenApiResponse(response=UserProfileSerializer, description='Retrieved user data'),
+        200: OpenApiResponse(response=OtherUserSerializer, description='Retrieved user data'),
         400: OpenApiResponse(response=MessageResponseSerializer, description='Incorrect or empty query parameter'),
     },
 )
 class UserDataRetrieveAPIView(RetrieveAPIView):
     queryset = Profile.objects.all()
-    serializer_class = UserProfileSerializer
+    serializer_class = OtherUserSerializer
 
 
 @extend_schema(
     responses={
-        200: OpenApiResponse(response=UserProfileSerializer, description='Retrieved users list'),
+        200: OpenApiResponse(response=UsersListSerializer, description='Retrieved users list'),
         400: OpenApiResponse(response=MessageResponseSerializer, description='Incorrect or empty query parameter'),
     },
 )
 class UsersDataListView(ListAPIView):
     queryset = Profile.objects.all()
-    serializer_class = UserProfileSerializer
+    serializer_class = UsersListSerializer
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -140,4 +138,10 @@ class UsersDataListView(ListAPIView):
             raise ValidationError("Incorrect or empty query parameter")
 
         queryset = queryset.filter(user__username__icontains=partial_string)
-        return queryset
+        new_queryset = []
+
+        for profile in queryset:
+            if self.request.user.profile != User.objects.get(pk=profile.pk).profile:
+                new_queryset.append(profile)
+
+        return new_queryset
