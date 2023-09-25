@@ -61,11 +61,11 @@ class LoggedUserSerializer(serializers.Serializer):
 class OtherUserSerializer(LoggedUserSerializer):
     is_friend = serializers.SerializerMethodField()
     pending_request = serializers.SerializerMethodField()
-    request_sender = serializers.SerializerMethodField()
+    request_sender_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
-        fields = ['id', 'username', 'email', 'image', 'is_friend', 'pending_request', 'request_sender']
+        fields = ['id', 'username', 'email', 'image', 'is_friend', 'pending_request', 'request_sender_id']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -87,18 +87,18 @@ class OtherUserSerializer(LoggedUserSerializer):
             return True
         return False
 
-    def get_request_sender(self, obj) -> str | None:
+    def get_request_sender_id(self, obj) -> str | None:
         pending_request = self.get_pending_request(obj)
 
         if pending_request:
             if FriendRequest.objects.filter(from_user=self.logged_user, to_user=self.other_user).exists():
-                return self.logged_user.username
-            return self.other_user.username
+                return self.logged_user.id
+            return self.other_user.id
 
 
 class UsersListSerializer(OtherUserSerializer):
 
     class Meta:
         model = Profile
-        fields = ['id', 'username', 'email', 'image', 'is_friend', 'pending_request', 'request_sender']
+        fields = ['id', 'username', 'email', 'image', 'is_friend', 'pending_request', 'request_sender_id']
 
