@@ -9,7 +9,7 @@ from rest_framework import status
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework.generics import ListAPIView
 from users.models import Profile
-
+from django.shortcuts import get_object_or_404
 
 @extend_schema(
     responses={
@@ -45,8 +45,9 @@ class AcceptRequestView(UsersView):
         logged_user = self.get_logged_user()
         other_user = self.get_other_user()
 
-        friend_request = FriendRequest.objects.get(from_user=other_user,
-                                                   to_user=logged_user)
+        friend_request = get_object_or_404(FriendRequest,
+                                           from_user=other_user,
+                                           to_user=logged_user)
 
         logged_user.profile.friends.add(other_user.profile)
         other_user.profile.friends.add(logged_user.profile)
@@ -57,12 +58,13 @@ class AcceptRequestView(UsersView):
 
 class DeclineRequestView(UsersView):
 
-    def post(self, request, *args, **kwargs):
+    def delete(self, request, *args, **kwargs):
         logged_user = self.get_logged_user()
         other_user = self.get_other_user()
 
-        friend_request = FriendRequest.objects.get(from_user=other_user,
-                                                   to_user=logged_user)
+        friend_request = get_object_or_404(FriendRequest,
+                                           from_user=other_user,
+                                           to_user=logged_user)
         friend_request.delete()
 
         return JsonResponse({"message": "Request decline"}, status=status.HTTP_200_OK)
@@ -70,12 +72,13 @@ class DeclineRequestView(UsersView):
 
 class UndoRequestView(UsersView):
 
-    def post(self, request, *args, **kwargs):
+    def delete(self, request, *args, **kwargs):
         logged_user = self.get_logged_user()
         other_user = self.get_other_user()
 
-        friend_request = FriendRequest.objects.get(from_user=logged_user,
-                                                   to_user=other_user)
+        friend_request = get_object_or_404(FriendRequest,
+                                           from_user=logged_user,
+                                           to_user=other_user)
         friend_request.delete()
 
         return JsonResponse({"message": "Request undone"}, status=status.HTTP_200_OK)
@@ -83,7 +86,7 @@ class UndoRequestView(UsersView):
 
 class RemoveFriendView(UsersView):
 
-    def post(self, request, *args, **kwargs):
+    def delete(self, request, *args, **kwargs):
         logged_user = self.get_logged_user()
         other_user = self.get_other_user()
 
@@ -94,15 +97,10 @@ class RemoveFriendView(UsersView):
 
 
 class GetFriendListView(ListAPIView):
-    queryset = Profile.objects.all()
-    serializer_class = LoggedUserSerializer
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        filtered_queryset = []
-
-        for profile in queryset:
-            if self.request.user.profile in profile.friends.all():
-                filtered_queryset.append(profile)
-
-        return filtered_queryset
+    def get(self, request, *args, **kwargs):
+        profiles = Profile.objects.all()
+        serializer_class = LoggedUserSerializer(profiles, many=True)
+        filtered_data = [profile for profile in serializer_class.data
+                         if profile['id'] != request.user.profile.pk]
+        return JsonResponse(filtered_data, safe=False)
