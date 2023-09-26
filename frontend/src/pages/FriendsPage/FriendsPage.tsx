@@ -11,11 +11,14 @@ import FriendsCountIndex from "../../components/FriendsPage/FriendsCountIndex";
 import FriendsRowList from "../../components/FriendsPage/FriendsRowList";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import * as SharedTypes from "../../shared/types";
 
 const API_URL = "http://localhost:8000/api/users/";
 
 const FriendsPage = () => {
-  const [suggestionsList, setSuggestionsList] = useState([]);
+  const [suggestionsList, setSuggestionsList] = useState<
+    SharedTypes.IFriendData[]
+  >([]);
   const [searchInput, setSearchInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 

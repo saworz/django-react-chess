@@ -19,6 +19,7 @@ export interface ILoginUserData {
 }
 
 export interface IUserData {
+  id: number;
   username: string;
   email: string;
   image_url: string;
@@ -27,4 +28,14 @@ export interface IUserData {
 export interface TokenData {
   accessToken: string;
   refreshToken: string;
+}
+
+export interface IFriendData {
+  id: number;
+  username: string;
+  email: string;
+  image: string;
+  is_friend: boolean;
+  pending_request: boolean;
+  request_sender: string;
 }
