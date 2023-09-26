@@ -12,7 +12,12 @@ const register = async (userData: IRegisterUserData) => {
 
 //Login user
 const login = async (userData: ILoginUserData) => {
-  const response = await axios.post(API_URL + "login/", userData);
+  const response = await axios.post(API_URL + "login/", userData, {
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+    },
+  });
 
   return response.data;
 };
