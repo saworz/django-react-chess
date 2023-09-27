@@ -49,10 +49,36 @@ const isUserLogged = () => {
   return false;
 };
 
+const getCsrfToken = () => {
+  const allCookies = document.cookie;
+
+  const cookiesArray = allCookies.split(";");
+  for (const cookie of cookiesArray) {
+    const [name, value] = cookie.trim().split("=");
+
+    if (name === "csrftoken") {
+      return value;
+    }
+  }
+};
+
+const clearCookies = () => {
+  const cookies = document.cookie.split(";");
+
+  for (let i = 0; i < cookies.length; i++) {
+    const cookie = cookies[i];
+    const eqPos = cookie.indexOf("=");
+    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+  }
+};
+
 const TokenService = {
   getAccessToken,
   getRefreshToken,
   updateAccessToken,
+  getCsrfToken,
+  clearCookies,
   isUserLogged,
 };
 export default TokenService;

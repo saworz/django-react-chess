@@ -1,5 +1,5 @@
 export interface IAuthState {
-  user: IUserData;
+  user: IUserData | null;
   isError: boolean;
   isSuccess: boolean;
   isLoading: boolean;

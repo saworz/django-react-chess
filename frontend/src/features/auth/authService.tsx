@@ -1,3 +1,4 @@
+import TokenService from "../../app/tokenService";
 import { IRegisterUserData, ILoginUserData } from "../../shared/types";
 import axios from "axios";
 
@@ -24,7 +25,13 @@ const login = async (userData: ILoginUserData) => {
 
 // Logout user
 const logout = async () => {
-  const response = await axios.post(API_URL + "logout/");
+  const config = {
+    withCredentials: true,
+    headers: {
+      "X-CSRFToken": TokenService.getCsrfToken(),
+    },
+  };
+  const response = await axios.post(API_URL + "logout/", null, config);
   return response.data;
 };
 

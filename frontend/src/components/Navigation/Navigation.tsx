@@ -22,6 +22,7 @@ import { AppDispatch, RootState } from "../../app/store";
 import { NavLink } from "react-router-dom";
 import { logout } from "../../features/auth/authSlice";
 import { ReactComponent as PawnLogo } from "../../images/logo_pawn.svg";
+import { toast } from "react-toastify";
 
 const Links = [
   {
@@ -36,6 +37,34 @@ const Navigation = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const dispatch: AppDispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout()).then((response) => {
+      if (response.meta.requestStatus === "fulfilled") {
+        toast.success(`${response.payload.message}`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      } else if (response.meta.requestStatus === "rejected") {
+        toast.error(`${response.payload}`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      }
+    });
+  };
 
   return (
     <Box bg={useColorModeValue("gray.100", "gray.900")} px={4}>
@@ -73,14 +102,14 @@ const Navigation = () => {
               cursor={"pointer"}
               minW={0}
             >
-              <Avatar size={"sm"} src={user.image_url} />
+              <Avatar size={"sm"} src={user?.image_url} />
             </MenuButton>
             <MenuList>
               <MenuItem>
                 <NavLink to="/account">Account settings</NavLink>
               </MenuItem>
               <MenuDivider />
-              <MenuItem onClick={() => dispatch(logout())}>Logout</MenuItem>
+              <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </MenuList>
           </Menu>
         </Flex>
