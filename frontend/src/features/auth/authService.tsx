@@ -28,7 +28,7 @@ const logout = async () => {
   const config = {
     withCredentials: true,
     headers: {
-      "X-CSRFToken": TokenService.getCsrfToken(),
+      "x-csrftoken": TokenService.getCsrfToken(),
     },
   };
   const response = await axios.post(API_URL + "logout/", null, config);
