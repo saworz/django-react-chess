@@ -11,6 +11,7 @@ import FriendsCountIndex from "../../components/FriendsPage/FriendsCountIndex";
 import FriendsRowList from "../../components/FriendsPage/FriendsRowList";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import TokenService from "../../app/tokenService";
 import * as SharedTypes from "../../shared/types";
 
 const API_URL = "http://localhost:8000/api/users/";
@@ -25,7 +26,11 @@ const FriendsPage = () => {
   const getData = async () => {
     setIsLoading(true);
     await axios
-      .get(API_URL + `list_profiles/${searchInput}`)
+      .get(API_URL + `list_profiles/${searchInput}/`, {
+        headers: {
+          Authorization: TokenService.getAccessToken(),
+        },
+      })
       .then((response) => {
         setSuggestionsList(response.data);
         setIsLoading(false);

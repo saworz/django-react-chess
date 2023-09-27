@@ -14,6 +14,22 @@ const DashboardPage = () => {
     }
   }, [navigate, isError, message]);
 
+  const handleClick = () => {
+    // Odczytaj wszystkie ciasteczka
+    const allCookies = document.cookie;
+
+    // Przetwórz ciasteczka
+    const cookiesArray = allCookies.split(";");
+    const cookies = [];
+
+    for (const cookie of cookiesArray) {
+      const [name, value] = cookie.trim().split("=");
+      cookies.push({ name, value: decodeURIComponent(value) });
+    }
+
+    console.log("Tablica", cookies);
+  };
+
   return (
     <Flex
       alignItems={"center"}
@@ -24,6 +40,7 @@ const DashboardPage = () => {
       <Text fontSize={"4rem"} fontWeight="black">
         Dashboard
       </Text>
+      <button onClick={handleClick}>TEST</button>
     </Flex>
   );
 };

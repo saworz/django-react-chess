@@ -5,6 +5,7 @@ import {
 } from "../../shared/types";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import authService from "./authService";
+import TokenService from "../../app/tokenService";
 
 //Get user from local storage
 const user = JSON.parse(localStorage.getItem("user")!);
@@ -49,8 +50,16 @@ export const login = createAsyncThunk(
 );
 
 //Logout
-export const logout = createAsyncThunk("auth/logout", () => {
-  authService.logout();
+export const logout = createAsyncThunk("auth/logout", async (_, thunkAPI) => {
+  try {
+    return await authService.logout();
+  } catch (error: any) {
+    const message =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      error.toString();
+    return thunkAPI.rejectWithValue(message);
+  }
 });
 
 export const authSlice = createSlice({
@@ -59,6 +68,7 @@ export const authSlice = createSlice({
   reducers: {
     //when we want to restore the default state
     reset: (state) => {
+      state.user = null;
       state.isLoading = false;
       state.isError = false;
       state.isSuccess = false;
@@ -81,9 +91,10 @@ export const authSlice = createSlice({
         state.message = action.payload as string;
       })
       .addCase(logout.fulfilled, (state) => {
-        state.user = null!;
+        state.user = null;
         localStorage.removeItem("user");
         localStorage.removeItem("token");
+        TokenService.clearCookies();
       })
       .addCase(login.pending, (state) => {
         state.isLoading = true;
