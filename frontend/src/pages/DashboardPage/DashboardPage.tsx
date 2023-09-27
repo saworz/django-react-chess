@@ -6,35 +6,29 @@ import { Flex, Text } from "@chakra-ui/react";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
-  const { user, isError, message } = useSelector(
-    (state: RootState) => state.auth
-  );
+  const { isError, message } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     if (isError) {
       console.log(message);
     }
+  }, [navigate, isError, message]);
 
-    if (!user) {
-      navigate("/login");
-    }
-  }, [user, navigate, isError, message]);
+  const handleClick = () => {
+    // Odczytaj wszystkie ciasteczka
+    const allCookies = document.cookie;
 
-  function getCookie(name: string) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-      const cookies = document.cookie.split(";");
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        // Does this cookie string begin with the name we want?
-        if (cookie.substring(0, name.length + 1) === name + "=") {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
+    // Przetwórz ciasteczka
+    const cookiesArray = allCookies.split(";");
+    const cookies = [];
+
+    for (const cookie of cookiesArray) {
+      const [name, value] = cookie.trim().split("=");
+      cookies.push({ name, value: decodeURIComponent(value) });
     }
-    return cookieValue;
-  }
+
+    console.log("Tablica", cookies);
+  };
 
   return (
     <Flex
@@ -46,7 +40,7 @@ const DashboardPage = () => {
       <Text fontSize={"4rem"} fontWeight="black">
         Dashboard
       </Text>
-      <button onClick={() => console.log(getCookie("csrftoken"))}>TEST</button>
+      <button onClick={handleClick}>TEST</button>
     </Flex>
   );
 };

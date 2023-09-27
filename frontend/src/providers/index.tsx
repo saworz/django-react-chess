@@ -8,9 +8,7 @@ import { store } from "../app/store";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-type Props = {};
-
-const Providers = (props: Props) => {
+const Providers = () => {
   return (
     <>
       <Provider store={store}>

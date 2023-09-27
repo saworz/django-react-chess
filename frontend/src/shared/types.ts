@@ -1,5 +1,5 @@
 export interface IAuthState {
-  user: IUserData;
+  user: IUserData | null;
   isError: boolean;
   isSuccess: boolean;
   isLoading: boolean;
@@ -19,8 +19,23 @@ export interface ILoginUserData {
 }
 
 export interface IUserData {
-  _id: string;
-  login: string;
+  id: number;
+  username: string;
   email: string;
-  token: string;
+  image_url: string;
+}
+
+export interface TokenData {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface IFriendData {
+  id: number;
+  username: string;
+  email: string;
+  image: string;
+  is_friend: boolean;
+  pending_request: boolean;
+  request_sender: string;
 }

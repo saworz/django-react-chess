@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { ColorModeSwitcher } from "./ColorModeSwitcher";
 import { useSelector } from "react-redux";
 import { RootState } from "../app/store";
-import Navigation from "../components/Navigation";
+import TokenService from "../app/tokenService";
 
 type Props = {
   children: ReactNode;
@@ -14,9 +14,7 @@ const Layout = ({ children }: Props) => {
 
   return (
     <Flex direction="column" minH="100vh">
-      {user ? (
-        <Navigation />
-      ) : (
+      {TokenService.isUserLogged() && user ? null : (
         <Flex ml={"auto"} p={"10px"}>
           <ColorModeSwitcher />
         </Flex>

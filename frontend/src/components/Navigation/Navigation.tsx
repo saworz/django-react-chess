@@ -13,41 +13,58 @@ import {
   useDisclosure,
   useColorModeValue,
   Stack,
+  Text,
+  theme,
 } from "@chakra-ui/react";
 import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "../../app/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../app/store";
+import { NavLink } from "react-router-dom";
 import { logout } from "../../features/auth/authSlice";
+import { ReactComponent as PawnLogo } from "../../images/logo_pawn.svg";
+import { toast } from "react-toastify";
 
-interface Props {
-  children: React.ReactNode;
-}
-
-const Links = ["Dashboard", "Projects", "Team"];
-
-const NavLink = (props: Props) => {
-  const { children } = props;
-
-  return (
-    <Box
-      as="a"
-      px={2}
-      py={1}
-      rounded={"md"}
-      _hover={{
-        textDecoration: "none",
-        bg: useColorModeValue("gray.200", "gray.700"),
-      }}
-      href={"#"}
-    >
-      {children}
-    </Box>
-  );
-};
+const Links = [
+  {
+    name: "Dashboard",
+    destination: "/dashboard",
+  },
+  { name: "Friends", destination: "/friends" },
+];
 
 const Navigation = () => {
+  const mainColor = useColorModeValue(theme.colors.black, theme.colors.white);
+  const { user } = useSelector((state: RootState) => state.auth);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const dispatch: AppDispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout()).then((response) => {
+      if (response.meta.requestStatus === "fulfilled") {
+        toast.success(`${response.payload.message}`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      } else if (response.meta.requestStatus === "rejected") {
+        toast.error(`${response.payload}`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      }
+    });
+  };
 
   return (
     <Box bg={useColorModeValue("gray.100", "gray.900")} px={4}>
@@ -60,10 +77,19 @@ const Navigation = () => {
           onClick={isOpen ? onClose : onOpen}
         />
         <HStack spacing={8} alignItems={"center"}>
-          <Box>Logo</Box>
+          <Box>
+            <HStack>
+              <Text display={{ base: "none", sm: "block" }} fontWeight="black">
+                Chess Game
+              </Text>
+              <PawnLogo style={{ stroke: `${mainColor}` }} />
+            </HStack>
+          </Box>
           <HStack as={"nav"} spacing={4} display={{ base: "none", md: "flex" }}>
             {Links.map((link) => (
-              <NavLink key={link}>{link}</NavLink>
+              <NavLink to={link.destination} key={link.name}>
+                {link.name}
+              </NavLink>
             ))}
           </HStack>
         </HStack>
@@ -76,18 +102,14 @@ const Navigation = () => {
               cursor={"pointer"}
               minW={0}
             >
-              <Avatar
-                size={"sm"}
-                src={
-                  "https://images.unsplash.com/photo-1493666438817-866a91353ca9?ixlib=rb-0.3.5&q=80&fm=jpg&crop=faces&fit=crop&h=200&w=200&s=b616b2c5b373a80ffc9636ba24f7a4a9"
-                }
-              />
+              <Avatar size={"sm"} src={user?.image_url} />
             </MenuButton>
             <MenuList>
-              <MenuItem>Link 1</MenuItem>
-              <MenuItem>Link 2</MenuItem>
+              <MenuItem>
+                <NavLink to="/account">Account settings</NavLink>
+              </MenuItem>
               <MenuDivider />
-              <MenuItem onClick={() => dispatch(logout())}>Logout</MenuItem>
+              <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </MenuList>
           </Menu>
         </Flex>
@@ -97,7 +119,9 @@ const Navigation = () => {
         <Box pb={4} display={{ md: "none" }}>
           <Stack as={"nav"} spacing={4}>
             {Links.map((link) => (
-              <NavLink key={link}>{link}</NavLink>
+              <NavLink to={link.destination} key={link.name}>
+                {link.name}
+              </NavLink>
             ))}
           </Stack>
         </Box>

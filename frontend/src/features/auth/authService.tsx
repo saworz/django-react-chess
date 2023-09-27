@@ -1,3 +1,4 @@
+import TokenService from "../../app/tokenService";
 import { IRegisterUserData, ILoginUserData } from "../../shared/types";
 import axios from "axios";
 
@@ -7,35 +8,31 @@ const API_URL = "http://localhost:8000/api/users/";
 const register = async (userData: IRegisterUserData) => {
   const response = await axios.post(API_URL + "register/", userData);
 
-  if (response.data) {
-    localStorage.setItem("user", JSON.stringify(response.data));
-  }
-
   return response.data;
 };
 
 //Login user
 const login = async (userData: ILoginUserData) => {
-  const response = await axios.post(API_URL + "login/", userData);
-
-  if (response.data && response.status === 200) {
-    localStorage.setItem(
-      "jwt_token",
-      JSON.stringify(response.data.jwt_access_token)
-    );
-    localStorage.setItem(
-      "jwt_refresh",
-      JSON.stringify(response.data.jwt_refresh_token)
-    );
-  }
+  const response = await axios.post(API_URL + "login/", userData, {
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+    },
+  });
 
   return response.data;
 };
 
 // Logout user
-const logout = () => {
-  localStorage.removeItem("jwt_token");
-  localStorage.removeItem("jwt_refresh");
+const logout = async () => {
+  const config = {
+    withCredentials: true,
+    headers: {
+      "X-CSRFToken": TokenService.getCsrfToken(),
+    },
+  };
+  const response = await axios.post(API_URL + "logout/", null, config);
+  return response.data;
 };
 
 const authService = {
