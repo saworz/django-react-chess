@@ -97,10 +97,15 @@ class RemoveFriendView(UsersView):
 
 
 class GetFriendListView(ListAPIView):
+    serializer_class = LoggedUserSerializer
 
     def get(self, request, *args, **kwargs):
         profiles = Profile.objects.all()
-        serializer_class = LoggedUserSerializer(profiles, many=True)
-        filtered_data = [profile for profile in serializer_class.data
-                         if profile['id'] != request.user.profile.pk]
+        serializer_class = self.serializer_class(profiles, many=True)
+
+        filtered_data = []
+        for profile in serializer_class.data:
+            if Profile.objects.get(pk=profile['id']) in request.user.profile.friends.all():
+                filtered_data.append(profile)
+
         return JsonResponse(filtered_data, safe=False)
