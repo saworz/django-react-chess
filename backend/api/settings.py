@@ -41,8 +41,10 @@ INSTALLED_APPS = [
     'corsheaders',
     'users.apps.UsersConfig',
     'friends.apps.FriendsConfig',
+    'chat.apps.ChatConfig',
     'drf_spectacular',
     'rest_framework',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
