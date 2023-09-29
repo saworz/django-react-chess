@@ -30,7 +30,7 @@ export interface TokenData {
   refreshToken: string;
 }
 
-export interface IFriendData {
+export interface ISuggestionFriendData {
   id: number;
   username: string;
   email: string;
@@ -38,4 +38,11 @@ export interface IFriendData {
   is_friend: boolean;
   pending_request: boolean;
   request_sender: string;
+}
+
+export interface IFriendData {
+  id: number;
+  username: string;
+  email: string;
+  image: string;
 }
