@@ -6,6 +6,18 @@ export interface IAuthState {
   message: string;
 }
 
+export interface IFriendSystemState {
+  friendSystem: {
+    suggestionsList: ISuggestionFriendData[];
+    friendsList: IFriendData[];
+    searchInput: string;
+  };
+  isError: boolean;
+  isSuccess: boolean;
+  isLoading: boolean;
+  message: string;
+}
+
 export interface IRegisterUserData {
   username: string;
   email: string;
@@ -37,7 +49,7 @@ export interface ISuggestionFriendData {
   image: string;
   is_friend: boolean;
   pending_request: boolean;
-  request_sender: string;
+  request_sender_id: number;
 }
 
 export interface IFriendData {
