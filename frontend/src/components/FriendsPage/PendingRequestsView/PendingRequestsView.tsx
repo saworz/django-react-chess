@@ -3,33 +3,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../app/store";
 import PendingRequestsCountIndex from "../PendingRequestsCountIndex";
 import PendingSuggestionsRowList from "../PendingSuggestionsRowList";
-import {
-  getSuggestionsList,
-  setPendingRequests,
-} from "../../../features/friendSystem/friendSystemSlice";
+import { getPendingRequests } from "../../../features/friendSystem/friendSystemSlice";
 import { useEffect } from "react";
 
 const PendingRequestsView = () => {
   const dispatch: AppDispatch = useDispatch();
-  const { user } = useSelector((state: RootState) => state.auth);
   const { friendSystem } = useSelector(
     (state: RootState) => state.friendSystem
   );
-
-  const getPendingRequests = async () => {
-    dispatch(getSuggestionsList(friendSystem.searchInput)).then(() => {
-      dispatch(
-        setPendingRequests(
-          friendSystem.suggestionsList.filter(
-            (item) =>
-              item.is_friend === false &&
-              item.request_sender_id !== user?.id &&
-              item.pending_request === true
-          )
-        )
-      );
-    });
-  };
 
   const renderPendingRequests = () => {
     if (friendSystem.pendingRequests.length === 0) {
@@ -48,7 +29,7 @@ const PendingRequestsView = () => {
   };
 
   useEffect(() => {
-    getPendingRequests();
+    dispatch(getPendingRequests());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

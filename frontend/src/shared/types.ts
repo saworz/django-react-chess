@@ -11,7 +11,8 @@ export interface IFriendSystemState {
     suggestionsList: ISuggestionFriendData[];
     friendsList: IFriendData[];
     searchInput: string;
-    pendingRequests: ISuggestionFriendData[];
+    pendingRequests: IPendingRequestsData[];
+    sentRequests: ISuggestionFriendData[];
   };
   isError: boolean;
   isSuccess: boolean;
@@ -58,9 +59,6 @@ export interface IPendingRequestsData {
   username: string;
   email: string;
   image: string;
-  is_friend: boolean;
-  pending_request: boolean;
-  request_sender_id: number;
 }
 
 export interface IFriendData {

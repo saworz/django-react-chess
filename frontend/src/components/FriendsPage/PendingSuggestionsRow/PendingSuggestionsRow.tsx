@@ -14,9 +14,6 @@ const PendingSuggestionsRow = ({
   username,
   image,
   id,
-  is_friend,
-  request_sender_id: request_sender,
-  pending_request,
 }: SharedTypes.IPendingRequestsData) => {
   return (
     <Stack
@@ -44,10 +41,7 @@ const PendingSuggestionsRow = ({
       </Box>
       <Box alignSelf="center">
         <Stack direction={{ base: "column", "2xl": "row" }}>
-          <PendingRequestsButtons
-            userId={id}
-            userDetails={{ is_friend, request_sender, pending_request }}
-          />
+          <PendingRequestsButtons userId={id} />
           <Button colorScheme="telegram" size="md">
             View profile
           </Button>

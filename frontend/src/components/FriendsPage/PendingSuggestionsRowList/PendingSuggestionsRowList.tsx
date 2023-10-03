@@ -11,9 +11,6 @@ const PendingSuggestionsRowList = ({ pendingRequests }: Types.IProps) => {
           username={user.username}
           email={user.email}
           image={user.image}
-          is_friend={user.is_friend}
-          pending_request={user.pending_request}
-          request_sender_id={user.request_sender_id}
           key={user.id}
         />
       ))}
