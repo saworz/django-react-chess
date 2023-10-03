@@ -4,8 +4,14 @@
 #Models
 models/
 
+#.env.dev changes
+.env.dev
+
 #sql
 mysql/
+
+#media
+backend/media/profile_pics/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
