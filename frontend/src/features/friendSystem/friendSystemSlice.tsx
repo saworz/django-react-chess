@@ -6,6 +6,7 @@ const initialState: IFriendSystemState = {
   friendSystem: {
     suggestionsList: [],
     friendsList: [],
+    pendingRequests: [],
     searchInput: "",
   },
   isError: false,
@@ -50,6 +51,7 @@ export const friendSystemSlice = createSlice({
         friendsList: [],
         suggestionsList: [],
         searchInput: "",
+        pendingRequests: [],
       };
       state.isLoading = false;
       state.isError = false;
@@ -61,6 +63,9 @@ export const friendSystemSlice = createSlice({
     },
     setSuggestions: (state, action) => {
       state.friendSystem.suggestionsList = action.payload;
+    },
+    setPendingRequests: (state, action) => {
+      state.friendSystem.pendingRequests = action.payload;
     },
     setSearchInput: (state, action) => {
       state.friendSystem.searchInput = action.payload;
@@ -98,6 +103,11 @@ export const friendSystemSlice = createSlice({
   },
 });
 
-export const { reset, setFriends, setSuggestions, setSearchInput } =
-  friendSystemSlice.actions;
+export const {
+  reset,
+  setFriends,
+  setSuggestions,
+  setSearchInput,
+  setPendingRequests,
+} = friendSystemSlice.actions;
 export default friendSystemSlice.reducer;

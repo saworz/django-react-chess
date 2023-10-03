@@ -7,12 +7,13 @@ import { AppDispatch, RootState } from "../../../../app/store";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { getSuggestionsList } from "../../../../features/friendSystem/friendSystemSlice";
+import { setPendingRequests } from "../../../../features/friendSystem/friendSystemSlice";
 
 const API_URL = "http://localhost:8000/api/friends";
 
 const DeclineFriendButton = ({ userId }: Types.IButtonProps) => {
   const dispatch: AppDispatch = useDispatch();
-
+  const { user } = useSelector((state: RootState) => state.auth);
   const { friendSystem } = useSelector(
     (state: RootState) => state.friendSystem
   );
@@ -39,7 +40,18 @@ const DeclineFriendButton = ({ userId }: Types.IButtonProps) => {
           progress: undefined,
           theme: "dark",
         });
-        dispatch(getSuggestionsList(friendSystem.searchInput));
+        dispatch(getSuggestionsList(friendSystem.searchInput)).then(() => {
+          dispatch(
+            setPendingRequests(
+              friendSystem.suggestionsList.filter(
+                (item) =>
+                  item.is_friend === false &&
+                  item.request_sender_id !== user?.id &&
+                  item.pending_request === true
+              )
+            )
+          );
+        });
       }
     } catch (error) {
       // Obsłuż błąd, jeśli wystąpi

@@ -7,15 +7,32 @@ import { AppDispatch, RootState } from "../../../../app/store";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { getSuggestionsList } from "../../../../features/friendSystem/friendSystemSlice";
+import { setPendingRequests } from "../../../../features/friendSystem/friendSystemSlice";
 
 const API_URL = "http://localhost:8000/api/friends";
 
 const AcceptFriendButton = ({ userId }: Types.IButtonProps) => {
   const dispatch: AppDispatch = useDispatch();
+  const { user } = useSelector((state: RootState) => state.auth);
 
   const { friendSystem } = useSelector(
     (state: RootState) => state.friendSystem
   );
+
+  const getPendingRequests = async () => {
+    dispatch(getSuggestionsList(friendSystem.searchInput)).then(() => {
+      dispatch(
+        setPendingRequests(
+          friendSystem.suggestionsList.filter(
+            (item) =>
+              item.is_friend === false &&
+              item.request_sender_id !== user?.id &&
+              item.pending_request === true
+          )
+        )
+      );
+    });
+  };
 
   const performButtonAction = async () => {
     try {
@@ -26,7 +43,6 @@ const AcceptFriendButton = ({ userId }: Types.IButtonProps) => {
           withCredentials: true,
           headers: {
             "X-CSRFToken": TokenService.getCsrfToken(),
-            Authorization: `Bearer ${TokenService.getAccessToken()}`,
             "Content-Type": "application/json", // Użyj odpowiedniego typu treści, jeśli to jest JSON
           },
         }
@@ -42,7 +58,9 @@ const AcceptFriendButton = ({ userId }: Types.IButtonProps) => {
           progress: undefined,
           theme: "dark",
         });
-        dispatch(getSuggestionsList(friendSystem.searchInput));
+        dispatch(getSuggestionsList(friendSystem.searchInput)).then(() => {
+          getPendingRequests();
+        });
       }
     } catch (error) {
       // Obsłuż błąd, jeśli wystąpi

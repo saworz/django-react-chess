@@ -1,6 +1,4 @@
 import AddFriendButton from "./AddFriendButton";
-import AcceptFriendButton from "./AcceptFriendButton";
-import DeclineFriendButton from "./DeclineFriendButton";
 import CancelRequestButton from "./CancelRequestButton";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../app/store";
@@ -22,16 +20,6 @@ const SuggestionsRowButtons = ({ userId, userDetails }: Types.IButtonProps) => {
       userDetails.request_sender == null
     ) {
       return <AddFriendButton userId={userId} />;
-    } else if (
-      userDetails?.pending_request === true &&
-      userDetails.request_sender !== user?.id
-    ) {
-      return (
-        <>
-          <AcceptFriendButton userId={userId} />
-          <DeclineFriendButton userId={userId} />
-        </>
-      );
     } else {
       return null;
     }
