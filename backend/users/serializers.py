@@ -102,3 +102,17 @@ class UsersListSerializer(OtherUserSerializer):
     class Meta:
         model = Profile
         fields = ['id', 'username', 'email', 'image', 'is_friend', 'pending_request', 'request_sender_id']
+
+
+class UpdateUserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=32)
+    email = serializers.CharField(max_length=32)
+    image = serializers.ImageField(source='profile.image')
+
+    class Meta:
+        model = Profile
+        fields = ['id', 'username', 'email', 'image']
+
+    def get_image(self, obj) -> str:
+        if obj.image:
+            return obj.image.url

@@ -1,11 +1,11 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
-from rest_framework.generics import RetrieveAPIView, ListAPIView
+from rest_framework.generics import RetrieveAPIView, ListAPIView, UpdateAPIView
 from rest_framework import status
 from .serializers import (UserRegisterFormSerializer, UserErrorResponseSerializer,
                           UserLoginSerializer, UserDataDictSerializer, MessageResponseSerializer, LoggedUserSerializer,
-                          UsersListSerializer, OtherUserSerializer)
+                          UsersListSerializer, OtherUserSerializer, UpdateUserSerializer)
 
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, OpenApiExample
 from django.utils.decorators import method_decorator
@@ -15,6 +15,11 @@ from django.contrib.auth.models import User
 from .models import Profile
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required
+from .forms import ProfileUpdateForm
+from rest_framework.response import Response
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+from rest_framework.parsers import MultiPartParser
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -145,3 +150,36 @@ class UsersDataListView(ListAPIView):
                 new_queryset.append(profile)
 
         return new_queryset
+
+
+class UserUpdateView(UpdateAPIView):
+    serializer_class = UpdateUserSerializer
+    parser_classes = [MultiPartParser]
+
+    def get_object(self):
+        return self.request.user
+
+    def perform_update(self, serializer):
+        user = self.get_object()
+
+        if 'username' in self.request.data:
+            new_username = self.request.data['username']
+            if User.objects.filter(username=new_username).exclude(username=self.request.user.username).exists():
+                error_message = {'message': ['Username already exists.']}
+                raise ValidationError(detail=error_message)
+
+            user.username = new_username
+
+        if 'email' in self.request.data:
+            new_email = self.request.data['email']
+            if User.objects.filter(email=new_email).exclude(email=self.request.user.email).exists():
+                error_message = {'message': ['Email already exists.']}
+                raise ValidationError(detail=error_message)
+
+            user.email = new_email
+
+        if 'image' in self.request.data:
+            user.profile.image = self.request.data['image']
+
+        user.save()
+        user.profile.save()
