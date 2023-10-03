@@ -128,3 +128,22 @@ class GetPendingRequestsListView(ListAPIView):
                 pass
 
         return JsonResponse(filtered_data, safe=False)
+
+
+class GetSentRequestsListView(ListAPIView):
+    serializer_class = LoggedUserSerializer
+
+    def get(self, request, *args, **kwargs):
+        profiles = Profile.objects.all()
+        serializer_class = self.serializer_class(profiles, many=True)
+
+        filtered_data = []
+        for profile in serializer_class.data:
+            user_instance = User.objects.get(pk=profile['id'])
+            try:
+                FriendRequest.objects.get(from_user=request.user, to_user=user_instance)
+                filtered_data.append(profile)
+            except FriendRequest.DoesNotExist:
+                pass
+
+        return JsonResponse(filtered_data, safe=False)
