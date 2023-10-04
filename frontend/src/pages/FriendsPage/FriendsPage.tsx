@@ -2,12 +2,52 @@ import { Button, Flex, HStack, Stack, Text } from "@chakra-ui/react";
 import { useState } from "react";
 import FriendsView from "../../components/FriendsPage/FriendsView";
 import PendingRequestsView from "../../components/FriendsPage/PendingRequestsView";
+import SentRequestsView from "../../components/FriendsPage/SentRequestsView";
 
 const FriendsPage = () => {
-  const [switchedView, setSwitchedView] = useState(false);
+  const [switchedView, setSwitchedView] = useState("friendList");
 
-  const handleClick = () => {
-    setSwitchedView((prevState) => !prevState);
+  const handleClick = (type: string) => {
+    switch (type) {
+      case "friendList":
+        setSwitchedView("friendList");
+        break;
+      case "pendingRequests":
+        setSwitchedView("pendingRequests");
+        break;
+      case "sentRequests":
+        setSwitchedView("sentRequests");
+        break;
+      default:
+        setSwitchedView("friendList");
+        break;
+    }
+  };
+
+  const renderView = () => {
+    switch (switchedView) {
+      case "friendList":
+        return <FriendsView />;
+      case "pendingRequests":
+        return <PendingRequestsView />;
+      case "sentRequests":
+        return <SentRequestsView />;
+      default:
+        return <FriendsView />;
+    }
+  };
+
+  const switchTitle = () => {
+    switch (switchedView) {
+      case "friendList":
+        return "Friends";
+      case "pendingRequests":
+        return "Pending Requests";
+      case "sentRequests":
+        return "Sent Requests";
+      default:
+        return "Friends";
+    }
   };
 
   return (
@@ -19,7 +59,7 @@ const FriendsPage = () => {
           fontWeight="black"
           alignSelf="flex-start"
         >
-          {switchedView ? "Pending requests" : "Friends"}
+          {switchTitle()}
         </Text>
         <HStack
           as={"nav"}
@@ -29,19 +69,27 @@ const FriendsPage = () => {
           display={{ base: "none", md: "flex" }}
         >
           <Button
-            onClick={handleClick}
-            colorScheme={switchedView ? "gray" : "facebook"}
+            onClick={() => handleClick("friendList")}
+            colorScheme={switchedView === "friendList" ? "facebook" : "gray"}
           >
             Friends List
           </Button>
           <Button
-            onClick={handleClick}
-            colorScheme={switchedView ? "facebook" : "gray"}
+            onClick={() => handleClick("pendingRequests")}
+            colorScheme={
+              switchedView === "pendingRequests" ? "facebook" : "gray"
+            }
           >
             Pending Requests
           </Button>
+          <Button
+            onClick={() => handleClick("sentRequests")}
+            colorScheme={switchedView === "sentRequests" ? "facebook" : "gray"}
+          >
+            Sent Requests
+          </Button>
         </HStack>
-        {switchedView ? <PendingRequestsView /> : <FriendsView />}
+        {renderView()}
       </Stack>
     </Flex>
   );

@@ -1,11 +1,11 @@
 import { Stack, Text, useColorModeValue } from "@chakra-ui/react";
-import * as Types from "./FriendsCountIndex.types";
+import * as Types from "./SentRequestsCountIndex.types";
 
-const FriendsCountIndex = ({ count }: Types.IProps) => {
+const SentRequestsCountIndex = ({ count }: Types.IProps) => {
   return (
     <Stack alignItems="flex-start" direction="row">
       <Text fontWeight="black" fontSize={"1rem"} marginTop={1}>
-        Friends
+        Sent Requests
       </Text>
       <Text
         bg={useColorModeValue("white", "gray.800")}
@@ -19,4 +19,4 @@ const FriendsCountIndex = ({ count }: Types.IProps) => {
   );
 };
 
-export default FriendsCountIndex;
+export default SentRequestsCountIndex;

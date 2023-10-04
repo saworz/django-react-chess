@@ -22,10 +22,10 @@ import { AppDispatch, RootState } from "../../../app/store";
 const FriendsView = () => {
   const [searchInput, setSearchInput] = useState("");
   const dispatch: AppDispatch = useDispatch();
+  const { user } = useSelector((state: RootState) => state.auth);
   const { friendSystem, isLoading } = useSelector(
     (state: RootState) => state.friendSystem
   );
-  const { user } = useSelector((state: RootState) => state.auth);
 
   const getSuggestionFriends = async () => {
     dispatch(getSuggestionsList(searchInput)).then(() => {});

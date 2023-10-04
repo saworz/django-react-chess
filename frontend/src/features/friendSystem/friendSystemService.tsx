@@ -10,6 +10,8 @@ const getSuggestionsList = async (searchInput: string) => {
     {
       headers: {
         Authorization: TokenService.getAccessToken(),
+        "X-CSRFToken": TokenService.getCsrfToken(),
+        "Content-Type": "application/json",
       },
     }
   );
