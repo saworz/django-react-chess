@@ -5,7 +5,7 @@ from rest_framework.generics import RetrieveAPIView, ListAPIView, UpdateAPIView
 from rest_framework import status
 from .serializers import (UserRegisterFormSerializer, UserErrorResponseSerializer,
                           UserLoginSerializer, UserDataDictSerializer, MessageResponseSerializer, LoggedUserSerializer,
-                          UsersListSerializer, OtherUserSerializer, UpdateUserSerializer)
+                          UsersListSerializer, OtherUserSerializer, UpdateUserSerializer, ChangePasswordSerializer)
 
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, OpenApiExample
 from django.utils.decorators import method_decorator
@@ -20,6 +20,8 @@ from rest_framework.response import Response
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from rest_framework.parsers import MultiPartParser
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import update_session_auth_hash
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -183,3 +185,30 @@ class UserUpdateView(UpdateAPIView):
 
         user.save()
         user.profile.save()
+
+
+class UpdatePasswordView(UpdateAPIView):
+    serializer_class = ChangePasswordSerializer
+    model = User
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.serializer_class(data=request.data)
+
+        if serializer.is_valid():
+            if not user.check_password(serializer.data.get("old_password")):
+                return JsonResponse({"message": "Incorrect password"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if serializer.data.get("new_password") != serializer.data.get("repeated_password"):
+                return JsonResponse({"message": "New passwords dont match"}, status=status.HTTP_400_BAD_REQUEST)
+
+            user.set_password(serializer.data.get("new_password"))
+            user.save()
+            update_session_auth_hash(request, user)
+
+        return JsonResponse({"message": "Password changed"}, status=status.HTTP_200_OK)
+
