@@ -22,7 +22,6 @@ import { AppDispatch, RootState } from "../../../app/store";
 const FriendsView = () => {
   const [searchInput, setSearchInput] = useState("");
   const dispatch: AppDispatch = useDispatch();
-  const { user } = useSelector((state: RootState) => state.auth);
   const { friendSystem, isLoading } = useSelector(
     (state: RootState) => state.friendSystem
   );
@@ -85,9 +84,7 @@ const FriendsView = () => {
             <SuggestionsRowList
               suggestionList={friendSystem.suggestionsList.filter(
                 (item) =>
-                  (item.is_friend === false &&
-                    item.request_sender_id === user?.id) ||
-                  (item.request_sender_id === null && item.is_friend === false)
+                  item.pending_request === false && item.is_friend === false
               )}
             />
           );

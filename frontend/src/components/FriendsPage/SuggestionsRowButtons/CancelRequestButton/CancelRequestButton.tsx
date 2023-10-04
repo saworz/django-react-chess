@@ -3,18 +3,15 @@ import { ArrowBackIcon } from "@chakra-ui/icons";
 import TokenService from "../../../../app/tokenService";
 import axios from "axios";
 import * as Types from "./../SuggestionsRowButtons.types";
-import { AppDispatch, RootState } from "../../../../app/store";
-import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch } from "../../../../app/store";
+import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
-import { getSuggestionsList } from "../../../../features/friendSystem/friendSystemSlice";
+import { getSentRequests } from "../../../../features/friendSystem/friendSystemSlice";
 
 const API_URL = "http://localhost:8000/api/friends";
 
 const CancelRequestButton = ({ userId }: Types.IButtonProps) => {
   const dispatch: AppDispatch = useDispatch();
-  const { friendSystem } = useSelector(
-    (state: RootState) => state.friendSystem
-  );
 
   const performButtonAction = async () => {
     try {
@@ -39,7 +36,7 @@ const CancelRequestButton = ({ userId }: Types.IButtonProps) => {
           progress: undefined,
           theme: "dark",
         });
-        dispatch(getSuggestionsList(friendSystem.searchInput));
+        dispatch(getSentRequests());
       }
     } catch (error) {
       // Obsłuż błąd, jeśli wystąpi

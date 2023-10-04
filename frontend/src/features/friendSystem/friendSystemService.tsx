@@ -8,8 +8,8 @@ const getSuggestionsList = async (searchInput: string) => {
   const response = await axios.get(
     API_URL + `users/list_profiles/${searchInput}/`,
     {
+      withCredentials: true,
       headers: {
-        Authorization: TokenService.getAccessToken(),
         "X-CSRFToken": TokenService.getCsrfToken(),
         "Content-Type": "application/json",
       },

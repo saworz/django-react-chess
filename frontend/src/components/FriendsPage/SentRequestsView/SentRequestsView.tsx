@@ -14,11 +14,13 @@ const SentRequestsView = () => {
 
   const renderSentRequests = () => {
     if (friendSystem.sentRequests.length === 0) {
-      <Stack justifyContent="center">
-        <Text margin="20" fontWeight="black" fontSize={"2rem"}>
-          No results found :(
-        </Text>
-      </Stack>;
+      return (
+        <Stack justifyContent="center">
+          <Text margin="20" fontWeight="black" fontSize={"2rem"}>
+            No results found :(
+          </Text>
+        </Stack>
+      );
     } else if (friendSystem.sentRequests.length > 0) {
       return <SentRequestsRowList sentRequests={friendSystem.sentRequests} />;
     }
