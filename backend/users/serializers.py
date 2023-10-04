@@ -3,6 +3,7 @@ from .forms import UserRegisterForm
 from django.contrib.auth.models import User
 from .models import Profile
 from friends.models import FriendRequest
+from django.contrib.auth.password_validation import validate_password
 
 
 class UserRegisterFormSerializer(serializers.Serializer):
@@ -116,3 +117,13 @@ class UpdateUserSerializer(serializers.ModelSerializer):
     def get_image(self, obj) -> str:
         if obj.image:
             return obj.image.url
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+    repeated_password = serializers.CharField(required=True)
+
+    def validate_password(self, value):
+        validate_password(value)
+        return value
