@@ -99,51 +99,50 @@ class RemoveFriendView(UsersView):
 class GetFriendListView(ListAPIView):
     serializer_class = LoggedUserSerializer
 
-    def get(self, request, *args, **kwargs):
+    def get_queryset(self):
         profiles = Profile.objects.all()
-        serializer_class = self.serializer_class(profiles, many=True)
 
         filtered_data = []
-        for profile in serializer_class.data:
-            if Profile.objects.get(pk=profile['id']) in request.user.profile.friends.all():
+        for profile in profiles:
+            if profile in self.request.user.profile.friends.all():
                 filtered_data.append(profile)
 
-        return JsonResponse(filtered_data, safe=False)
+        return filtered_data
 
 
 class GetPendingRequestsListView(ListAPIView):
     serializer_class = LoggedUserSerializer
 
-    def get(self, request, *args, **kwargs):
+    def get_queryset(self):
         profiles = Profile.objects.all()
-        serializer_class = self.serializer_class(profiles, many=True)
 
         filtered_data = []
-        for profile in serializer_class.data:
-            user_instance = User.objects.get(pk=profile['id'])
+        for profile in profiles:
+            user_instance = profile.user
+
             try:
-                FriendRequest.objects.get(from_user=user_instance, to_user=request.user)
+                FriendRequest.objects.get(from_user=user_instance, to_user=self.request.user)
                 filtered_data.append(profile)
             except FriendRequest.DoesNotExist:
                 pass
 
-        return JsonResponse(filtered_data, safe=False)
+        return filtered_data
 
 
 class GetSentRequestsListView(ListAPIView):
     serializer_class = LoggedUserSerializer
 
-    def get(self, request, *args, **kwargs):
+    def get_queryset(self):
         profiles = Profile.objects.all()
-        serializer_class = self.serializer_class(profiles, many=True)
-
         filtered_data = []
-        for profile in serializer_class.data:
-            user_instance = User.objects.get(pk=profile['id'])
+
+        for profile in profiles:
+            user_instance = profile.user
+
             try:
-                FriendRequest.objects.get(from_user=request.user, to_user=user_instance)
+                FriendRequest.objects.get(from_user=self.request.user, to_user=user_instance)
                 filtered_data.append(profile)
             except FriendRequest.DoesNotExist:
                 pass
 
-        return JsonResponse(filtered_data, safe=False)
+        return filtered_data
