@@ -41,6 +41,23 @@ const PasswordForm = () => {
   const [showRepeatPassword, setShowRepeatPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const handleSubmit = (
+    values: {
+      old_password: string;
+      new_password: string;
+      repeated_password: string;
+    },
+    setSubmitting: (isSubmitting: boolean) => void
+  ) => {
+    setSubmitting(true);
+    const passwordData = {
+      old_password: values.old_password,
+      new_password: values.new_password,
+      repeated_password: values.repeated_password,
+    };
+    HttpService.updatePassword(passwordData).then(() => setSubmitting(false));
+  };
+
   return (
     <Formik
       initialValues={{
@@ -49,16 +66,11 @@ const PasswordForm = () => {
         repeated_password: "",
       }}
       validationSchema={PasswordSchema}
-      onSubmit={(values) => {
-        const passwordData = {
-          old_password: values.old_password,
-          new_password: values.new_password,
-          repeated_password: values.repeated_password,
-        };
-        HttpService.updatePassword(passwordData);
+      onSubmit={(values, { setSubmitting }) => {
+        handleSubmit(values, setSubmitting);
       }}
     >
-      {({ handleSubmit, errors, touched }) => (
+      {({ handleSubmit, errors, touched, isSubmitting }) => (
         <Stack w="100%" p={4}>
           <form onSubmit={handleSubmit}>
             <Stack spacing={4}>
@@ -154,7 +166,13 @@ const PasswordForm = () => {
                   {errors.repeated_password}
                 </SharedStyles.ErrorMessage>
               </FormControl>
-              <Button mt={4} colorScheme="orange" type="submit">
+              <Button
+                isLoading={isSubmitting}
+                isDisabled={isSubmitting}
+                mt={4}
+                colorScheme="orange"
+                type="submit"
+              >
                 Change password
               </Button>
             </Stack>

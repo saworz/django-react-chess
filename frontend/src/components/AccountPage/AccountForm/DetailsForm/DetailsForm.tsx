@@ -59,6 +59,31 @@ const DetailsForm = () => {
     //setImageBlob(DEFAULT_IMAGE);
   };
 
+  const handleSubmit = (
+    values: {
+      username: string | undefined;
+      email: string | undefined;
+    },
+    setSubmitting: (isSubmitting: boolean) => void
+  ) => {
+    setSubmitting(true);
+    const formData = new FormData();
+    formData.append("image", image!);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    user!.email === values.email
+      ? null
+      : formData.append("email", values.email!);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    user!.username === values.username
+      ? null
+      : formData.append("username", values.username!);
+    HttpService.updateProfile(formData)
+      .then((response) => {
+        dispatch(updateLoggedUser(response));
+      })
+      .finally(() => setSubmitting(false));
+  };
+
   return (
     <Formik
       initialValues={{
@@ -66,23 +91,11 @@ const DetailsForm = () => {
         email: user?.email,
       }}
       validationSchema={AccountDetailsSchema}
-      onSubmit={(values) => {
-        const formData = new FormData();
-        formData.append("image", image!);
-        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-        user!.email === values.email
-          ? null
-          : formData.append("email", values.email!);
-        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-        user!.username === values.username
-          ? null
-          : formData.append("username", values.username!);
-        HttpService.updateProfile(formData).then((response) => {
-          dispatch(updateLoggedUser(response));
-        });
+      onSubmit={(values, { setSubmitting }) => {
+        handleSubmit(values, setSubmitting);
       }}
     >
-      {({ handleSubmit, errors, touched }) => (
+      {({ handleSubmit, errors, touched, isSubmitting }) => (
         <Stack w="100%" p={4}>
           <form onSubmit={handleSubmit}>
             <Stack spacing={4}>
@@ -163,7 +176,13 @@ const DetailsForm = () => {
                   {errors.email}
                 </SharedStyles.ErrorMessage>
               </FormControl>
-              <Button mt={4} colorScheme="orange" type="submit">
+              <Button
+                isLoading={isSubmitting}
+                isDisabled={isSubmitting}
+                mt={4}
+                colorScheme="orange"
+                type="submit"
+              >
                 Change details
               </Button>
             </Stack>
