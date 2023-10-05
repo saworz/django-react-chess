@@ -106,6 +106,9 @@ class Game(InitPieces):
             whites_state[value] = key.position
 
         for value, key in self.black_pieces.items():
+            if key.name == "rook":
+                print(key.move_validator())
+
             blacks_state[value] = key.position
 
         return {"board_state": {"white": whites_state, "black": blacks_state}}
