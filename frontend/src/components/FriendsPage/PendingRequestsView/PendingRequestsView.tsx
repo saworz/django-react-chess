@@ -14,11 +14,13 @@ const PendingRequestsView = () => {
 
   const renderPendingRequests = () => {
     if (friendSystem.pendingRequests.length === 0) {
-      <Stack justifyContent="center">
-        <Text margin="20" fontWeight="black" fontSize={"2rem"}>
-          No results found :(
-        </Text>
-      </Stack>;
+      return (
+        <Stack justifyContent="center">
+          <Text margin="20" fontWeight="black" fontSize={"2rem"}>
+            No pending requests :(
+          </Text>
+        </Stack>
+      );
     } else if (friendSystem.pendingRequests.length > 0) {
       return (
         <PendingSuggestionsRowList

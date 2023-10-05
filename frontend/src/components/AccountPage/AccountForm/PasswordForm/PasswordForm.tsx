@@ -9,11 +9,10 @@ import {
 } from "@chakra-ui/react";
 import { Formik, Field } from "formik";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
-import { useDispatch } from "react-redux";
 import { useState } from "react";
+import HttpService from "../../../../utils/HttpService";
 import * as Yup from "yup";
 import * as SharedStyles from "../../../../shared/styles";
-import { AppDispatch } from "../../../../app/store";
 
 const PasswordSchema = Yup.object().shape({
   old_password: Yup.string()
@@ -38,8 +37,6 @@ const PasswordSchema = Yup.object().shape({
 });
 
 const PasswordForm = () => {
-  const dispatch: AppDispatch = useDispatch();
-
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showRepeatPassword, setShowRepeatPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -52,7 +49,14 @@ const PasswordForm = () => {
         repeated_password: "",
       }}
       validationSchema={PasswordSchema}
-      onSubmit={(values) => {}}
+      onSubmit={(values) => {
+        const passwordData = {
+          old_password: values.old_password,
+          new_password: values.new_password,
+          repeated_password: values.repeated_password,
+        };
+        HttpService.updatePassword(passwordData);
+      }}
     >
       {({ handleSubmit, errors, touched }) => (
         <Stack w="100%" p={4}>

@@ -4,7 +4,7 @@ import AccountForm from "../../components/AccountPage/AccountForm";
 const AccountPage = () => {
   return (
     <Flex alignItems={"center"} flex={1} direction="column">
-      <Stack w={{ base: "100%", lg: "50%" }} alignItems={"center"}>
+      <Stack w={{ base: "100%", xl: "50%" }} alignItems={"center"}>
         <Text
           fontSize={"2rem"}
           marginLeft="3"

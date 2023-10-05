@@ -18,12 +18,17 @@ import { AppDispatch, RootState } from "../../../../app/store";
 import { useFilePicker } from "use-file-picker";
 import { useState } from "react";
 import HttpService from "../../../../utils/HttpService";
+import { updateLoggedUser } from "../../../../features/auth/authSlice";
 
 const AccountDetailsSchema = Yup.object().shape({
   username: Yup.string()
     .min(4, "Too Short! It must contain at least 4 characters")
-    .max(16, "Too Long! It must contain at most 16 characters"),
-  email: Yup.string().email("Invalid email"),
+    .max(16, "Too Long! It must contain at most 16 characters")
+    .required("'Login' field is required"),
+
+  email: Yup.string()
+    .email("Invalid email")
+    .required("'Email' field is required"),
 });
 
 const DEFAULT_IMAGE = "http://localhost:8000/media/default.jpg";
@@ -31,8 +36,9 @@ const DEFAULT_IMAGE = "http://localhost:8000/media/default.jpg";
 const DetailsForm = () => {
   const dispatch: AppDispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
-  const [imageSelected, setImageSelected] = useState(false);
-  const [image, setImage] = useState(user?.image_url);
+  const [isImageSelected, setIsImageSelected] = useState(false);
+  const [imageBlob, setImageBlob] = useState(user?.image);
+  const [image, setImage] = useState<File>();
 
   const { openFilePicker, filesContent } = useFilePicker({
     readAs: "DataURL",
@@ -42,15 +48,15 @@ const DetailsForm = () => {
     // minFileSize: 1,
     maxFileSize: 50, // in megabytes
     onFilesSuccessfullySelected: ({ plainFiles, filesContent }) => {
-      setImageSelected(true);
-      setImage(filesContent[0].content);
-      console.log(plainFiles);
+      setIsImageSelected(true);
+      setImageBlob(filesContent[0].content);
+      setImage(plainFiles[0]);
     },
   });
 
   const handleRemoveIcon = () => {
-    setImageSelected(false);
-    setImage(DEFAULT_IMAGE);
+    //setIsImageSelected(false);
+    //setImageBlob(DEFAULT_IMAGE);
   };
 
   return (
@@ -61,12 +67,19 @@ const DetailsForm = () => {
       }}
       validationSchema={AccountDetailsSchema}
       onSubmit={(values) => {
-        const userData = {
-          username: values.username!,
-          email: values.email!,
-          image: image!,
-        };
-        HttpService.updateProfile(userData);
+        const formData = new FormData();
+        formData.append("image", image!);
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        user!.email === values.email
+          ? null
+          : formData.append("email", values.email!);
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        user!.username === values.username
+          ? null
+          : formData.append("username", values.username!);
+        HttpService.updateProfile(formData).then((response) => {
+          dispatch(updateLoggedUser(response));
+        });
       }}
     >
       {({ handleSubmit, errors, touched }) => (
@@ -77,10 +90,10 @@ const DetailsForm = () => {
                 <FormLabel>User Icon</FormLabel>
                 <Stack direction={["column", "row"]} spacing={6}>
                   <Center>
-                    {imageSelected ? (
+                    {isImageSelected ? (
                       filesContent.map((file, index) => (
                         <Avatar key={index} size="xl" src={file.content}>
-                          {image === DEFAULT_IMAGE ? null : (
+                          {imageBlob === DEFAULT_IMAGE ? null : (
                             <AvatarBadge
                               as={IconButton}
                               size="sm"
@@ -95,8 +108,8 @@ const DetailsForm = () => {
                         </Avatar>
                       ))
                     ) : (
-                      <Avatar size="xl" src={user?.image_url}>
-                        {image === DEFAULT_IMAGE ? null : (
+                      <Avatar size="xl" src={user?.image}>
+                        {imageBlob === DEFAULT_IMAGE ? null : (
                           <AvatarBadge
                             as={IconButton}
                             size="sm"
@@ -118,7 +131,10 @@ const DetailsForm = () => {
                   </Center>
                 </Stack>
               </FormControl>
-              <FormControl isInvalid={!!errors.username && touched.username}>
+              <FormControl
+                isRequired
+                isInvalid={!!errors.username && touched.username}
+              >
                 <FormLabel htmlFor="username">Login</FormLabel>
                 <Field
                   as={Input}
@@ -131,7 +147,10 @@ const DetailsForm = () => {
                   {errors.username}
                 </SharedStyles.ErrorMessage>
               </FormControl>
-              <FormControl isInvalid={!!errors.email && touched.email}>
+              <FormControl
+                isRequired
+                isInvalid={!!errors.email && touched.email}
+              >
                 <FormLabel htmlFor="email">Email Address</FormLabel>
                 <Field
                   as={Input}

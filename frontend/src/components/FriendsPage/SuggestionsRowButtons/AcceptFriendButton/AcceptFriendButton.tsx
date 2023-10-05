@@ -22,7 +22,8 @@ const AcceptFriendButton = ({ userId }: Types.IButtonProps) => {
           withCredentials: true,
           headers: {
             "X-CSRFToken": TokenService.getCsrfToken(),
-            "Content-Type": "application/json", // Użyj odpowiedniego typu treści, jeśli to jest JSON
+            "Content-Type": "application/json",
+            // Użyj odpowiedniego typu treści, jeśli to jest JSON
           },
         }
       );

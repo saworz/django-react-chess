@@ -83,8 +83,7 @@ const FriendsView = () => {
           return (
             <SuggestionsRowList
               suggestionList={friendSystem.suggestionsList.filter(
-                (item) =>
-                  item.pending_request === false && item.is_friend === false
+                (item) => item.is_friend === false
               )}
             />
           );
@@ -121,7 +120,7 @@ const FriendsView = () => {
       return (
         <Stack justifyContent="center">
           <Text margin="20" fontWeight="black" fontSize={"2rem"}>
-            No results found :(
+            No friends found :(
           </Text>
         </Stack>
       );
@@ -160,7 +159,7 @@ const FriendsView = () => {
     >
       <Stack spacing={4} h="100%" minHeight="100%">
         <SearchForm inputValue={searchInput} setInputValue={setSearchInput} />
-        {friendSystem.friendsList.length && (
+        {searchInput !== "" ? (
           <FriendsCountIndex
             count={
               searchInput !== "" &&
@@ -171,7 +170,7 @@ const FriendsView = () => {
                 : friendSystem.friendsList.length
             }
           />
-        )}
+        ) : null}
         {renderFriendList()}
         {searchInput && (
           <SuggestionsCountIndex

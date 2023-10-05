@@ -36,18 +36,12 @@ export interface IUserData {
   id: number;
   username: string;
   email: string;
-  image_url: string;
+  image: string;
 }
 
 export interface TokenData {
   accessToken: string;
   refreshToken: string;
-}
-
-export interface IUpdateUserData {
-  username: string;
-  email: string;
-  image: string;
 }
 
 export interface ISuggestionFriendData {
@@ -72,4 +66,10 @@ export interface IFriendData {
   username: string;
   email: string;
   image: string;
+}
+
+export interface IUpdatePasswordData {
+  old_password: string;
+  new_password: string;
+  repeated_password: string;
 }

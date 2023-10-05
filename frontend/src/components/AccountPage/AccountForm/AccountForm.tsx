@@ -4,7 +4,13 @@ import DetailsForm from "./DetailsForm";
 
 const AccountForm = () => {
   return (
-    <Stack justifyContent="space-between" direction="row">
+    <Stack
+      justifyContent="space-between"
+      direction={{
+        base: "column",
+        "2md": "row",
+      }}
+    >
       <DetailsForm />
       <PasswordForm />
     </Stack>

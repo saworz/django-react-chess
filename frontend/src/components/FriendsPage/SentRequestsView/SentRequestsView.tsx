@@ -17,7 +17,7 @@ const SentRequestsView = () => {
       return (
         <Stack justifyContent="center">
           <Text margin="20" fontWeight="black" fontSize={"2rem"}>
-            No results found :(
+            No sent requests :(
           </Text>
         </Stack>
       );
