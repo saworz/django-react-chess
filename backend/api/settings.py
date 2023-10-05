@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'friends.apps.FriendsConfig',
     'chat.apps.ChatConfig',
+    'chess.apps.ChessConfig',
     'drf_spectacular',
     'rest_framework',
 

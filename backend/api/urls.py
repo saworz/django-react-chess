@@ -10,6 +10,7 @@ urlpatterns = [
     path('api/users/', include('users.urls')),
     path('api/friends/', include('friends.urls')),
     path('api/chat/', include('chat.urls')),
+    path('api/chess/', include('chess.urls')),
 
     path('api/token/refresh/', TokenRefreshView.as_view()),
 
