@@ -84,7 +84,7 @@ class LoginView(APIView):
                 user_data = {"id": user.pk,
                              "username": user.username,
                              "email": user.email,
-                             "image_url": request.build_absolute_uri(user.profile.image.url)}
+                             "image": request.build_absolute_uri(user.profile.image.url)}
 
                 login(request, user)
                 jwt_access_token = str(AccessToken.for_user(user))
