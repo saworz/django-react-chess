@@ -44,6 +44,12 @@ export interface TokenData {
   refreshToken: string;
 }
 
+export interface IUpdateUserData {
+  username: string;
+  email: string;
+  image: string;
+}
+
 export interface ISuggestionFriendData {
   id: number;
   username: string;
