@@ -3,6 +3,7 @@ from .forms import UserRegisterForm
 from django.contrib.auth.models import User
 from .models import Profile
 from friends.models import FriendRequest
+from django.contrib.auth.password_validation import validate_password
 
 
 class UserRegisterFormSerializer(serializers.Serializer):
@@ -40,7 +41,7 @@ class UserDataDictSerializer(serializers.Serializer):
     id = serializers.CharField()
     username = serializers.CharField()
     email = serializers.CharField()
-    image_url = serializers.CharField()
+    image = serializers.CharField()
 
 
 class LoggedUserSerializer(serializers.Serializer):
@@ -102,3 +103,27 @@ class UsersListSerializer(OtherUserSerializer):
     class Meta:
         model = Profile
         fields = ['id', 'username', 'email', 'image', 'is_friend', 'pending_request', 'request_sender_id']
+
+
+class UpdateUserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=32)
+    email = serializers.CharField(max_length=32)
+    image = serializers.ImageField(source='profile.image')
+
+    class Meta:
+        model = Profile
+        fields = ['id', 'username', 'email', 'image']
+
+    def get_image(self, obj) -> str:
+        if obj.image:
+            return obj.image.url
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+    repeated_password = serializers.CharField(required=True)
+
+    def validate_password(self, value):
+        validate_password(value)
+        return value

@@ -5,7 +5,7 @@ const FriendsCountIndex = ({ count }: Types.IProps) => {
   return (
     <Stack alignItems="flex-start" direction="row">
       <Text fontWeight="black" fontSize={"1rem"} marginTop={1}>
-        Suggestions
+        Friends
       </Text>
       <Text
         bg={useColorModeValue("white", "gray.800")}

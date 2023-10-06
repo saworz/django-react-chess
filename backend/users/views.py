@@ -1,11 +1,11 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
-from rest_framework.generics import RetrieveAPIView, ListAPIView
+from rest_framework.generics import RetrieveAPIView, ListAPIView, UpdateAPIView
 from rest_framework import status
 from .serializers import (UserRegisterFormSerializer, UserErrorResponseSerializer,
                           UserLoginSerializer, UserDataDictSerializer, MessageResponseSerializer, LoggedUserSerializer,
-                          UsersListSerializer, OtherUserSerializer)
+                          UsersListSerializer, OtherUserSerializer, UpdateUserSerializer, ChangePasswordSerializer)
 
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, OpenApiExample
 from django.utils.decorators import method_decorator
@@ -15,6 +15,13 @@ from django.contrib.auth.models import User
 from .models import Profile
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required
+from .forms import ProfileUpdateForm
+from rest_framework.response import Response
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+from rest_framework.parsers import MultiPartParser
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import update_session_auth_hash
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -77,7 +84,7 @@ class LoginView(APIView):
                 user_data = {"id": user.pk,
                              "username": user.username,
                              "email": user.email,
-                             "image_url": request.build_absolute_uri(user.profile.image.url)}
+                             "image": request.build_absolute_uri(user.profile.image.url)}
 
                 login(request, user)
                 jwt_access_token = str(AccessToken.for_user(user))
@@ -145,3 +152,63 @@ class UsersDataListView(ListAPIView):
                 new_queryset.append(profile)
 
         return new_queryset
+
+
+class UserUpdateView(UpdateAPIView):
+    serializer_class = UpdateUserSerializer
+    parser_classes = [MultiPartParser]
+
+    def get_object(self):
+        return self.request.user
+
+    def perform_update(self, serializer):
+        user = self.get_object()
+
+        if 'username' in self.request.data:
+            new_username = self.request.data['username']
+            if User.objects.filter(username=new_username).exclude(username=self.request.user.username).exists():
+                error_message = {'message': ['Username already exists.']}
+                raise ValidationError(detail=error_message)
+
+            user.username = new_username
+
+        if 'email' in self.request.data:
+            new_email = self.request.data['email']
+            if User.objects.filter(email=new_email).exclude(email=self.request.user.email).exists():
+                error_message = {'message': ['Email already exists.']}
+                raise ValidationError(detail=error_message)
+
+            user.email = new_email
+
+        if 'image' in self.request.data:
+            user.profile.image = self.request.data['image']
+
+        user.save()
+        user.profile.save()
+
+
+class UpdatePasswordView(UpdateAPIView):
+    serializer_class = ChangePasswordSerializer
+    model = User
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.serializer_class(data=request.data)
+
+        if serializer.is_valid():
+            if not user.check_password(serializer.data.get("old_password")):
+                return JsonResponse({"message": "Incorrect password"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if serializer.data.get("new_password") != serializer.data.get("repeated_password"):
+                return JsonResponse({"message": "New passwords dont match"}, status=status.HTTP_400_BAD_REQUEST)
+
+            user.set_password(serializer.data.get("new_password"))
+            user.save()
+            update_session_auth_hash(request, user)
+
+        return JsonResponse({"message": "Password changed"}, status=status.HTTP_200_OK)
+

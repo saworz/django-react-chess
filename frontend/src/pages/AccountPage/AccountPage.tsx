@@ -1,12 +1,13 @@
 import { Box, Flex, Stack, Text, useColorModeValue } from "@chakra-ui/react";
+import AccountForm from "../../components/AccountPage/AccountForm";
 
 const AccountPage = () => {
   return (
     <Flex alignItems={"center"} flex={1} direction="column">
-      <Stack w={{ base: "100%", lg: "50%" }} alignItems={"center"}>
+      <Stack w={{ base: "100%", xl: "50%" }} alignItems={"center"}>
         <Text
-          marginLeft="3"
           fontSize={"2rem"}
+          marginLeft="3"
           fontWeight="black"
           alignSelf="flex-start"
         >
@@ -17,12 +18,11 @@ const AccountPage = () => {
           bg={useColorModeValue("white", "gray.700")}
           boxShadow={"lg"}
           w="100%"
-          maxH={{ base: "", md: "80vh" }}
           marginBottom="10"
           p={8}
           textAlign="center"
         >
-          <Stack spacing={4} h="100%" minHeight="100%"></Stack>
+          <AccountForm />
         </Box>
       </Stack>
     </Flex>

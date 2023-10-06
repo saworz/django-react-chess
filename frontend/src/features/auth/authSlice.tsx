@@ -74,6 +74,9 @@ export const authSlice = createSlice({
       state.isSuccess = false;
       state.message = "";
     },
+    updateLoggedUser: (state, action) => {
+      state.user = action.payload;
+    },
   },
   //Account state - pendning, fullfiled, rejected
   extraReducers(builder) {
@@ -121,5 +124,5 @@ export const authSlice = createSlice({
   },
 });
 
-export const { reset } = authSlice.actions;
+export const { reset, updateLoggedUser } = authSlice.actions;
 export default authSlice.reducer;

@@ -102,7 +102,7 @@ const Navigation = () => {
               cursor={"pointer"}
               minW={0}
             >
-              <Avatar size={"sm"} src={user?.image_url} />
+              <Avatar size={"sm"} src={user?.image} />
             </MenuButton>
             <MenuList>
               <MenuItem>
