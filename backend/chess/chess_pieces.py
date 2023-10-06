@@ -19,10 +19,35 @@ class Piece(ABC):
     def move_validator(self):
         """Validates move according to board boundaries"""
         validated_moves = []
-        for move in self.movement():
-            if (0 < move[0] < 9) and (0 < move[1] < 9):
-                validated_moves.append(move)
+        for moves in self.movement():
+            for move in moves:
+                if (0 < move[0] < 9) and (0 < move[1] < 9):
+                    validated_moves.append(move)
         return validated_moves
+
+
+class RookMoves(Piece):
+    def movement(self):
+        possible_moves = []
+        x_moves_left = [(i, self.y_position) for i in reversed(range(1, self.x_position))]
+        x_moves_right = [(i, self.y_position) for i in range(self.x_position + 1, 9)]
+        y_moves_down = [(self.x_position, i) for i in reversed(range(1, self.y_position))]
+        y_moves_top = [(self.x_position, i) for i in range(self.y_position + 1, 9)]
+
+        possible_moves.extend([x_moves_left, x_moves_right, y_moves_down, y_moves_top])
+        return possible_moves
+
+
+class BishopMoves(Piece):
+    def movement(self):
+        possible_moves = []
+        move_left_up = [(self.x_position - i, self.y_position + i) for i in range(1, 9)]
+        move_left_down = [(self.x_position - i, self.y_position - i) for i in range(1, 9)]
+        move_right_up = [(self.x_position + i, self.y_position + i) for i in range(1, 9)]
+        move_right_down = [(self.x_position + i, self.y_position - i) for i in range(1, 9)]
+
+        possible_moves.extend([move_left_up, move_left_down, move_right_down, move_right_up])
+        return possible_moves
 
 
 class PiecePawn(Piece):
@@ -35,9 +60,10 @@ class PiecePawn(Piece):
         else:
             move_dir = -1
 
-        possible_moves = [(self.x_position, self.y_position + 1 * move_dir)]
+        possible_moves = [[(self.x_position, self.y_position + 1 * move_dir)]]
         if self.at_base_position():
-            possible_moves.append((self.x_position, self.y_position + 2 * move_dir))
+            possible_moves.extend([[(self.x_position, self.y_position + 2 * move_dir)]])
+
         return possible_moves
 
     def at_base_position(self):
@@ -46,25 +72,14 @@ class PiecePawn(Piece):
         return False
 
 
-class PieceRook(Piece):
+class PieceRook(RookMoves):
     def __init__(self, name, position, weight, color):
         super().__init__(name, position, weight, color)
 
-    def movement(self):
-        possible_moves = []
-        x_moves = [(i, self.y_position) for i in range(9)]
-        y_moves = [(self.x_position, i) for i in range(9)]
-        possible_moves.extend(x_moves + y_moves)
-        return possible_moves
 
-
-class PieceBishop(Piece):
+class PieceBishop(BishopMoves):
     def __init__(self, name, position, weight, color):
         super().__init__(name, position, weight, color)
-
-    def movement(self):
-        possible_moves = []
-        return possible_moves
 
 
 class PieceKnight(Piece):
@@ -73,12 +88,11 @@ class PieceKnight(Piece):
 
     def movement(self):
         possible_moves = [
-            (self.x_position - 2, self.y_position + 1), (self.x_position - 2, self.y_position - 1),
-            (self.x_position + 2, self.y_position + 1), (self.x_position + 2, self.y_position - 1),
-            (self.y_position - 2, self.x_position + 1), (self.y_position - 2, self.x_position - 1),
-            (self.y_position + 2, self.x_position + 1), (self.y_position + 2, self.x_position - 1)
+            [(self.x_position - 2, self.y_position + 1)], [(self.x_position - 2, self.y_position - 1)],
+            [(self.x_position + 2, self.y_position + 1)], [(self.x_position + 2, self.y_position - 1)],
+            [(self.x_position + 1, self.y_position - 2)], [(self.x_position - 1, self.y_position - 2)],
+            [(self.x_position + 1, self.y_position + 2)], [(self.x_position - 1, self.y_position + 2)]
         ]
-
         return possible_moves
 
 
@@ -88,6 +102,9 @@ class PieceQueen(Piece):
 
     def movement(self):
         possible_moves = []
+        rook_moves = RookMoves.movement(self)
+        bishop_moves = BishopMoves.movement(self)
+        possible_moves.extend(rook_moves + bishop_moves)
         return possible_moves
 
 
@@ -96,5 +113,8 @@ class PieceKing(Piece):
         super().__init__(name, position, weight, color)
 
     def movement(self):
-        possible_moves = []
+        possible_moves = [[(self.x_position - 1, self.y_position + 1)], [(self.x_position, self.y_position + 1)],
+                          [(self.x_position + 1, self.y_position + 1)], [(self.x_position + 1, self.y_position)],
+                          [(self.x_position + 1, self.y_position - 1)], [(self.x_position, self.y_position - 1)],
+                          [(self.x_position - 1, self.y_position - 1)], [(self.x_position - 1, self.y_position)]]
         return possible_moves
