@@ -10,20 +10,58 @@ class Piece(ABC):
         self.init_position = position
         self.weight = weight
         self.color = color
+        self.validated_moves = []
+
+    def __repr__(self):
+        return f'{self.color} {self.name} at {self.position}'
 
     @abstractmethod
     def movement(self):
         """Returns list of default moves"""
         pass
 
-    def move_validator(self):
+    def move_validator(self, friendly_occupied_positions):
         """Validates move according to board boundaries"""
-        validated_moves = []
+        self.validated_moves = []
+        self.boundaries_validator()
+        self.friendly_blocking(friendly_occupied_positions)
+        # self.friendly_pieces_validator(friendly_occupied_positions)
+        # return self.validated_moves
+        print(self)
+        print("Possible moves:")
+        print(self.validated_moves)
+
+    def boundaries_validator(self):
         for moves in self.movement():
+            move_set = []
             for move in moves:
                 if (0 < move[0] < 9) and (0 < move[1] < 9):
-                    validated_moves.append(move)
-        return validated_moves
+                    move_set.append(move)
+            if len(move_set) > 0:
+                self.validated_moves.append(move_set)
+
+    def friendly_blocking(self, friendly_occupied_positions):
+        non_blocked_move_sets = []
+
+        for move_set in self.validated_moves:
+            non_blocked_moves = []
+            for move in move_set:
+                if move in friendly_occupied_positions:
+                    break
+                non_blocked_moves.append(move)
+            if len(non_blocked_moves) > 0:
+                non_blocked_move_sets.append(non_blocked_moves)
+
+        self.validated_moves = non_blocked_move_sets
+
+    # def friendly_pieces_validator(self, friendly_occupied_positions):
+    #     empty_positions = []
+    #     for move in self.validated_moves:
+    #         if move not in friendly_occupied_positions:
+    #             empty_positions.append(move)
+    #     print(self)
+    #     print(empty_positions)
+    #     self.validated_moves = empty_positions
 
 
 class RookMoves(Piece):
