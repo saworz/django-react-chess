@@ -122,7 +122,11 @@ class Game(InitPieces):
         white_pieces_state = self.get_board_state().get('board_state').get('white')
         black_occupied_positions = [piece.position for piece in black_pieces_state.values()]
         white_occupied_positions = [piece.position for piece in white_pieces_state.values()]
+
         for name, piece in black_pieces_state.items():
+            piece.move_validator(white_occupied_positions, black_occupied_positions)
+
+        for name, piece in white_pieces_state.items():
             piece.move_validator(white_occupied_positions, black_occupied_positions)
 
 
