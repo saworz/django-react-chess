@@ -11,6 +11,7 @@ class Piece(ABC):
         self.weight = weight
         self.color = color
         self.validated_moves = []
+        self.capturing_moves = []
 
     def __repr__(self):
         return f'{self.color} {self.name} at {self.position}'
@@ -20,13 +21,15 @@ class Piece(ABC):
         """Returns list of default moves"""
         pass
 
-    def move_validator(self, friendly_occupied_positions):
-        """Validates move according to board boundaries"""
+    def move_validator(self, white_occupied_positions, black_occupied_positions):
+        """Validates possible moves"""
         self.validated_moves = []
         self.boundaries_validator()
-        self.friendly_blocking(friendly_occupied_positions)
-        # self.friendly_pieces_validator(friendly_occupied_positions)
-        # return self.validated_moves
+        if self.color == 'white':
+            self.friendly_blocking(white_occupied_positions, black_occupied_positions)
+        elif self.color == 'black':
+            self.friendly_blocking(black_occupied_positions, white_occupied_positions)
+
         print(self)
         print("Possible moves:")
         print(self.validated_moves)
@@ -40,7 +43,7 @@ class Piece(ABC):
             if len(move_set) > 0:
                 self.validated_moves.append(move_set)
 
-    def friendly_blocking(self, friendly_occupied_positions):
+    def friendly_blocking(self, friendly_occupied_positions, enemy_occupied_positions):
         non_blocked_move_sets = []
 
         for move_set in self.validated_moves:
@@ -48,22 +51,29 @@ class Piece(ABC):
             for move in move_set:
                 if move in friendly_occupied_positions:
                     break
+                if move in enemy_occupied_positions:
+                    print("occupying here")
+                    print(move)
+                    break
                 non_blocked_moves.append(move)
             if len(non_blocked_moves) > 0:
                 non_blocked_move_sets.append(non_blocked_moves)
 
         self.validated_moves = non_blocked_move_sets
 
-    # def friendly_pieces_validator(self, friendly_occupied_positions):
-    #     empty_positions = []
-    #     for move in self.validated_moves:
-    #         if move not in friendly_occupied_positions:
-    #             empty_positions.append(move)
-    #     print(self)
-    #     print(empty_positions)
-    #     self.validated_moves = empty_positions
-
-
+    # def friendly_blocking(self, friendly_occupied_positions):
+    #     non_blocked_move_sets = []
+    #
+    #     for move_set in self.validated_moves:
+    #         non_blocked_moves = []
+    #         for move in move_set:
+    #             if move in friendly_occupied_positions:
+    #                 break
+    #             non_blocked_moves.append(move)
+    #         if len(non_blocked_moves) > 0:
+    #             non_blocked_move_sets.append(non_blocked_moves)
+    #
+    #     self.validated_moves = non_blocked_move_sets
 class RookMoves(Piece):
     def movement(self):
         possible_moves = []
