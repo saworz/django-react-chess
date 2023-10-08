@@ -10,7 +10,7 @@ class Piece(ABC):
         self.init_position = position
         self.weight = weight
         self.color = color
-        self.validated_moves = []
+        self.possible_moves = []
         self.capturing_moves = []
 
     def __repr__(self):
@@ -23,7 +23,7 @@ class Piece(ABC):
 
     def move_validator(self, white_occupied_positions, black_occupied_positions):
         """Validates possible moves"""
-        self.validated_moves = []
+        self.possible_moves = []
         self.boundaries_validator()
         if self.color == 'white':
             self.pieces_blocking(white_occupied_positions, black_occupied_positions)
@@ -32,7 +32,7 @@ class Piece(ABC):
 
         print(self)
         print("Possible moves:")
-        print(self.validated_moves)
+        print(self.possible_moves)
         print("Capturing moves:")
         print(self.capturing_moves)
 
@@ -43,13 +43,13 @@ class Piece(ABC):
                 if (0 < move[0] < 9) and (0 < move[1] < 9):
                     move_set.append(move)
             if len(move_set) > 0:
-                self.validated_moves.append(move_set)
+                self.possible_moves.append(move_set)
 
     def pieces_blocking(self, friendly_occupied_positions, enemy_occupied_positions):
         non_blocked_move_sets = []
         capturing_moves = []
 
-        for move_set in self.validated_moves:
+        for move_set in self.possible_moves:
             non_blocked_moves = []
             for move in move_set:
                 if move in friendly_occupied_positions:
@@ -63,7 +63,7 @@ class Piece(ABC):
                 non_blocked_move_sets.append(non_blocked_moves)
 
         self.capturing_moves = capturing_moves
-        self.validated_moves = non_blocked_move_sets
+        self.possible_moves = non_blocked_move_sets
 
 
 class RookMoves(Piece):

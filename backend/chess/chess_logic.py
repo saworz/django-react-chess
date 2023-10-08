@@ -122,7 +122,3 @@ class Game(InitPieces):
         for name, piece in white_pieces_state.items():
             piece.move_validator(white_occupied_positions, black_occupied_positions)
 
-
-def init_board():
-    game = Game()
-    game.validate_moves()

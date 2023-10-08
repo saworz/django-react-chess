@@ -24,14 +24,6 @@ class PiecesSetup(models.Model):
         abstract = True
 
 
-class WhitePieces(PiecesSetup):
-    pass
-
-
-class BlackPieces(PiecesSetup):
-    pass
-
-
 class ChessGame(models.Model):
     player_white = models.ForeignKey(User,
                                      related_name='white_player',
@@ -44,13 +36,11 @@ class ChessGame(models.Model):
 
     # current_player = models.CharField(max_length=5)
     #
-    # white_pieces = models.ForeignKey(WhitePieces,
-    #                                  related_name='white_pieces',
-    #                                  related_query_name='white_pieces',
-    #                                  on_delete=models.CASCADE)
-    # black_piece = models.ForeignKey(BlackPieces,
-    #                                 related_name='black_pieces',
-    #                                 related_query_name='black_pieces',
-    #                                 on_delete=models.CASCADE)
 
 
+class WhitePieces(PiecesSetup):
+    game_id = models.ForeignKey(ChessGame, on_delete=models.CASCADE)
+
+
+class BlackPieces(PiecesSetup):
+    game_id = models.ForeignKey(ChessGame, on_delete=models.CASCADE)
