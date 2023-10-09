@@ -1,3 +1,4 @@
+import json
 import random
 
 from django.shortcuts import render
@@ -9,6 +10,8 @@ from rest_framework.response import Response
 from django.http import JsonResponse
 from rest_framework import status
 from django.contrib.auth.models import User
+from .models import ChessGame, WhitePieces, BlackPieces
+from django.shortcuts import get_object_or_404
 
 
 class CreateNewGameView(CreateAPIView):
@@ -39,6 +42,7 @@ class CreateNewGameView(CreateAPIView):
         }
 
         new_game = Game()
+        new_game.validate_moves()
 
         sides = {
             "white": new_game.white_pieces,
@@ -84,6 +88,42 @@ class CreateNewGameView(CreateAPIView):
 class MakeMoveView(APIView):
     serializer_class = MakeMoveSerializer
 
+    def string_to_tuple(self):
+        letter = self.kwargs.get("new_position")[0]
+        number = self.kwargs.get("new_position")[1]
+
+        x = ord(letter) - ord("A") + 1 #convert B to 2 etc.
+        y = int(number)
+
+        return x, y
+
+    def move_piece(self, chess_pieces):
+        piece = getattr(chess_pieces, self.kwargs.get("piece"), None)
+
+        print(json.loads(piece["possible_moves"]))
+        new_position = self.string_to_tuple()
+        print(piece)
+        print(new_position)
+        if new_position in piece["possible_moves"]:
+            piece.position = new_position
+        else:
+            return JsonResponse({"message": "Illegal move"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return JsonResponse({"message": "finito"})
+
     def post(self, request, *args, **kwargs):
-        print(kwargs)
-        return JsonResponse({"msg": "makeMove"})
+        serializer = self.serializer_class(data=kwargs)
+        serializer.is_valid(raise_exception=True)
+
+        game = get_object_or_404(ChessGame, pk=kwargs.get("game_id"))
+
+        if (not (game.current_player == "white" and request.user == game.player_white and kwargs.get("color") == "white")
+                and not (game.current_player == "black" and request.user == game.player_black and kwargs.get("color") == "black")):
+            return JsonResponse({"message": "Other users turn"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if kwargs.get("color") == "white":
+            chess_pieces = get_object_or_404(WhitePieces, pk=kwargs.get("game_id"))
+        elif kwargs.get("color") == "black":
+            chess_pieces = get_object_or_404(BlackPieces, pk=kwargs.get("game_id"))
+
+        return self.move_piece(chess_pieces)

@@ -30,12 +30,6 @@ class Piece(ABC):
         elif self.color == 'black':
             self.pieces_blocking(black_occupied_positions, white_occupied_positions)
 
-        print(self)
-        print("Possible moves:")
-        print(self.possible_moves)
-        print("Capturing moves:")
-        print(self.capturing_moves)
-
     def boundaries_validator(self):
         for moves in self.movement():
             move_set = []

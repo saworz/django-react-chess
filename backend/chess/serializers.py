@@ -21,19 +21,7 @@ class BlackBoardSerializer(serializers.ModelSerializer):
 
 
 class MakeMoveSerializer(serializers.Serializer):
-    game_id = serializers.HyperlinkedRelatedField(
-        view_name='game_id',
-        read_only=True
-    )
-    color = serializers.HyperlinkedRelatedField(
-        view_name='color',
-        read_only=True,
-    )
-    piece = serializers.HyperlinkedRelatedField(
-        view_name='piece',
-        read_only=True
-    )
-    new_position = serializers.HyperlinkedRelatedField(
-        view_name='new_position',
-        read_only=True
-    )
+    game_id = serializers.CharField(max_length=6)
+    color = serializers.CharField(max_length=5)
+    piece = serializers.CharField(max_length=8)
+    new_position = serializers.CharField(max_length=2)
