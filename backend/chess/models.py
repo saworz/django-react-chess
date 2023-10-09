@@ -27,11 +27,11 @@ class PiecesSetup(models.Model):
 class ChessGame(models.Model):
     player_white = models.ForeignKey(User,
                                      related_name='white_player',
-                                     related_query_name='white_player',
+                                     # related_query_name='white_player',
                                      on_delete=models.CASCADE)
     player_black = models.ForeignKey(User,
                                      related_name='black_player',
-                                     related_query_name='black_player',
+                                     # related_query_name='black_player',
                                      on_delete=models.CASCADE)
 
     # current_player = models.CharField(max_length=5)

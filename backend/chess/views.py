@@ -54,7 +54,7 @@ class CreateNewGameView(CreateAPIView):
                 if color == 'white':
                     white_board[name] = piece_info
 
-                elif name == 'black':
+                elif color == 'black':
                     black_board[name] = piece_info
 
         serializer = self.get_serializer(data=game_data)
