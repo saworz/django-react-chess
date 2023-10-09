@@ -1,3 +1,5 @@
+import random
+
 from django.shortcuts import render
 from rest_framework.generics import CreateAPIView
 from rest_framework.views import APIView
@@ -20,9 +22,12 @@ class CreateNewGameView(CreateAPIView):
             return JsonResponse({"message": "User with id {} does not exist.".format(kwargs.get("pk"))},
                                 status=status.HTTP_404_NOT_FOUND)
 
+        players = [logged_user.pk, other_user.pk]
+        random.shuffle(players)
+
         game_data = {
-            "player_white": logged_user.pk,
-            "player_black": other_user.pk,
+            "player_white": players[0],
+            "player_black": players[1],
         }
 
         white_board = {
@@ -67,12 +72,8 @@ class CreateNewGameView(CreateAPIView):
         white_serializer = WhiteBoardSerializer(data=white_board)
         black_serializer = BlackBoardSerializer(data=black_board)
 
-        print(white_board)
-        print(black_board)
-
         white_serializer.is_valid(raise_exception=True)
         black_serializer.is_valid(raise_exception=True)
-
 
         white_serializer.save()
         black_serializer.save()
