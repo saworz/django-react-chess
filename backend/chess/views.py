@@ -12,6 +12,7 @@ from rest_framework import status
 from django.contrib.auth.models import User
 from .models import ChessGame, WhitePieces, BlackPieces
 from django.shortcuts import get_object_or_404
+from django.core import serializers
 
 
 class CreateNewGameView(CreateAPIView):
@@ -88,28 +89,40 @@ class CreateNewGameView(CreateAPIView):
 class MakeMoveView(APIView):
     serializer_class = MakeMoveSerializer
 
-    def string_to_tuple(self):
+    def string_to_list(self):
         letter = self.kwargs.get("new_position")[0]
         number = self.kwargs.get("new_position")[1]
 
-        x = ord(letter) - ord("A") + 1 #convert B to 2 etc.
+        x = ord(letter) - ord("A") + 1  # convert B to 2 etc.
         y = int(number)
 
-        return x, y
+        return [x, y]
 
-    def move_piece(self, chess_pieces):
+    def move_piece(self, game, chess_pieces):
         piece = getattr(chess_pieces, self.kwargs.get("piece"), None)
+        new_position = self.string_to_list()
+        old_position = piece["position"]
 
-        print(json.loads(piece["possible_moves"]))
-        new_position = self.string_to_tuple()
-        print(piece)
-        print(new_position)
-        if new_position in piece["possible_moves"]:
-            piece.position = new_position
+        for move_set in piece["possible_moves"]:
+            if new_position in move_set:
+                piece["position"] = new_position
+                break
         else:
             return JsonResponse({"message": "Illegal move"}, status=status.HTTP_400_BAD_REQUEST)
 
-        return JsonResponse({"message": "finito"})
+        game.current_player = "white" if game.current_player == "black" else "black"
+
+        game.save()
+        chess_pieces.save()
+
+        content = {
+            "message": "Changed piece position",
+            "new_position": new_position,
+            "old_position": old_position,
+            "next_player": game.current_player
+        }
+
+        return JsonResponse(content, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=kwargs)
@@ -126,4 +139,4 @@ class MakeMoveView(APIView):
         elif kwargs.get("color") == "black":
             chess_pieces = get_object_or_404(BlackPieces, pk=kwargs.get("game_id"))
 
-        return self.move_piece(chess_pieces)
+        return self.move_piece(game, chess_pieces)
