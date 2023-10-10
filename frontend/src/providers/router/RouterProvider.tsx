@@ -7,6 +7,8 @@ import RegisterPage from "../../pages/RegisterPage";
 import DashboardPage from "../../pages/DashboardPage";
 import FriendsPage from "../../pages/FriendsPage";
 import AccountPage from "../../pages/AccountPage";
+import ErrorPage from "../../pages/ErrorPage";
+import UserDetailsPage from "../../pages/UserDetailsPage";
 import PrivateRoutes from "../../utils/PrivateRoutes";
 import PublicRoutes from "../../utils/PublicRoutes";
 import Navigation from "../../components/Navigation";
@@ -23,11 +25,17 @@ const RouterProvider = () => {
           <Route path="/dashboard" element={<DashboardPage />}></Route>
           <Route path="/friends" element={<FriendsPage />}></Route>
           <Route path="/account" element={<AccountPage />}></Route>
+          <Route path="*" element={<ErrorPage />}></Route>
+          <Route
+            path="/user_details/:userId"
+            element={<UserDetailsPage />}
+          ></Route>
         </Route>
         <Route element={<PublicRoutes />}>
           <Route path="/" element={<HomePage />}></Route>
           <Route path="/login" element={<LoginPage />}></Route>
           <Route path="/register" element={<RegisterPage />}></Route>
+          <Route path="*" element={<ErrorPage />}></Route>
         </Route>
       </Routes>
     </Router>
