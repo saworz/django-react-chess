@@ -110,7 +110,7 @@ class MakeMoveView(APIView):
         else:
             return JsonResponse({"message": "Illegal move"}, status=status.HTTP_400_BAD_REQUEST)
 
-        game.current_player = "white" if game.current_player == "black" else "black"
+        # game.current_player = "white" if game.current_player == "black" else "black"
 
         game.save()
         chess_pieces.save()
@@ -119,7 +119,7 @@ class MakeMoveView(APIView):
             "message": "Changed piece position",
             "new_position": new_position,
             "old_position": old_position,
-            "next_player": game.current_player
+            # "next_player": game.current_player
         }
 
         return JsonResponse(content, status=status.HTTP_200_OK)

@@ -95,7 +95,7 @@ class InitPieces:
         }
 
 
-class Game(InitPieces):
+class GameInitializer(InitPieces):
     def __init__(self):
         super().__init__()
 
@@ -122,3 +122,9 @@ class Game(InitPieces):
         for name, piece in white_pieces_state.items():
             piece.move_validator(white_occupied_positions, black_occupied_positions)
 
+
+class GameLoader(GameInitializer):
+    def __init__(self, game_state):
+        self.game_state = game_state
+        self.white_pieces = {}
+        self.black_pieces = {}
