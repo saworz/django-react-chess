@@ -8,6 +8,7 @@ import {
 } from "@chakra-ui/react";
 import SuggestionsRowButtons from "../SuggestionsRowButtons";
 import * as SharedTypes from "../../../shared/types";
+import { useNavigate } from "react-router-dom";
 
 const SuggestionsRow = ({
   email,
@@ -18,6 +19,7 @@ const SuggestionsRow = ({
   request_sender_id: request_sender,
   pending_request,
 }: SharedTypes.ISuggestionFriendData) => {
+  const navigate = useNavigate();
   return (
     <Stack
       direction={{ base: "column", md: "row" }}
@@ -46,13 +48,18 @@ const SuggestionsRow = ({
         <Stack direction={{ base: "column", "2xl": "row" }}>
           <SuggestionsRowButtons
             userId={id}
-            userDetails={{ is_friend, request_sender, pending_request }}
+            userDetails={{
+              is_friend,
+              request_sender_id: request_sender,
+              pending_request,
+            }}
           />
-          <Button colorScheme="telegram" size="md">
+          <Button
+            onClick={() => navigate(`/user_details/${id}`)}
+            colorScheme="telegram"
+            size="md"
+          >
             View profile
-          </Button>
-          <Button colorScheme="orange" size="md">
-            Send Message
           </Button>
         </Stack>
       </Box>
