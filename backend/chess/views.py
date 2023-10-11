@@ -5,7 +5,7 @@ from django.shortcuts import render
 from rest_framework.generics import CreateAPIView
 from rest_framework.views import APIView
 from .serializers import ChessGameSerializer, MakeMoveSerializer, BlackBoardSerializer, WhiteBoardSerializer
-from .chess_logic import Game
+# from .chess_logic import Game
 from rest_framework.response import Response
 from django.http import JsonResponse
 from rest_framework import status

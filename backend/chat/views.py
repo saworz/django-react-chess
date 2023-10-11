@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from .serializers import MessagesSerializer, GetMessageSerializer
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.generics import ListAPIView
 from .models import Messages
@@ -30,3 +30,7 @@ class GetMessagesView(ListAPIView):
         received = Messages.objects.filter(from_user=User.objects.get(pk=receiver_id), to_user=self.request.user)
         all_messages = sent.union(received)
         return all_messages.order_by("-timestamp")
+
+
+def room(request, room_name):
+    return HttpResponse(room_name)

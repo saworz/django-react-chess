@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'chess.apps.ChessConfig',
     'drf_spectacular',
     'rest_framework',
+    'channels',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -147,6 +148,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = '/static/'
+ASGI_APPLICATION = "api.routing.application"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
