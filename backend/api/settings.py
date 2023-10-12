@@ -37,6 +37,7 @@ CORS_ALLOW_METHODS = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT']
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'api',
     'corsheaders',
     'users.apps.UsersConfig',
@@ -45,7 +46,6 @@ INSTALLED_APPS = [
     'chess.apps.ChessConfig',
     'drf_spectacular',
     'rest_framework',
-    'channels',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -54,6 +54,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 ]
+
+ASGI_APPLICATION = "api.asgi.application"
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -148,7 +150,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = '/static/'
-ASGI_APPLICATION = "api.routing.application"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
