@@ -33,4 +33,4 @@ class GetMessagesView(ListAPIView):
 
 
 def room(request, room_name):
-    return HttpResponse(room_name)
+    return render(request, 'chat/lobby.html', {'room_name': room_name})
