@@ -1,7 +1,5 @@
 import {
   Box,
-  HStack,
-  VStack,
   useColorModeValue,
   Image,
   Text,
@@ -24,18 +22,31 @@ const UserDetails = ({ user }: Types.IProps) => {
       p={8}
       textAlign="center"
     >
-      <HStack>
-        <VStack p={3}>
+      <Stack
+        direction={{ base: "column", sm: "column", md: "row", "2md": "row" }}
+        justifyContent={{
+          lg: "flex-start",
+          "3md": "center",
+          xl: "flex-start",
+        }}
+        alignItems={{ base: "center", sm: "center", md: "center" }}
+      >
+        <Stack p={3} display={{ lg: "block", "3md": "none", xl: "block" }}>
           <Image
             alignSelf={{ base: "center", md: "left" }}
             src={"http://localhost:8000" + user.image}
             alt={"Avatar " + user.username}
-            boxSize={{ base: "110px", "2xl": "280px" }}
+            boxSize={{
+              base: "110px",
+              lg: "140px",
+              xl: "200px",
+              "2xl": "280px",
+            }}
             objectFit="cover"
-            height={{ base: "110px", "2xl": "280px" }}
+            height={{ base: "110px", lg: "140px", xl: "200px", "2xl": "280px" }}
           />
-        </VStack>
-        <VStack p={3} h="100%" alignSelf="flex-start">
+        </Stack>
+        <Stack p={3} h="100%">
           <Text
             w="100%"
             marginLeft="3"
@@ -54,7 +65,7 @@ const UserDetails = ({ user }: Types.IProps) => {
           >
             {user.email}
           </Text>
-          <Stack alignSelf="flex-end" h="100%">
+          <Stack marginLeft="2" alignSelf="flex-start" h="100%">
             <UserDetailsButtons userDetails={user} />
             <Button
               leftIcon={<EmailIcon />}
@@ -65,8 +76,8 @@ const UserDetails = ({ user }: Types.IProps) => {
               Send Message
             </Button>
           </Stack>
-        </VStack>
-      </HStack>
+        </Stack>
+      </Stack>
     </Box>
   );
 };

@@ -19,11 +19,12 @@ const UserDetailsPage = () => {
     } else {
       navigate("/error");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <Flex alignItems={"center"} flex={1} direction="column">
-      <Stack w={{ base: "100%", lg: "50%" }} alignItems={"center"}>
+      <Stack w={{ base: "100%", "3md": "50%" }} alignItems={"center"}>
         <Text
           marginLeft="3"
           fontSize={"2rem"}
