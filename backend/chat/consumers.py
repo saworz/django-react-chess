@@ -5,7 +5,9 @@ import json
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
-        self.room_group_name = 'test'
+        room_id = self.scope['url_route']['kwargs']['room_id']
+        self.room_name = room_id
+        self.room_group_name = f"chat_{room_id}"
 
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,

@@ -6,6 +6,6 @@ from . import views
 urlpatterns = [
     path('send_message/<int:pk>/', login_required(views.SendMessageView.as_view())),
     path('get_messages/<int:pk>/', login_required(views.GetMessagesView.as_view())),
-
-    path('<str:room_name>/', views.room)
+    path('get_room_id/<int:pk>', login_required(views.GetRoomIdView.as_view())),
+    path('<str:room_id>/', views.room)
 ]

@@ -9,7 +9,7 @@
 </head>
 <body>
     <h1>Lets chat!</h1>
-    <h2>Room id: {{room_name}}</h2>
+    <h2>Room id: {{room_id}}</h2>
     <form id="form">
         <input type="text" name="message"/>
     </form>
@@ -17,7 +17,7 @@
     <div id="messages"></div>
 
     <script type="text/javascript">
-        let url = `ws://${window.location.host}/ws/socket-server/`
+        let url = `ws://${window.location.host}/ws/chat/{{room_id}}`
 
         const chatSocket = new WebSocket(url)
 

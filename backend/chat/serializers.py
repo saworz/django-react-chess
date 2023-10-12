@@ -27,3 +27,7 @@ class GetMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Messages
         fields = ['pk', 'message', 'from_user', 'to_user', 'timestamp']
+
+
+class RoomIdSerializer(serializers.Serializer):
+    room_id = serializers.CharField()
