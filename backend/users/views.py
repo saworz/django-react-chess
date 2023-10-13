@@ -4,21 +4,16 @@ from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView, ListAPIView, UpdateAPIView
 from rest_framework import status
 from .serializers import (UserRegisterFormSerializer, UserErrorResponseSerializer,
-                          UserLoginSerializer, UserDataDictSerializer, MessageResponseSerializer, LoggedUserSerializer,
+                          UserLoginSerializer, UserDataDictSerializer, MessageResponseSerializer,
                           UsersListSerializer, OtherUserSerializer, UpdateUserSerializer, ChangePasswordSerializer)
 
-from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, OpenApiExample
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate, login, logout
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from django.contrib.auth.models import User
 from .models import Profile
 from rest_framework.exceptions import ValidationError
-from django.contrib.auth.decorators import login_required
-from .forms import ProfileUpdateForm
-from rest_framework.response import Response
-from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import update_session_auth_hash
@@ -211,4 +206,3 @@ class UpdatePasswordView(UpdateAPIView):
             update_session_auth_hash(request, user)
 
         return JsonResponse({"message": "Password changed"}, status=status.HTTP_200_OK)
-
