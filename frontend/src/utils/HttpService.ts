@@ -87,9 +87,7 @@ const getUserDetails = async (userId: number) => {
         "Content-Type": "application/json",
       },
     });
-    if (response.status === 200) {
-      return response.data;
-    }
+    return response;
   } catch (error: any) {
     const message = error.response.data.message;
     toast.error(message, {
