@@ -1,5 +1,7 @@
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
+from .serializers import MessageSerializer
+from .models import ChatRooms
 import json
 
 
@@ -28,6 +30,15 @@ class ChatConsumer(WebsocketConsumer):
             }
         )
 
+    def save_chat_message(self, message):
+        user = self.scope['user'].pk
+        room_id = self.scope['url_route']['kwargs']['room_id']
+        chat_room = ChatRooms.objects.get(room_id=room_id)
+        data = {"sender": user, "chat_room": chat_room.pk, "message": message}
+        serializer = MessageSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
     def chat_message(self, event):
         message = event['message']
 
@@ -35,3 +46,5 @@ class ChatConsumer(WebsocketConsumer):
             'type': 'chat',
             'message': message
         }))
+
+        self.save_chat_message(message)

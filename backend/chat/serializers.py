@@ -4,30 +4,21 @@ from django.contrib.auth.models import User
 from .models import Messages
 
 
-class MessagesSerializer(serializers.ModelSerializer):
-    message = serializers.CharField()
+class MessageSerializer(serializers.ModelSerializer):
+    message = serializers.CharField(max_length=128)
 
     class Meta:
         model = Messages
-        fields = ['message']
-
-    def create(self, validated_data):
-        instance = Messages(
-            message=validated_data['message'],
-            from_user=validated_data['logged_user'],
-            to_user=User.objects.get(pk=self.context.get('pk'))
-        )
-        instance.save()
-        return instance
-
-
-class GetMessageSerializer(serializers.ModelSerializer):
-    pk = serializers.IntegerField()
-
-    class Meta:
-        model = Messages
-        fields = ['pk', 'message', 'from_user', 'to_user', 'timestamp']
+        fields = '__all__'
 
 
 class RoomIdSerializer(serializers.Serializer):
-    room_id = serializers.CharField()
+    room_id = serializers.CharField(max_length=10)
+
+
+class GetMessagesSerializer(serializers.ModelSerializer):
+    chat_room = serializers.CharField(max_length=10)
+
+    class Meta:
+        model = Messages
+        fields = '__all__'
