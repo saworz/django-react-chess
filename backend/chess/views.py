@@ -140,3 +140,7 @@ class MakeMoveView(APIView):
             chess_pieces = get_object_or_404(BlackPieces, pk=kwargs.get("game_id"))
 
         return self.move_piece(game, chess_pieces)
+
+
+def gametest(request):
+    return render(request, "chess/lobby.html")
