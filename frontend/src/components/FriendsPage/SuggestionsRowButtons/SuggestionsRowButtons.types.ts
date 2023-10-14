@@ -3,6 +3,6 @@ export interface IButtonProps {
   userDetails?: {
     is_friend: boolean;
     pending_request: boolean;
-    request_sender: number;
+    request_sender_id: number;
   };
 }

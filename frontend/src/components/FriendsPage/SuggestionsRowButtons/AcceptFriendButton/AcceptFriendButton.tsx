@@ -53,7 +53,7 @@ const AcceptFriendButton = ({ userId }: Types.IButtonProps) => {
       colorScheme="whatsapp"
       variant="solid"
     >
-      Accept request
+      Accept
     </Button>
   );
 };

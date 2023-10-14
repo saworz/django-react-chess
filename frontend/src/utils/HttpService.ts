@@ -78,9 +78,35 @@ const updatePassword = async (
   }
 };
 
+const getUserDetails = async (userId: number) => {
+  try {
+    const response = await axios.get(API_URL + `users/user_data/${userId}`, {
+      withCredentials: true,
+      headers: {
+        "X-CSRFToken": TokenService.getCsrfToken(),
+        "Content-Type": "application/json",
+      },
+    });
+    return response;
+  } catch (error: any) {
+    const message = error.response.data.message;
+    toast.error(message, {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "dark",
+    });
+  }
+};
+
 const HttpService = {
   updateProfile,
   updatePassword,
+  getUserDetails,
 };
 
 export default HttpService;
