@@ -37,11 +37,13 @@ CORS_ALLOW_METHODS = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT']
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'api',
     'corsheaders',
     'users.apps.UsersConfig',
     'friends.apps.FriendsConfig',
     'chat.apps.ChatConfig',
+    'chess.apps.ChessConfig',
     'drf_spectacular',
     'rest_framework',
 
@@ -52,6 +54,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 ]
+
+ASGI_APPLICATION = "api.asgi.application"
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer'
+    }
+}
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
