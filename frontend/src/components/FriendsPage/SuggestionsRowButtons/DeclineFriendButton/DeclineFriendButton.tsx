@@ -50,7 +50,7 @@ const DeclineFriendButton = ({ userId }: Types.IButtonProps) => {
       colorScheme="pink"
       variant="solid"
     >
-      Decline request
+      Decline
     </Button>
   );
 };

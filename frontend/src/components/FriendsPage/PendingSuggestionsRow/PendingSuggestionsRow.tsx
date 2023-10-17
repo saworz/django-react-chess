@@ -8,6 +8,7 @@ import {
 } from "@chakra-ui/react";
 import PendingRequestsButtons from "../PendingRequestsButtons";
 import * as SharedTypes from "../../../shared/types";
+import { useNavigate } from "react-router-dom";
 
 const PendingSuggestionsRow = ({
   email,
@@ -15,6 +16,7 @@ const PendingSuggestionsRow = ({
   image,
   id,
 }: SharedTypes.IPendingRequestsData) => {
+  const navigate = useNavigate();
   return (
     <Stack
       direction={{ base: "column", md: "row" }}
@@ -42,11 +44,12 @@ const PendingSuggestionsRow = ({
       <Box alignSelf="center">
         <Stack direction={{ base: "column", "2xl": "row" }}>
           <PendingRequestsButtons userId={id} />
-          <Button colorScheme="telegram" size="md">
+          <Button
+            onClick={() => navigate(`/user_details/${id}`)}
+            colorScheme="telegram"
+            size="md"
+          >
             View profile
-          </Button>
-          <Button colorScheme="orange" size="md">
-            Send Message
           </Button>
         </Stack>
       </Box>
