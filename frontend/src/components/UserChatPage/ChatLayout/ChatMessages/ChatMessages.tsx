@@ -10,7 +10,7 @@ const ChatMessages = ({ messages, userDetails }: Types.IProps) => {
   };
 
   return (
-    <Flex w="100%" h="80%" overflowY="scroll" flexDirection="column" p="3">
+    <Flex w="100%" h="60vh" overflowY="scroll" flexDirection="column" p="3">
       {messages.map((item: any, index: number) => {
         if (item.from === "me") {
           return (
