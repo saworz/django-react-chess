@@ -26,7 +26,8 @@ class ChatConsumer(WebsocketConsumer):
             self.room_group_name,
             {
                 'type': 'chat_message',
-                'message': message
+                'message': message,
+                'sender': self.scope['user'].pk
             }
         )
 
@@ -41,10 +42,11 @@ class ChatConsumer(WebsocketConsumer):
 
     def chat_message(self, event):
         message = event['message']
-
+        sender = event['sender']
         self.send(text_data=json.dumps({
             'type': 'chat',
-            'message': message
+            'message': message,
+            'sender': sender
         }))
 
         self.save_chat_message(message)
