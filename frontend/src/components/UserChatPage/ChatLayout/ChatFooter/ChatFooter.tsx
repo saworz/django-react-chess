@@ -15,6 +15,11 @@ const ChatFooter = ({
         _focus={{
           border: "1px solid black",
         }}
+        onKeyPress={(e) => {
+          if (e.key === "Enter") {
+            handleSendMessage();
+          }
+        }}
         value={inputMessage}
         onChange={(e) => setInputMessage(e.target.value)}
       />

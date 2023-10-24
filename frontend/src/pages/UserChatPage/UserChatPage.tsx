@@ -3,45 +3,14 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import HttpService from "../../utils/HttpService";
 import ChatLayout from "../../components/UserChatPage/ChatLayout";
-import { w3cwebsocket as W3CWebSocket } from "websocket";
 import * as SharedTypes from "../../shared/types";
 
 const UserChatPage = () => {
   const { userId } = useParams();
   const [chatRoomId, setChatRoomId] = useState(0);
-  const [messages, setMessages] = useState<SharedTypes.IMessagesData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [userDetails, setUserDetails] =
     useState<SharedTypes.ISuggestionFriendData>();
-
-  const [clientWebSocket] = useState(
-    new W3CWebSocket("ws://localhost:8000/ws/chat/" + chatRoomId)
-  );
-
-  useEffect(() => {
-    clientWebSocket.onopen = () => {
-      console.log("WebSocket connected");
-    };
-
-    clientWebSocket.onmessage = (message) => {
-      const dataFromServer = JSON.parse(message.data.toString());
-      console.log("TEST", message);
-      console.log("got reply! ", dataFromServer.type);
-      if (dataFromServer) {
-        setMessages((prevState) => [
-          ...prevState,
-          {
-            from: dataFromServer.type === "chat" ? "computer" : "me",
-            text: dataFromServer.message,
-          },
-        ]);
-      }
-    };
-
-    return () => {
-      clientWebSocket.close();
-    };
-  }, []);
 
   useEffect(() => {
     setIsLoading(true);
@@ -85,13 +54,8 @@ const UserChatPage = () => {
           p={4}
           h="-webkit-fit-content"
         >
-          {userDetails && chatRoomId && clientWebSocket && (
-            <ChatLayout
-              clientWebSocket={clientWebSocket}
-              messages={messages}
-              setMessages={setMessages}
-              userDetails={userDetails}
-            />
+          {userDetails && chatRoomId && (
+            <ChatLayout userDetails={userDetails} chatRoomId={chatRoomId} />
           )}
         </Box>
       </Stack>

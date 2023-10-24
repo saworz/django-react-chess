@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Avatar, Flex, Text } from "@chakra-ui/react";
 import * as Types from "./ChatMessages.types";
 
