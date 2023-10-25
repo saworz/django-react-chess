@@ -8,10 +8,21 @@
 
 </head>
 <body>
-    <h1>Lets chat!</h1>
-    <h2>Room id: {{room_id}}</h2>
+    <h1>Chess engine tester</h1>
+    <h2>Game room id: {{game_id}}</h2>
     <form id="form">
-        <input type="text" name="message"/>
+        <label for="game_id">Game_id
+            <input type="text" name="game_id" id="game_id"/>
+        </label>
+        <label for="color">Color
+            <input type="text" name="color" id="color">
+        </label>
+        <label for="piece">Piece
+            <input type="text" name="piece" id="piece"/>
+        </label>
+        <label for="new_position">New position
+            <input type="text" name="new_position" id="new_position">
+        </label>
     </form>
 
     <div id="messages"></div>
@@ -29,7 +40,10 @@
                 let messages = document.getElementById('messages')
 
                 messages.insertAdjacentHTML('beforeend', `<div>
-                                        <p>${data.message}</p>
+                                        <p>${data.game_id}</p>
+                                        <p>${data.color}</p>
+                                        <p>${data.piece}</p>
+                                        <p>${data.new_position}</p>
                                     </div>`)
             }
         }
@@ -39,7 +53,7 @@
             e.preventDefault()
             let message = e.target.message.value
             chatSocket.send(JSON.stringify({
-                'message': 'pesss'
+                'message': message
             }))
             form.reset()
         })

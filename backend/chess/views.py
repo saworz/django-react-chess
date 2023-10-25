@@ -142,5 +142,7 @@ class MakeMoveView(APIView):
         return self.move_piece(game, chess_pieces)
 
 
-def gametest(request):
-    return render(request, "chess/lobby.html")
+def gametest(request, *args, **kwargs):
+    payload = {'game_id': kwargs.get("game_id")}
+    print(kwargs.get("game_id"))
+    return render(request, "chess/lobby.html", payload)
