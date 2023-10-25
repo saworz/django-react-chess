@@ -1,11 +1,11 @@
 import { Stack } from "@chakra-ui/react";
-import FriendsRow from "../FriendsRow";
+import FriendsRow from "../FriendsRow/FriendsRow";
 import * as Types from "./FriendsRowList.types";
 
-const FriendsRowList = ({ suggestionList }: Types.IProps) => {
+const FriendsRowList = ({ friendList }: Types.IProps) => {
   return (
     <Stack spacing={5}>
-      {suggestionList.map((user) => (
+      {friendList.map((user) => (
         <FriendsRow
           id={user.id}
           username={user.username}

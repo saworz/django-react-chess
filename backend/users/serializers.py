@@ -42,7 +42,7 @@ class UserDataDictSerializer(serializers.Serializer):
     id = serializers.CharField()
     username = serializers.CharField()
     email = serializers.CharField()
-    image_url = serializers.CharField()
+    image = serializers.CharField()
 
 
 class LoggedUserSerializer(serializers.Serializer):

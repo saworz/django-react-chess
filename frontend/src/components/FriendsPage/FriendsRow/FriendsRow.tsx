@@ -6,9 +6,15 @@ import {
   Button,
   useColorModeValue,
 } from "@chakra-ui/react";
-import * as SharedTypes from "./FriendsRow.types";
+import RemoveFriendButton from "../SuggestionsRowButtons/RemoveFriendButton";
+import * as SharedTypes from "../../../shared/types";
 
-const FriendsRow = ({ email, username, image, id }: SharedTypes.IProps) => {
+const FriendsRow = ({
+  email,
+  username,
+  image,
+  id,
+}: SharedTypes.IFriendData) => {
   return (
     <Stack
       direction={{ base: "column", md: "row" }}
@@ -35,9 +41,7 @@ const FriendsRow = ({ email, username, image, id }: SharedTypes.IProps) => {
       </Box>
       <Box alignSelf="center">
         <Stack direction={{ base: "column", "2xl": "row" }}>
-          <Button colorScheme="whatsapp" size="md">
-            Add friend
-          </Button>
+          <RemoveFriendButton userId={id} />
           <Button colorScheme="telegram" size="md">
             View profile
           </Button>

@@ -6,6 +6,20 @@ export interface IAuthState {
   message: string;
 }
 
+export interface IFriendSystemState {
+  friendSystem: {
+    suggestionsList: ISuggestionFriendData[];
+    friendsList: IFriendData[];
+    searchInput: string;
+    pendingRequests: IPendingRequestsData[];
+    sentRequests: ISuggestionFriendData[];
+  };
+  isError: boolean;
+  isSuccess: boolean;
+  isLoading: boolean;
+  message: string;
+}
+
 export interface IRegisterUserData {
   username: string;
   email: string;
@@ -22,7 +36,7 @@ export interface IUserData {
   id: number;
   username: string;
   email: string;
-  image_url: string;
+  image: string;
 }
 
 export interface TokenData {
@@ -30,12 +44,37 @@ export interface TokenData {
   refreshToken: string;
 }
 
-export interface IFriendData {
+export interface ISuggestionFriendData {
   id: number;
   username: string;
   email: string;
   image: string;
   is_friend: boolean;
   pending_request: boolean;
-  request_sender: string;
+  request_sender_id: number;
+}
+
+export interface IPendingRequestsData {
+  id: number;
+  username: string;
+  email: string;
+  image: string;
+}
+
+export interface IFriendData {
+  id: number;
+  username: string;
+  email: string;
+  image: string;
+}
+
+export interface IUpdatePasswordData {
+  old_password: string;
+  new_password: string;
+  repeated_password: string;
+}
+
+export interface IMessagesData {
+  from: string;
+  text: string;
 }

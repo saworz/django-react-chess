@@ -7,8 +7,18 @@ import {
 } from "@chakra-ui/react";
 import { Search2Icon } from "@chakra-ui/icons";
 import * as Types from "./SearchForm.types";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../../../app/store";
+import { setSearchInput } from "../../../features/friendSystem/friendSystemSlice";
 
 const SearchForm = ({ inputValue, setInputValue }: Types.IProps) => {
+  const dispatch: AppDispatch = useDispatch();
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(event.target.value);
+    dispatch(setSearchInput(event.target.value));
+  };
+
   return (
     <form>
       <FormControl>
@@ -21,7 +31,7 @@ const SearchForm = ({ inputValue, setInputValue }: Types.IProps) => {
             variant="outline"
             placeholder="Search by username"
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={handleChange}
           />
         </InputGroup>
       </FormControl>

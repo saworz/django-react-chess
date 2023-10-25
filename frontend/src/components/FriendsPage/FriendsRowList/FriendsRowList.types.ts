@@ -1,8 +1,5 @@
+import * as SharedTypes from "../../../shared/types";
+
 export interface IProps {
-  suggestionList: {
-    username: string;
-    email: string;
-    image: string;
-    id: number;
-  }[];
+  friendList: SharedTypes.IFriendData[];
 }

@@ -1,77 +1,52 @@
-import {
-  Box,
-  Flex,
-  Skeleton,
-  Stack,
-  Text,
-  useColorModeValue,
-} from "@chakra-ui/react";
-import SearchForm from "../../components/FriendsPage/SearchForm";
-import FriendsCountIndex from "../../components/FriendsPage/FriendsCountIndex";
-import FriendsRowList from "../../components/FriendsPage/FriendsRowList";
-import { useEffect, useState } from "react";
-import axios from "axios";
-import TokenService from "../../app/tokenService";
-import * as SharedTypes from "../../shared/types";
-
-const API_URL = "http://localhost:8000/api/users/";
+import { Button, Flex, HStack, Stack, Text } from "@chakra-ui/react";
+import { useState } from "react";
+import FriendsView from "../../components/FriendsPage/FriendsView";
+import PendingRequestsView from "../../components/FriendsPage/PendingRequestsView";
+import SentRequestsView from "../../components/FriendsPage/SentRequestsView";
 
 const FriendsPage = () => {
-  const [suggestionsList, setSuggestionsList] = useState<
-    SharedTypes.IFriendData[]
-  >([]);
-  const [searchInput, setSearchInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [switchedView, setSwitchedView] = useState("friendList");
 
-  const getData = async () => {
-    setIsLoading(true);
-    await axios
-      .get(API_URL + `list_profiles/${searchInput}/`, {
-        headers: {
-          Authorization: TokenService.getAccessToken(),
-        },
-      })
-      .then((response) => {
-        setSuggestionsList(response.data);
-        setIsLoading(false);
-      });
+  const handleClick = (type: string) => {
+    switch (type) {
+      case "friendList":
+        setSwitchedView("friendList");
+        break;
+      case "pendingRequests":
+        setSwitchedView("pendingRequests");
+        break;
+      case "sentRequests":
+        setSwitchedView("sentRequests");
+        break;
+      default:
+        setSwitchedView("friendList");
+        break;
+    }
   };
 
-  useEffect(() => {
-    if (searchInput !== "") {
-      getData();
-    } else {
-      setSuggestionsList([]);
+  const renderView = () => {
+    switch (switchedView) {
+      case "friendList":
+        return <FriendsView />;
+      case "pendingRequests":
+        return <PendingRequestsView />;
+      case "sentRequests":
+        return <SentRequestsView />;
+      default:
+        return <FriendsView />;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchInput]);
+  };
 
-  const renderResults = () => {
-    if (isLoading) {
-      return (
-        <Stack h="72vh">
-          <Skeleton height="142px" bg="blue.500" color="white" />
-          <Skeleton height="142px" bg="blue.500" color="white" />
-          <Skeleton height="142px" bg="blue.500" color="white" />
-          <Skeleton height="142px" bg="blue.500" color="white" />
-        </Stack>
-      );
-    } else if (suggestionsList.length > 0 && searchInput) {
-      return <FriendsRowList suggestionList={suggestionsList} />;
-    } else if (searchInput !== "" && suggestionsList.length === 0) {
-      return (
-        <Stack h="72vh" justifyContent="center">
-          <Text marginBottom="20" fontWeight="black" fontSize={"2rem"}>
-            No results found :(
-          </Text>
-        </Stack>
-      );
-    } else {
-      return (
-        <Text fontWeight="black" fontSize={"1rem"}>
-          Use the text field above to add or find friends!
-        </Text>
-      );
+  const switchTitle = () => {
+    switch (switchedView) {
+      case "friendList":
+        return "Friends";
+      case "pendingRequests":
+        return "Pending Requests";
+      case "sentRequests":
+        return "Sent Requests";
+      default:
+        return "Friends";
     }
   };
 
@@ -84,27 +59,37 @@ const FriendsPage = () => {
           fontWeight="black"
           alignSelf="flex-start"
         >
-          Friends
+          {switchTitle()}
         </Text>
-        <Box
-          rounded={"lg"}
-          bg={useColorModeValue("white", "gray.700")}
-          boxShadow={"lg"}
-          w="100%"
-          maxH={{ base: "", md: "80vh" }}
-          marginBottom="10"
-          p={8}
-          textAlign="center"
+        <HStack
+          as={"nav"}
+          spacing={4}
+          alignSelf="flex-start"
+          marginLeft="3"
+          display={{ base: "none", md: "flex" }}
         >
-          <Stack spacing={4} h="100%" minHeight="100%">
-            <SearchForm
-              inputValue={searchInput}
-              setInputValue={setSearchInput}
-            />
-            <FriendsCountIndex count={suggestionsList.length} />
-            {renderResults()}
-          </Stack>
-        </Box>
+          <Button
+            onClick={() => handleClick("friendList")}
+            colorScheme={switchedView === "friendList" ? "facebook" : "gray"}
+          >
+            Friends List
+          </Button>
+          <Button
+            onClick={() => handleClick("pendingRequests")}
+            colorScheme={
+              switchedView === "pendingRequests" ? "facebook" : "gray"
+            }
+          >
+            Pending Requests
+          </Button>
+          <Button
+            onClick={() => handleClick("sentRequests")}
+            colorScheme={switchedView === "sentRequests" ? "facebook" : "gray"}
+          >
+            Sent Requests
+          </Button>
+        </HStack>
+        {renderView()}
       </Stack>
     </Flex>
   );
