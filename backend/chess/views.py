@@ -5,7 +5,7 @@ from django.shortcuts import render
 from rest_framework.generics import CreateAPIView
 from rest_framework.views import APIView
 from .serializers import ChessGameSerializer, MakeMoveSerializer, BlackBoardSerializer, WhiteBoardSerializer
-# from .chess_logic import Game
+from .chess_logic import GameInitializer
 from rest_framework.response import Response
 from django.http import JsonResponse
 from rest_framework import status
@@ -29,9 +29,12 @@ class CreateNewGameView(CreateAPIView):
         players = [logged_user.pk, other_user.pk]
         random.shuffle(players)
 
+        room_id = ''.join(sorted([str(logged_user.pk), str(other_user.pk)]))
+
         game_data = {
             "player_white": players[0],
             "player_black": players[1],
+            "room_id": room_id
         }
 
         white_board = {
@@ -42,7 +45,7 @@ class CreateNewGameView(CreateAPIView):
             "game_id": None,
         }
 
-        new_game = Game()
+        new_game = GameInitializer()
         new_game.validate_moves()
 
         sides = {
@@ -143,6 +146,5 @@ class MakeMoveView(APIView):
 
 
 def gametest(request, *args, **kwargs):
-    payload = {'game_id': kwargs.get("game_id")}
-    print(kwargs.get("game_id"))
-    return render(request, "chess/lobby.html", payload)
+    parameters = {'game_id': kwargs.get("game_id")}
+    return render(request, "chess/lobby.html", parameters)

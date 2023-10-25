@@ -16,13 +16,8 @@ class ChessConsumer(WebsocketConsumer):
 
         self.accept()
 
+    def receive(self, text_data):
+        data_json = json.loads(text_data)
+        print(data_json)
 
-    def receive(self, data):
-        data_json = json.loads(data)
-        action = data_json['action']
-
-        if action == 'make_move':
-            piece = data_json['piece']
-            color = data_json['color']
-            new_position = data_json['new_position']
 

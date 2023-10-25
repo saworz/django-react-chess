@@ -23,6 +23,7 @@
         <label for="new_position">New position
             <input type="text" name="new_position" id="new_position">
         </label>
+        <button id="sendButton">Send</button>
     </form>
 
     <div id="messages"></div>
@@ -48,15 +49,42 @@
             }
         }
 
-        let form = document.getElementById('form')
-        form.addEventListener('submit', (e)=> {
-            e.preventDefault()
-            let message = e.target.message.value
-            chatSocket.send(JSON.stringify({
-                'message': message
-            }))
-            form.reset()
-        })
+        let form = document.getElementById('form');
+        let sendButton = document.getElementById('sendButton');
+
+        sendButton.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        // Get the values from the form fields
+        let game_id = form.game_id.value;
+        let color = form.color.value;
+        let piece = form.piece.value;
+        let new_position = form.new_position.value;
+
+        chatSocket.send(JSON.stringify({
+            'game_id': game_id,
+            'color': color,
+            'piece': piece,
+            'new_position': new_position
+        }));
+
+        form.reset();
+        });
+
+        // form.addEventListener('submit', (e)=> {
+        //     e.preventDefault()
+        //     let game_id = e.target.game_id.value
+        //     let color = e.target.color.value
+        //     let piece = e.target.piece.value
+        //     let new_position = e.target.new_position.value
+        //     chatSocket.send(JSON.stringify({
+        //         'game_id': game_id,
+        //         'color': color,
+        //         'piece': piece,
+        //         'new_position': new_position
+        //     }))
+        //     form.reset()
+        // })
 
     </script>
 </body>
