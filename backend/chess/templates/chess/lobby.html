@@ -37,17 +37,15 @@
             let data = JSON.parse(e.data)
             console.log('Data:', data)
 
-            if(data.type === 'chat'){
-                let messages = document.getElementById('messages')
+            let messages = document.getElementById('messages')
 
-                messages.insertAdjacentHTML('beforeend', `<div>
-                                        <p>${data.game_id}</p>
-                                        <p>${data.color}</p>
-                                        <p>${data.piece}</p>
-                                        <p>${data.new_position}</p>
-                                    </div>`)
-            }
-        }
+            messages.insertAdjacentHTML('beforeend', `<div>
+                                    <p>${data.game_id}</p>
+                                    <p>${data.color}</p>
+                                    <p>${data.piece}</p>
+                                    <p>${data.new_position}</p>
+                                </div>`)
+    }
 
         let form = document.getElementById('form');
         let sendButton = document.getElementById('sendButton');
