@@ -10,6 +10,7 @@
 <body>
     <h1>Chess engine tester</h1>
     <h2>Game room id: {{game_id}}</h2>
+    <h3>Username: {{user}}</h3>
     <form id="form">
         <label for="data_type">Data type
             <input type="text" name="data_type" id="data_type" value="move"/>
@@ -47,6 +48,10 @@
             console.log('Data:', data)
 
             let messages = document.getElementById('messages')
+
+            while (messages.firstChild) {
+                messages.removeChild(messages.firstChild);
+            }
 
             messages.insertAdjacentHTML('beforeend', `<div>
                                     <p>${data.color}</p>

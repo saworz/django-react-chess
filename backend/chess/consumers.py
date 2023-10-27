@@ -9,9 +9,9 @@ import json
 
 
 class ChessConsumer(WebsocketConsumer):
-    def create_new_game(self):
+    def create_new_game(self, enemy_id):
         logged_user = self.scope['user']
-        other_user = User.objects.get(pk=self.scope['url_route']['kwargs']['enemy_id'])
+        other_user = User.objects.get(pk=enemy_id)
 
         players = [logged_user.pk, other_user.pk]
         random.shuffle(players)
@@ -32,6 +32,7 @@ class ChessConsumer(WebsocketConsumer):
             "game_id": None,
         }
 
+        print("Created new game instance")
         self.new_game = GameInitializer()
         self.new_game.validate_moves()
 
@@ -54,7 +55,7 @@ class ChessConsumer(WebsocketConsumer):
         if data_json['data_type'] == 'move':
             self.update_game_state(data_json)
         elif data_json['data_type'] == 'enemy_id':
-            print("enemy id!")
+            self.create_new_game(data_json['enemy_id'])
 
     def update_game_state(self, updates):
         """ Triggers game update """
@@ -77,6 +78,7 @@ class ChessConsumer(WebsocketConsumer):
         print(self.game)
         try:
             print(self.new_game)
+            print(hex(id(self.new_game)))
         except:
             pass
 

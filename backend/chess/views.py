@@ -75,7 +75,7 @@ class MakeMoveView(APIView):
 
 
 def gametest(request, *args, **kwargs):
-    parameters = {'game_id': kwargs.get("game_id")}
+    parameters = {'user': request.user.username, 'game_id': kwargs.get("game_id")}
     return render(request, "chess/lobby.html", parameters)
 
 
