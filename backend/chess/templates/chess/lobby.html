@@ -11,8 +11,8 @@
     <h1>Chess engine tester</h1>
     <h2>Game room id: {{game_id}}</h2>
     <form id="form">
-        <label for="game_id">Game_id
-            <input type="text" name="game_id" id="game_id"/>
+        <label for="data_type">Data type
+            <input type="text" name="data_type" id="data_type" value="move"/>
         </label>
         <label for="color">Color
             <input type="text" name="color" id="color">
@@ -24,6 +24,15 @@
             <input type="text" name="new_position" id="new_position">
         </label>
         <button id="sendButton">Send</button>
+    </form>
+    <form id="enemy_form">
+        <label for="data_type">Data type
+            <input type="text" name="data_type" id="data_type_enemy" value="enemy_id"/>
+        </label>
+        <label for="enemy_id">Enemy_id
+            <input type="text" name="enemy_id" id="enemy_id"/>
+        </label>
+        <button id="sendEnemyButton">Send</button>
     </form>
 
     <div id="messages"></div>
@@ -40,7 +49,6 @@
             let messages = document.getElementById('messages')
 
             messages.insertAdjacentHTML('beforeend', `<div>
-                                    <p>${data.game_id}</p>
                                     <p>${data.color}</p>
                                     <p>${data.piece}</p>
                                     <p>${data.new_position}</p>
@@ -50,23 +58,44 @@
         let form = document.getElementById('form');
         let sendButton = document.getElementById('sendButton');
 
+        let enemy_form = document.getElementById('enemy_form');
+        let sendEnemyButton = document.getElementById('sendEnemyButton');
+
+
+        // SEND DATA
         sendButton.addEventListener('click', (e) => {
         e.preventDefault();
 
         // Get the values from the form fields
-        let game_id = form.game_id.value;
+        let data_type = form.data_type.value;
         let color = form.color.value;
         let piece = form.piece.value;
         let new_position = form.new_position.value;
 
         chatSocket.send(JSON.stringify({
-            'game_id': game_id,
+            'data_type': data_type,
             'color': color,
             'piece': piece,
             'new_position': new_position
         }));
 
         form.reset();
+        });
+
+        // SEND ENEMY
+        sendEnemyButton.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        // Get the values from the form fields
+        let enemy_id = enemy_form.enemy_id.value;
+        let data_type = enemy_form.data_type.value;
+
+        chatSocket.send(JSON.stringify({
+            'data_type': data_type,
+            'enemy_id': enemy_id
+        }));
+
+        enemy_form.reset();
         });
 
         // form.addEventListener('submit', (e)=> {

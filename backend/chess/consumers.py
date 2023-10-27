@@ -9,6 +9,31 @@ import json
 
 
 class ChessConsumer(WebsocketConsumer):
+    def create_new_game(self):
+        logged_user = self.scope['user']
+        other_user = User.objects.get(pk=self.scope['url_route']['kwargs']['enemy_id'])
+
+        players = [logged_user.pk, other_user.pk]
+        random.shuffle(players)
+
+        room_id = ''.join(sorted([str(logged_user.pk), str(other_user.pk)]))
+
+        game_data = {
+            "player_white": players[0],
+            "player_black": players[1],
+            "room_id": room_id
+        }
+
+        white_board = {
+            "game_id": None,
+        }
+
+        black_board = {
+            "game_id": None,
+        }
+
+        self.new_game = GameInitializer()
+        self.new_game.validate_moves()
 
     def connect(self):
         self.room_id = self.scope['url_route']['kwargs']['room_id']
@@ -26,7 +51,10 @@ class ChessConsumer(WebsocketConsumer):
 
     def receive(self, text_data):
         data_json = json.loads(text_data)
-        self.update_game_state(data_json)
+        if data_json['data_type'] == 'move':
+            self.update_game_state(data_json)
+        elif data_json['data_type'] == 'enemy_id':
+            print("enemy id!")
 
     def update_game_state(self, updates):
         """ Triggers game update """
@@ -40,7 +68,17 @@ class ChessConsumer(WebsocketConsumer):
 
     def game_update(self, event):
         """ Sends the current game state to all users in the group """
-        print(event['updates'])
+        ###### For debugging - to delete
+        self.send(text_data=json.dumps({
+            'piece': event['updates']['piece'],
+            'color': event['updates']['color'],
+            'new_position': event['updates']['new_position']
+        }))
+        print(self.game)
+        try:
+            print(self.new_game)
+        except:
+            pass
 
     def disconnect(self, code):
         """ On ws disconnect deletes game assigned with the room_id """
