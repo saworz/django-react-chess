@@ -16,27 +16,31 @@ class ChessConsumer(WebsocketConsumer):
         self.room_group_name = f"game_{self.room_id}"
         self.game = ChessGame.objects.filter(room_id=self.room_id).first()
 
-        async_to_sync(self.channel_layer.group_add)(
-            self.room_group_name,
-            self.channel_name
-        )
+        if self.game:
+            async_to_sync(self.channel_layer.group_add)(
+                self.room_group_name,
+                self.channel_name
+            )
 
-        self.accept()
+            self.accept()
 
     def receive(self, text_data):
         data_json = json.loads(text_data)
         self.update_game_state(data_json)
 
     def update_game_state(self, updates):
-        """ Sends the current game state to all users in the group """
-        print(updates)
+        """ Triggers game update """
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
                 'type': 'game_update',
-                'message': "new game state",
+                'updates': updates,
             }
         )
+
+    def game_update(self, event):
+        """ Sends the current game state to all users in the group """
+        print(event['updates'])
 
     def disconnect(self, code):
         """ On ws disconnect deletes game assigned with the room_id """
