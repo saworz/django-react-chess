@@ -75,7 +75,9 @@ class ChessConsumer(WebsocketConsumer):
         print("Created new game instance")
         self.game = GameInitializer()
         self.game.validate_moves()
-        self.save_game_to_db(game_data)
+
+        if not ChessGame.objects.filter(room_id=self.room_id).exists():
+            self.save_game_to_db(game_data)
 
     def get_enemy_id(self):
         user = self.scope['user'].pk
@@ -84,7 +86,11 @@ class ChessConsumer(WebsocketConsumer):
         if str(user) == str(room_id)[:len(str(user))]:
             enemy_id = int(str(room_id)[len(str(user)):])
         else:
-            enemy_id = int(str(room_id)[:len(str(user)) - 1])
+            if len(str(room_id)) == 2:
+                enemy_id = int(str(room_id)[0])
+            else:
+                enemy_id = int(str(room_id)[:len(str(user)) - 1])
+
         return enemy_id
 
     def connect(self):
@@ -96,6 +102,7 @@ class ChessConsumer(WebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
+
         self.create_new_game(self.get_enemy_id())
         self.accept()
 
