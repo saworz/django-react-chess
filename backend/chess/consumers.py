@@ -1,7 +1,7 @@
 import random
 from channels.generic.websocket import WebsocketConsumer
 from .models import ChessGame
-from .chess_logic import GameInitializer
+from .chess_logic import GameInitializer, GameLoader
 from .serializers import ChessGameSerializer, BlackBoardSerializer, WhiteBoardSerializer
 from django.contrib.auth.models import User
 from asgiref.sync import async_to_sync
@@ -28,7 +28,8 @@ class ChessConsumer(WebsocketConsumer):
         if data_json['data_type'] == 'move':
             self.update_game_state(data_json)
         elif data_json['data_type'] == 'enemy_id':
-            pass
+            game = GameLoader(room_id=15)
+            game.read_pieces_info()
 
     def update_game_state(self, updates):
         """ Triggers game update """
