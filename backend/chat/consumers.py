@@ -6,6 +6,7 @@ import json
 
 
 class ChatConsumer(WebsocketConsumer):
+
     def connect(self):
         room_id = self.scope['url_route']['kwargs']['room_id']
         self.room_name = room_id
