@@ -103,10 +103,65 @@ const getUserDetails = async (userId: number) => {
   }
 };
 
+const getPreviousMessages = async (chatRoomId: number) => {
+  try {
+    const response = await axios.get(
+      API_URL + `chat/get_messages/${chatRoomId}/`,
+      {
+        withCredentials: true,
+        headers: {
+          "X-CSRFToken": TokenService.getCsrfToken(),
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response;
+  } catch (error: any) {
+    const message = error.response.data.message;
+    toast.error(message, {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "dark",
+    });
+  }
+};
+
+const getChatRoomId = async (userId: number) => {
+  try {
+    const response = await axios.get(API_URL + `chat/get_room_id/${userId}`, {
+      withCredentials: true,
+      headers: {
+        "X-CSRFToken": TokenService.getCsrfToken(),
+        "Content-Type": "application/json",
+      },
+    });
+    return response;
+  } catch (error: any) {
+    const message = error.response.data.message;
+    toast.error(message, {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "dark",
+    });
+  }
+};
+
 const HttpService = {
   updateProfile,
   updatePassword,
   getUserDetails,
+  getChatRoomId,
+  getPreviousMessages,
 };
 
 export default HttpService;

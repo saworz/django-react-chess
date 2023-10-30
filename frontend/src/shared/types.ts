@@ -73,3 +73,8 @@ export interface IUpdatePasswordData {
   new_password: string;
   repeated_password: string;
 }
+
+export interface IMessagesData {
+  from: string;
+  text: string;
+}

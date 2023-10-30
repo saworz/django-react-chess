@@ -9,6 +9,7 @@ import FriendsPage from "../../pages/FriendsPage";
 import AccountPage from "../../pages/AccountPage";
 import ErrorPage from "../../pages/ErrorPage";
 import UserDetailsPage from "../../pages/UserDetailsPage";
+import UserChatPage from "../../pages/UserChatPage";
 import PrivateRoutes from "../../utils/PrivateRoutes";
 import PublicRoutes from "../../utils/PublicRoutes";
 import Navigation from "../../components/Navigation";
@@ -25,6 +26,10 @@ const RouterProvider = () => {
           <Route path="/dashboard" element={<DashboardPage />}></Route>
           <Route path="/friends" element={<FriendsPage />}></Route>
           <Route path="/account" element={<AccountPage />}></Route>
+          <Route
+            path="/user_details/:userId/chat"
+            element={<UserChatPage />}
+          ></Route>
           <Route path="*" element={<ErrorPage />}></Route>
           <Route
             path="/user_details/:userId"
