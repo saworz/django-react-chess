@@ -130,7 +130,9 @@ class GameLoader(GameInitializer):
         self.game = ChessGame.objects.filter(room_id=self.room_id).first()
         self.white_pieces = {}
         self.black_pieces = {}
+        self.white_pieces_model = None
+        self.black_pieces_model = None
 
     def read_pieces_info(self):
-        self.white_pieces = WhitePieces.objects.filter(game_id=self.game.pk).first()
-        self.black_pieces = BlackPieces.objects.filter(game_id=self.game.pk).first()
+        self.white_pieces_model = WhitePieces.objects.filter(game_id=self.game.pk).first()
+        self.black_pieces_model = BlackPieces.objects.filter(game_id=self.game.pk).first()

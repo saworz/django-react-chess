@@ -23,13 +23,46 @@ class ChessConsumer(WebsocketConsumer):
         if ChessGame.objects.filter(room_id=self.room_id).exists():
             self.accept()
 
+    def deserialize_lists(self, lst):
+        result = []
+
+        if len(lst) == 2 and not isinstance(lst[0], list):
+            return lst[0], lst[1]
+
+        for item in lst:
+            if isinstance(item, list):
+                result.append([tuple(subitem) for subitem in item])
+        return result
+
+    def read_pieces_positions(self, pieces_model, pieces_attribute):
+        model_fields = pieces_model._meta.get_fields()
+        for field in model_fields:
+            deserialized_piece_data = {}
+            if not field.is_relation and field.name != 'id':
+                field_data = getattr(pieces_model, field.name)
+                for piece_key, piece_data in field_data.items():
+                    if isinstance(piece_data, list):
+                        deserialized_positions = self.deserialize_lists(piece_data)
+                        deserialized_piece_data[piece_key] = deserialized_positions
+                    else:
+                        deserialized_piece_data[piece_key] = piece_data
+
+                pieces_attribute[field.name] = deserialized_piece_data
+                # print(f"{field.name}: {deserialized_piece_data}")
+                # print(f"{field.name}: {field_data}")
+
     def receive(self, text_data):
         data_json = json.loads(text_data)
         if data_json['data_type'] == 'move':
             self.update_game_state(data_json)
         elif data_json['data_type'] == 'enemy_id':
-            game = GameLoader(room_id=15)
-            game.read_pieces_info()
+            self.game = GameLoader(room_id=self.room_id)
+            self.game.read_pieces_info()
+            self.read_pieces_positions(self.game.white_pieces_model, self.game.white_pieces)
+            self.read_pieces_positions(self.game.black_pieces_model, self.game.black_pieces)
+            print(self.game.white_pieces)
+            # print(self.game.black_pieces)
+
 
     def update_game_state(self, updates):
         """ Triggers game update """

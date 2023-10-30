@@ -120,7 +120,7 @@ class CreateNewGameView(CreateAPIView):
         for color, board in sides.items():
             for name, piece in board.items():
                 piece_info = {
-                    "name": name,
+                    "type": piece.name,
                     "position": piece.position,
                     "weight": piece.weight,
                     "possible_moves": piece.possible_moves,
