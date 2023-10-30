@@ -8,6 +8,7 @@ import * as Types from "./ChatLayout.types";
 import * as SharedTypes from "../../../shared/types";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../app/store";
+import HttpService from "../../../utils/HttpService";
 
 const ChatLayout = ({ userDetails, chatRoomId }: Types.IProps) => {
   const [inputMessage, setInputMessage] = useState("");
@@ -15,13 +16,40 @@ const ChatLayout = ({ userDetails, chatRoomId }: Types.IProps) => {
   const [messages, setMessages] = useState<SharedTypes.IMessagesData[]>([]);
   const [webSocket, setWebSocket] = useState<W3CWebSocket>();
 
+  const getPreviousMessages = async () => {
+    HttpService.getPreviousMessages(Number(chatRoomId)).then((response) => {
+      if (response?.status === 200) {
+        const formatedData = response.data
+          .map(
+            (message: {
+              sender: number;
+              message: string;
+              timestamp: Date;
+            }) => ({
+              from: message.sender === user?.id ? "me" : "computer",
+              text: message.message,
+              timestamp: new Date(message.timestamp),
+            })
+          )
+          .sort(
+            (a: { timestamp: Date }, b: { timestamp: Date }) =>
+              a.timestamp.getTime() - b.timestamp.getTime()
+          );
+        setMessages((prevState) => [...prevState, ...formatedData]);
+      } else {
+      }
+    });
+  };
+
   useEffect(() => {
+    getPreviousMessages();
     const clientWebSocket = new W3CWebSocket(
       "ws://localhost:8000/ws/chat/" + chatRoomId
     );
 
     clientWebSocket.onopen = () => {
       console.log("WebSocket connected");
+      console.log(chatRoomId);
     };
 
     clientWebSocket.onmessage = (message) => {

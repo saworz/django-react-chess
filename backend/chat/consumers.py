@@ -48,5 +48,5 @@ class ChatConsumer(WebsocketConsumer):
             'message': message,
             'sender': sender
         }))
-
-        self.save_chat_message(message)
+        if self.scope['user'].pk == sender:
+            self.save_chat_message(message)
