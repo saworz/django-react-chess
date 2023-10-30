@@ -33,6 +33,7 @@ class ChessGame(models.Model):
                                      on_delete=models.CASCADE)
 
     current_player = models.CharField(max_length=5, default="white")
+    room_id = models.CharField(max_length=5)
 
 
 class WhitePieces(PiecesSetup):
