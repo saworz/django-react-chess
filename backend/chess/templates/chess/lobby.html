@@ -26,14 +26,11 @@
         </label>
         <button id="sendButton">Send</button>
     </form>
-    <form id="enemy_form">
-        <label for="data_type">Data type
-            <input type="text" name="data_type" id="data_type_enemy" value="enemy_id"/>
+    <form id="init_form">
+        <label for="data_type_init">Data type
+            <input type="text" name="data_type" id="data_type_init" value="init_board"/>
         </label>
-        <label for="enemy_id">Enemy_id
-            <input type="text" name="enemy_id" id="enemy_id"/>
-        </label>
-        <button id="sendEnemyButton">Send</button>
+        <button id="sendInitButton">Send</button>
     </form>
 
     <div id="messages"></div>
@@ -53,18 +50,65 @@
                 messages.removeChild(messages.firstChild);
             }
 
-            messages.insertAdjacentHTML('beforeend', `<div>
-                                    <p>${data.color}</p>
-                                    <p>${data.piece}</p>
-                                    <p>${data.new_position}</p>
-                                </div>`)
+            // Unpack data -
+            for (const key in data) {
+                if (data.hasOwnProperty(key)) {
+                    const value = data[key];
+                    messages.insertAdjacentHTML('beforeend', `
+                        <div>
+                            <p>${key}:</p>
+                            <ul>
+                                ${generateList(value)}
+                            </ul>
+                        </div>
+                    `);
+                }
+            }
+
+            function generateList(obj) {
+                let listHTML = '';
+                for (const innerKey in obj) {
+                    if (obj.hasOwnProperty(innerKey)) {
+                        const innerValue = obj[innerKey];
+                        listHTML += `
+                            <li>${innerKey}: ${generateListInRow(innerValue)}</li>
+                        `;
+                    }
+                }
+                return listHTML;
+            }
+
+            function generateListInRow(obj) {
+                let listHTML = '';
+                for (const innerKey in obj) {
+                    if (obj.hasOwnProperty(innerKey)) {
+                        const innerValue = obj[innerKey];
+                        if (Array.isArray(innerValue)) {
+                            // If it's an array, add square brackets and format the elements
+                            const arrayItems = innerValue.map(item => JSON.stringify(item)).join(', ');
+                            listHTML += `
+                                ${innerKey}: [${arrayItems}],
+                            `;
+                        } else {
+                            // For non-array values, format as before
+                            listHTML += `
+                                ${innerKey}: ${innerValue},
+                            `;
+                        }
+                    }
+                }
+                return listHTML;
+            }
+            // messages.insertAdjacentHTML('beforeend', `<div>
+            //                         <p>${data}</p>
+            //                     </div>`)
     }
 
         let form = document.getElementById('form');
         let sendButton = document.getElementById('sendButton');
 
-        let enemy_form = document.getElementById('enemy_form');
-        let sendEnemyButton = document.getElementById('sendEnemyButton');
+        let enemy_form = document.getElementById('init_form');
+        let sendInitButton = document.getElementById('sendInitButton');
 
 
         // SEND DATA
@@ -88,16 +132,14 @@
         });
 
         // SEND ENEMY
-        sendEnemyButton.addEventListener('click', (e) => {
+        sendInitButton.addEventListener('click', (e) => {
         e.preventDefault();
 
         // Get the values from the form fields
-        let enemy_id = enemy_form.enemy_id.value;
         let data_type = enemy_form.data_type.value;
 
         chatSocket.send(JSON.stringify({
-            'data_type': data_type,
-            'enemy_id': enemy_id
+            'data_type': data_type
         }));
 
         enemy_form.reset();

@@ -24,6 +24,7 @@ class ChessConsumer(WebsocketConsumer):
             self.accept()
 
     def deserialize_lists(self, lst):
+        """ Deserializes lists """
         result = []
 
         if len(lst) == 2 and not isinstance(lst[0], list):
@@ -35,6 +36,7 @@ class ChessConsumer(WebsocketConsumer):
         return result
 
     def read_pieces_positions(self, pieces_model, pieces_attribute):
+        """ Saves current pieces positions from database """
         model_fields = pieces_model._meta.get_fields()
         for field in model_fields:
             deserialized_piece_data = {}
@@ -48,39 +50,39 @@ class ChessConsumer(WebsocketConsumer):
                         deserialized_piece_data[piece_key] = piece_data
 
                 pieces_attribute[field.name] = deserialized_piece_data
-                # print(f"{field.name}: {deserialized_piece_data}")
-                # print(f"{field.name}: {field_data}")
+
+    def init_board(self):
+        """ Initializes board """
+        self.game = GameLoader(room_id=self.room_id)
+        self.game.read_pieces_info()
+        self.read_pieces_positions(self.game.white_pieces_model, self.game.white_pieces)
+        self.read_pieces_positions(self.game.black_pieces_model, self.game.black_pieces)
 
     def receive(self, text_data):
+        """ Handles data sent in websocket """
         data_json = json.loads(text_data)
         if data_json['data_type'] == 'move':
-            self.update_game_state(data_json)
-        elif data_json['data_type'] == 'enemy_id':
-            self.game = GameLoader(room_id=self.room_id)
-            self.game.read_pieces_info()
-            self.read_pieces_positions(self.game.white_pieces_model, self.game.white_pieces)
-            self.read_pieces_positions(self.game.black_pieces_model, self.game.black_pieces)
-            print(self.game.white_pieces)
-            # print(self.game.black_pieces)
+            pass
+        elif data_json['data_type'] == 'init_board':
+            self.init_board()
+            self.send_initial_positions()
 
-
-    def update_game_state(self, updates):
-        """ Triggers game update """
+    def send_initial_positions(self):
+        """ Triggers initial board state send """
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
-                'type': 'game_update',
-                'updates': updates,
+                'type': 'initial_board_state',
+                'white_pieces': self.game.white_pieces,
+                'black_pieces': self.game.black_pieces
             }
         )
 
-    def game_update(self, event):
-        """ Sends the current game state to all users in the group """
-        ###### For debugging - to delete
+    def initial_board_state(self, event):
+        """ Sends the initial game state """
         self.send(text_data=json.dumps({
-            'piece': event['updates']['piece'],
-            'color': event['updates']['color'],
-            'new_position': event['updates']['new_position']
+            'white_pieces': event['white_pieces'],
+            'black_pieces': event['black_pieces']
         }))
 
     def disconnect(self, code):
