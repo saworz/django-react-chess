@@ -41,7 +41,3 @@ class GetRoomIdView(APIView):
             room_id = chat_room.first().room_id
 
         return JsonResponse({"room_id": room_id}, status=status.HTTP_200_OK)
-
-
-def room(request, room_id):
-    return render(request, 'chat/lobby.html', {'room_id': room_id})
