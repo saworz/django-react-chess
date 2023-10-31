@@ -133,7 +133,15 @@ class GameLoader:
         # self.white_pieces_model = None
         # self.black_pieces_model = None
 
-    def create_board(self):
+    def piece_object_loop(self, data, attribute, class_mapping):
+        for piece, value in data:
+            piece_type = value["type"]
+            piece_position = value["position"]
+            piece_color = value["color"]
+            piece_class = class_mapping[piece_type]
+            attribute[piece] = piece_class(piece_position, piece_color)
+
+    def create_pieces_objects(self, white_data, black_data):
         class_mapping = {
             "pawn": PiecePawn,
             "rook": PieceRook,
@@ -143,6 +151,10 @@ class GameLoader:
             "king": PieceKing
 
         }
+        self.piece_object_loop(white_data.items(), self.white_pieces, class_mapping)
+        self.piece_object_loop(black_data.items(), self.black_pieces, class_mapping)
+
+    def create_board(self):
 
         white_pieces_initial_data = {
             "pawn_1": {"type": "pawn", "position": (1, 2), "color": "white"},
@@ -182,17 +194,7 @@ class GameLoader:
             "king": {"type": "king", "position": (5, 8), "color": "black"},
         }
 
-        for piece, data in white_pieces_initial_data:
-            piece_type = data["type"]
-            piece_position = data["position"]
-            piece_color = data["color"]
-            piece_class = class_mapping[piece_type]
-            self.white_pieces[piece] = piece_class(piece_type, piece_position, piece_color)
-
-        # for piece, data in self.black_pieces_data.items():
-        #     piece_class = class_mapping[data["type"]]
-        #     self.black_pieces[piece] = piece_class(data["type"], data["position"], data["weight"], data["color"])
-
+        self.create_pieces_objects(white_pieces_initial_data, black_pieces_initial_data)
         print(self.white_pieces)
 
     # def read_pieces_info(self):
