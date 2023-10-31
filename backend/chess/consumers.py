@@ -22,18 +22,6 @@ class ChessConsumer(WebsocketConsumer):
 
         if ChessGame.objects.filter(room_id=self.room_id).exists():
             self.accept()
-
-    # def deserialize_lists(self, lst):
-    #     """ Deserializes lists """
-    #     result = []
-    #
-    #     if len(lst) == 2 and not isinstance(lst[0], list):
-    #         return lst[0], lst[1]
-    #
-    #     for item in lst:
-    #         if isinstance(item, list):
-    #             result.append([tuple(subitem) for subitem in item])
-    #     return result
     #
     # def read_pieces_positions(self, pieces_model, pieces_attribute):
     #     """ Saves current pieces positions from database """
@@ -59,8 +47,10 @@ class ChessConsumer(WebsocketConsumer):
     #     self.read_pieces_positions(self.game.black_pieces_model, self.game.black_pieces_data)
 
     def initialize_board(self):
-        self.game = GameLoader(room_id=self.room_id)
-        self.game.create_board()
+        game = GameLoader(room_id=self.room_id)
+        game.create_board()
+        game.init_moves()
+        return game
 
     def receive(self, text_data):
         """ Handles data sent in websocket """
@@ -68,12 +58,14 @@ class ChessConsumer(WebsocketConsumer):
         if data_json['data_type'] == 'move':
             self.read_board_from_db()
             self.validate_move_request(data_json)
-            self.jsonify_board_state()
+            self.save_board_state_to_db()
+            self.read_board_from_db()
             self.send_board_state()
         elif data_json['data_type'] == 'init_board':
-            self.initialize_board()
-            self.jsonify_board_state()
-            self.send_board_state()
+            initialized_game = self.initialize_board()
+            self.save_board_state_to_db(initialized_game)
+            read_game = self.read_board_from_db()
+            self.send_board_state(read_game)
 
     # def make_move(self, move_data):
     #     """ Changes piece position """
@@ -120,10 +112,10 @@ class ChessConsumer(WebsocketConsumer):
         white_board_instance.save()
         black_board_instance.save()
 
-    def jsonify_board_state(self):
+    def save_board_state_to_db(self, game):
         sides = {
-            "white": self.game.white_pieces,
-            "black": self.game.black_pieces
+            "white": game.white_pieces,
+            "black": game.black_pieces
         }
 
         game_id = ChessGame.objects.get(room_id=self.room_id).pk
@@ -154,17 +146,37 @@ class ChessConsumer(WebsocketConsumer):
     def read_model_fields(self, model):
         read_data = {}
         for field in model._meta.get_fields():
-            if field.concrete and not field.is_relation:
+            if field.concrete and not field.is_relation and not field.name == 'id':
                 field_name = field.name
                 field_value = getattr(model, field_name)
-                read_data[field_name] = field_value
+                deserialized_data = {}
+                for key, value in field_value.items():
+                    if isinstance(value, list):
+                        data = self.deserialize_lists(value)
+                    else:
+                        data = value
+                    deserialized_data[key] = data
 
+                read_data[field_name] = deserialized_data
         return read_data
 
+    def deserialize_lists(self, lst):
+        """ Deserializes lists """
+        result = []
+
+        if len(lst) == 2 and not isinstance(lst[0], list):
+            return lst[0], lst[1]
+
+        for item in lst:
+            if isinstance(item, list):
+                result.append([tuple(subitem) for subitem in item])
+        return result
+
     def add_moves_to_pieces(self, white_pieces_data, black_pieces_data):
-        self.game = GameLoader(room_id=self.room_id)
-        self.game.create_pieces_objects(white_pieces_data, black_pieces_data)
-        self.game.init_moves()
+        game = GameLoader(room_id=self.room_id)
+        game.create_pieces_objects(white_pieces_data, black_pieces_data)
+        game.init_moves()
+        return game
 
     def read_board_from_db(self):
         game_id = ChessGame.objects.get(room_id=self.room_id).pk
@@ -174,7 +186,8 @@ class ChessConsumer(WebsocketConsumer):
         white_pieces_data = self.read_model_fields(white_board)
         black_pieces_data = self.read_model_fields(black_board)
 
-        self.add_moves_to_pieces(white_pieces_data, black_pieces_data)
+        game = self.add_moves_to_pieces(white_pieces_data, black_pieces_data)
+        return game
 
     def unpack_positions(self, moves):
         moves_list = []
@@ -203,19 +216,15 @@ class ChessConsumer(WebsocketConsumer):
 
     def prepare_data(self, pieces):
         prepared_data = {}
-        attributes_to_send = ['piece_type', 'position', 'color', 'possible_moves', 'capturing_moves']
-        for key, obj in pieces:
-            data_to_send = {}
-            for attr in vars(obj):
-                if attr in attributes_to_send:
-                    data_to_send[attr] = getattr(obj, attr)
-            prepared_data[key] = data_to_send
+        for key, piece in pieces:
+            prepared_data[key] = {'piece_type': piece.piece_type, 'position': piece.position, 'color': piece.color,
+                                  'possible_moves': piece.possible_moves, 'capturing_moves': piece.capturing_moves}
+
         return prepared_data
 
-    def send_board_state(self):
-        self.read_board_from_db()
-        white_pieces_data = self.prepare_data(self.game.white_pieces.items())
-        black_pieces_data = self.prepare_data(self.game.black_pieces.items())
+    def send_board_state(self, game):
+        white_pieces_data = self.prepare_data(game.white_pieces.items())
+        black_pieces_data = self.prepare_data(game.black_pieces.items())
 
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
