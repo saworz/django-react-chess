@@ -102,7 +102,7 @@ class ChessConsumer(WebsocketConsumer):
     #     self.game.white_pieces_data[move_data['piece']]['position'] = piece_new_position
     #     self.game.validate_moves()
 
-    def save_board_to_db(self, white_board, black_board):
+    def create_board_in_db(self, white_board, black_board):
         white_serializer = WhiteBoardSerializer(data=white_board)
         black_serializer = BlackBoardSerializer(data=black_board)
 
@@ -111,7 +111,8 @@ class ChessConsumer(WebsocketConsumer):
 
         white_serializer.save()
         black_serializer.save()
-        print("saved data to db")
+        print("created board db")
+
     def jsonify_board_state(self):
         sides = {
             "white": self.game.white_pieces,
@@ -125,6 +126,7 @@ class ChessConsumer(WebsocketConsumer):
         for color, board in sides.items():
             for name, piece in board.items():
                 piece_info = {
+                    "piece_type": piece.piece_type,
                     "position": piece.position,
                     "color": piece.color,
                 }
@@ -135,7 +137,10 @@ class ChessConsumer(WebsocketConsumer):
                 elif color == 'black':
                     black_board[name] = piece_info
 
-        self.save_board_to_db(white_board, black_board)
+        if WhitePieces.objects.filter(game_id=game_id).exists() and BlackPieces.objects.filter(game_id=game_id).exists():
+            print("already exists")
+        else:
+            self.create_board_in_db(white_board, black_board)
 
     def read_positions(self):
         """ Triggers sending pieces data """
@@ -161,4 +166,3 @@ class ChessConsumer(WebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
-
