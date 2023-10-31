@@ -75,6 +75,15 @@ class ChessConsumer(WebsocketConsumer):
                 moves_list.append(tuple(move))
         return moves_list
 
+    def string_to_tuple(self, new_position):
+        letter = new_position[0]
+        number = new_position[1]
+
+        x = ord(letter) - ord("A") + 1  # convert B to 2 etc.
+        y = int(number)
+
+        return x, y
+
     def make_move(self, move_data):
         """ Changes piece position """
         game_model = ChessGame.objects.get(room_id=self.room_id)
@@ -86,7 +95,10 @@ class ChessConsumer(WebsocketConsumer):
         elif move_data['color'] == 'black':
             piece = getattr(black_pieces, move_data['piece'])
 
-        print(self.unpack_positions(piece.get("possible_moves")))
+        if self.string_to_tuple(move_data['new_position']) in self.unpack_positions(piece.get('possible_moves')):
+            print("good move")
+        else:
+            print("bad move")
 
     def read_positions(self):
         """ Triggers initial board state send """

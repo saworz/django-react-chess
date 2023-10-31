@@ -15,9 +15,6 @@ from django.shortcuts import get_object_or_404
 from django.core import serializers
 
 
-
-
-
 class MakeMoveView(APIView):
     serializer_class = MakeMoveSerializer
 
