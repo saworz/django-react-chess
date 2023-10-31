@@ -66,21 +66,14 @@ class ChessConsumer(WebsocketConsumer):
         """ Handles data sent in websocket """
         data_json = json.loads(text_data)
         if data_json['data_type'] == 'move':
+            self.read_board_from_db()
+            self.validate_move_request(data_json)
+            self.jsonify_board_state()
             self.send_board_state()
         elif data_json['data_type'] == 'init_board':
             self.initialize_board()
             self.jsonify_board_state()
             self.send_board_state()
-
-    # def unpack_positions(self, moves):
-    #     moves_list = []
-    #     for sublist in moves:
-    #         for move in sublist:
-    #             moves_list.append(tuple(move))
-    #     return moves_list
-
-    # def position_to_tuple(self, position):
-    #     return int(position[0]), int(position[1])
 
     # def make_move(self, move_data):
     #     """ Changes piece position """
@@ -169,10 +162,9 @@ class ChessConsumer(WebsocketConsumer):
         return read_data
 
     def add_moves_to_pieces(self, white_pieces_data, black_pieces_data):
-        game = GameLoader(room_id=self.room_id)
-        game.create_pieces_objects(white_pieces_data, black_pieces_data)
-        game.init_moves()
-        print(game.white_pieces["pawn_2"].possible_moves)
+        self.game = GameLoader(room_id=self.room_id)
+        self.game.create_pieces_objects(white_pieces_data, black_pieces_data)
+        self.game.init_moves()
 
     def read_board_from_db(self):
         game_id = ChessGame.objects.get(room_id=self.room_id).pk
@@ -184,19 +176,53 @@ class ChessConsumer(WebsocketConsumer):
 
         self.add_moves_to_pieces(white_pieces_data, black_pieces_data)
 
+    def unpack_positions(self, moves):
+        moves_list = []
+        for sublist in moves:
+            for move in sublist:
+                moves_list.append(tuple(move))
+        return moves_list
+
+    def position_to_tuple(self, position):
+        return int(position[0]), int(position[1])
+
+    def validate_move_request(self, move_data):
+        if move_data['color'] == 'white':
+            piece = self.game.white_pieces[move_data['piece']]
+        elif move_data['color'] == 'black':
+            piece = self.game.black_pieces[move_data['piece']]
+
+        new_position = self.position_to_tuple(move_data['new_position'])
+        possible_positions = self.unpack_positions(piece.possible_moves)
+
+        if new_position not in possible_positions:
+            print("Incorrect request")
+            return
+
+        piece.position = new_position
+
+    def prepare_data(self, pieces):
+        prepared_data = {}
+        attributes_to_send = ['piece_type', 'position', 'color', 'possible_moves', 'capturing_moves']
+        for key, obj in pieces:
+            data_to_send = {}
+            for attr in vars(obj):
+                if attr in attributes_to_send:
+                    data_to_send[attr] = getattr(obj, attr)
+            prepared_data[key] = data_to_send
+        return prepared_data
+
     def send_board_state(self):
         self.read_board_from_db()
-        print('sending')
+        white_pieces_data = self.prepare_data(self.game.white_pieces.items())
+        black_pieces_data = self.prepare_data(self.game.black_pieces.items())
 
-
-    def read_positions(self):
-        """ Triggers sending pieces data """
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
                 'type': 'send_positions',
-                'white_pieces': self.game.white_pieces,
-                'black_pieces': self.game.black_pieces
+                'white_pieces': white_pieces_data,
+                'black_pieces': black_pieces_data
             }
         )
 
