@@ -56,11 +56,12 @@ class ChessConsumer(WebsocketConsumer):
         """ Handles data sent in websocket """
         data_json = json.loads(text_data)
         if data_json['data_type'] == 'move':
+            read_game = self.read_board_from_db()
+            self.validate_move_request(data_json, read_game)
+            read_game.init_moves()
+            self.save_board_state_to_db(read_game)
             self.read_board_from_db()
-            self.validate_move_request(data_json)
-            self.save_board_state_to_db()
-            self.read_board_from_db()
-            self.send_board_state()
+            self.send_board_state(read_game)
         elif data_json['data_type'] == 'init_board':
             initialized_game = self.initialize_board()
             self.save_board_state_to_db(initialized_game)
@@ -199,11 +200,11 @@ class ChessConsumer(WebsocketConsumer):
     def position_to_tuple(self, position):
         return int(position[0]), int(position[1])
 
-    def validate_move_request(self, move_data):
+    def validate_move_request(self, move_data, game):
         if move_data['color'] == 'white':
-            piece = self.game.white_pieces[move_data['piece']]
+            piece = game.white_pieces[move_data['piece']]
         elif move_data['color'] == 'black':
-            piece = self.game.black_pieces[move_data['piece']]
+            piece = game.black_pieces[move_data['piece']]
 
         new_position = self.position_to_tuple(move_data['new_position'])
         possible_positions = self.unpack_positions(piece.possible_moves)
@@ -213,6 +214,7 @@ class ChessConsumer(WebsocketConsumer):
             return
 
         piece.position = new_position
+        return game
 
     def prepare_data(self, pieces):
         prepared_data = {}

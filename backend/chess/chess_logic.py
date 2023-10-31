@@ -127,9 +127,11 @@ class GameLoader:
         white_occupied_positions = [piece.position for piece in white_pieces_state.values()]
 
         for name, piece in black_pieces_state.items():
+            piece.reload_position()
             piece.move_validator(white_occupied_positions, black_occupied_positions)
 
         for name, piece in white_pieces_state.items():
+            piece.reload_position()
             piece.move_validator(white_occupied_positions, black_occupied_positions)
 
     def piece_object_loop(self, data, attribute):

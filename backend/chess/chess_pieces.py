@@ -20,6 +20,10 @@ class Piece(ABC):
         """Returns list of default moves"""
         pass
 
+    def reload_position(self):
+        self.x_position = self.position[0]
+        self.y_position = self.position[1]
+
     def init_from_json(self, data):
         print(data)
 
