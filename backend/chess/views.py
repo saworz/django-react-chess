@@ -107,7 +107,7 @@ class CreateNewGameView(CreateAPIView):
         }
 
         new_game = GameInitializer()
-        new_game.validate_moves()
+        new_game.init_moves()
 
         sides = {
             "white": new_game.white_pieces,
