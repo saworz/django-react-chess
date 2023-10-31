@@ -45,45 +45,4 @@ class CreateNewGameView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        # white_board = {
-        #     "game_id": None,
-        # }
-        #
-        # black_board = {
-        #     "game_id": None,
-        # }
-        # sides = {
-        #     "white": new_game.white_pieces,
-        #     "black": new_game.black_pieces
-        # }
-        #
-        # for color, board in sides.items():
-        #     for name, piece in board.items():
-        #         piece_info = {
-        #             "type": piece.name,
-        #             "position": piece.position,
-        #             "weight": piece.weight,
-        #             "possible_moves": piece.possible_moves,
-        #             "capturing_moves": piece.capturing_moves,
-        #             "color": piece.color,
-        #         }
-        #
-        #         if color == 'white':
-        #             white_board[name] = piece_info
-        #
-        #         elif color == 'black':
-        #             black_board[name] = piece_info
-        #
-        # white_board["game_id"] = serializer.data["id"]
-        # black_board["game_id"] = serializer.data["id"]
-        #
-        # white_serializer = WhiteBoardSerializer(data=white_board)
-        # black_serializer = BlackBoardSerializer(data=black_board)
-        #
-        # white_serializer.is_valid(raise_exception=True)
-        # black_serializer.is_valid(raise_exception=True)
-        #
-        # white_serializer.save()
-        # black_serializer.save()
-
         return Response(serializer.data, status=status.HTTP_201_CREATED)
