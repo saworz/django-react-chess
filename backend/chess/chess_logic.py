@@ -195,7 +195,6 @@ class GameLoader:
         }
 
         self.create_pieces_objects(white_pieces_initial_data, black_pieces_initial_data)
-        print(self.white_pieces)
 
     # def read_pieces_info(self):
     #     self.white_pieces_model = WhitePieces.objects.filter(game_id=self.game.pk).first()

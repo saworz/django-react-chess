@@ -69,9 +69,8 @@ class ChessConsumer(WebsocketConsumer):
             self.make_move(data_json)
             self.read_positions()
         elif data_json['data_type'] == 'init_board':
-            # self.get_board()
-            # self.read_positions()
             self.initialize_board()
+            self.jsonify_board_state()
 
     # def unpack_positions(self, moves):
     #     moves_list = []
@@ -103,16 +102,51 @@ class ChessConsumer(WebsocketConsumer):
     #     self.game.white_pieces_data[move_data['piece']]['position'] = piece_new_position
     #     self.game.validate_moves()
 
-    # def read_positions(self):
-    #     """ Triggers initial board state send """
-    #     async_to_sync(self.channel_layer.group_send)(
-    #         self.room_group_name,
-    #         {
-    #             'type': 'send_positions',
-    #             'white_pieces': self.game.white_pieces_data,
-    #             'black_pieces': self.game.black_pieces_data
-    #         }
-    #     )
+    def save_board_to_db(self, white_board, black_board):
+        white_serializer = WhiteBoardSerializer(data=white_board)
+        black_serializer = BlackBoardSerializer(data=black_board)
+
+        white_serializer.is_valid(raise_exception=True)
+        black_serializer.is_valid(raise_exception=True)
+
+        white_serializer.save()
+        black_serializer.save()
+        print("saved data to db")
+    def jsonify_board_state(self):
+        sides = {
+            "white": self.game.white_pieces,
+            "black": self.game.black_pieces
+        }
+
+        game_id = ChessGame.objects.get(room_id=self.room_id).pk
+        white_board = {"game_id": game_id}
+        black_board = {"game_id": game_id}
+
+        for color, board in sides.items():
+            for name, piece in board.items():
+                piece_info = {
+                    "position": piece.position,
+                    "color": piece.color,
+                }
+
+                if color == 'white':
+                    white_board[name] = piece_info
+
+                elif color == 'black':
+                    black_board[name] = piece_info
+
+        self.save_board_to_db(white_board, black_board)
+
+    def read_positions(self):
+        """ Triggers sending pieces data """
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'send_positions',
+                'white_pieces': self.game.white_pieces,
+                'black_pieces': self.game.black_pieces
+            }
+        )
 
     def send_positions(self, event):
         """ Sends the initial game state """
