@@ -103,8 +103,8 @@ class PiecePawn(Piece):
             move_dir = -1
 
         possible_moves = [[(self.x_position, self.y_position + 1 * move_dir)]]
-        if self.at_base_position():
-            possible_moves.extend([[(self.x_position, self.y_position + 2 * move_dir)]])
+        # if self.at_base_position():
+        #     possible_moves.extend([[(self.x_position, self.y_position + 2 * move_dir)]])
 
         return possible_moves
 

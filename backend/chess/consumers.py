@@ -1,7 +1,7 @@
 import random
 from channels.generic.websocket import WebsocketConsumer
 from .models import ChessGame, WhitePieces, BlackPieces
-from .chess_logic import GameInitializer, GameLoader
+from .chess_logic import GameLoader
 from .serializers import ChessGameSerializer, BlackBoardSerializer, WhiteBoardSerializer
 from django.contrib.auth.models import User
 from asgiref.sync import async_to_sync
@@ -22,29 +22,6 @@ class ChessConsumer(WebsocketConsumer):
 
         if ChessGame.objects.filter(room_id=self.room_id).exists():
             self.accept()
-    #
-    # def read_pieces_positions(self, pieces_model, pieces_attribute):
-    #     """ Saves current pieces positions from database """
-    #     model_fields = pieces_model._meta.get_fields()
-    #     for field in model_fields:
-    #         deserialized_piece_data = {}
-    #         if not field.is_relation and field.name != 'id':
-    #             field_data = getattr(pieces_model, field.name)
-    #             for piece_key, piece_data in field_data.items():
-    #                 if isinstance(piece_data, list):
-    #                     deserialized_positions = self.deserialize_lists(piece_data)
-    #                     deserialized_piece_data[piece_key] = deserialized_positions
-    #                 else:
-    #                     deserialized_piece_data[piece_key] = piece_data
-    #
-    #             pieces_attribute[field.name] = deserialized_piece_data
-    #
-    # def get_board(self):
-    #     """ Initializes board """
-    #     self.game = GameLoader(room_id=self.room_id)
-    #     self.game.read_pieces_info()
-    #     self.read_pieces_positions(self.game.white_pieces_model, self.game.white_pieces_data)
-    #     self.read_pieces_positions(self.game.black_pieces_model, self.game.black_pieces_data)
 
     def initialize_board(self):
         game = GameLoader(room_id=self.room_id)
@@ -67,26 +44,6 @@ class ChessConsumer(WebsocketConsumer):
             self.save_board_state_to_db(initialized_game)
             read_game = self.read_board_from_db()
             self.send_board_state(read_game)
-
-    # def make_move(self, move_data):
-    #     """ Changes piece position """
-    #     game_model = ChessGame.objects.get(room_id=self.room_id)
-    #     white_pieces = WhitePieces.objects.get(game_id=game_model.pk)
-    #     black_pieces = BlackPieces.objects.get(game_id=game_model.pk)
-    #
-    #     if move_data['color'] == 'white':
-    #         piece = getattr(white_pieces, move_data['piece'])
-    #     elif move_data['color'] == 'black':
-    #         piece = getattr(black_pieces, move_data['piece'])
-    #
-    #     piece_new_position = self.position_to_tuple(move_data['new_position'])
-    #     piece_valid_moves = self.unpack_positions(piece.get('possible_moves'))
-    #     if piece_new_position not in piece_valid_moves:
-    #         print("bad move")
-    #         return
-    #
-    #     self.game.white_pieces_data[move_data['piece']]['position'] = piece_new_position
-    #     self.game.validate_moves()
 
     def create_board_in_db(self, white_board, black_board):
         white_serializer = WhiteBoardSerializer(data=white_board)
@@ -153,6 +110,8 @@ class ChessConsumer(WebsocketConsumer):
                 deserialized_data = {}
                 for key, value in field_value.items():
                     if isinstance(value, list):
+                        print(value)
+                        print(key)
                         data = self.deserialize_lists(value)
                     else:
                         data = value
@@ -164,12 +123,13 @@ class ChessConsumer(WebsocketConsumer):
     def deserialize_lists(self, lst):
         """ Deserializes lists """
         result = []
-
         if len(lst) == 2 and not isinstance(lst[0], list):
             return lst[0], lst[1]
 
         for item in lst:
-            if isinstance(item, list):
+            if isinstance(item[0], int):
+                result.append([(item[0], item[1])])
+            elif isinstance(item, list):
                 result.append([tuple(subitem) for subitem in item])
         return result
 
