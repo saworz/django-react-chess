@@ -1,6 +1,6 @@
 import random
 from channels.generic.websocket import WebsocketConsumer
-from .models import ChessGame
+from .models import ChessGame, WhitePieces, BlackPieces
 from .chess_logic import GameInitializer, GameLoader
 from .serializers import ChessGameSerializer, BlackBoardSerializer, WhiteBoardSerializer
 from django.contrib.auth.models import User
@@ -62,23 +62,44 @@ class ChessConsumer(WebsocketConsumer):
         """ Handles data sent in websocket """
         data_json = json.loads(text_data)
         if data_json['data_type'] == 'move':
-            pass
+            self.make_move(data_json)
+            self.read_positions()
         elif data_json['data_type'] == 'init_board':
             self.init_board()
-            self.send_initial_positions()
+            self.read_positions()
 
-    def send_initial_positions(self):
+    def unpack_positions(self, moves):
+        moves_list = []
+        for sublist in moves:
+            for move in sublist:
+                moves_list.append(tuple(move))
+        return moves_list
+
+    def make_move(self, move_data):
+        """ Changes piece position """
+        game_model = ChessGame.objects.get(room_id=self.room_id)
+        white_pieces = WhitePieces.objects.get(game_id=game_model.pk)
+        black_pieces = BlackPieces.objects.get(game_id=game_model.pk)
+
+        if move_data['color'] == 'white':
+            piece = getattr(white_pieces, move_data['piece'])
+        elif move_data['color'] == 'black':
+            piece = getattr(black_pieces, move_data['piece'])
+
+        print(self.unpack_positions(piece.get("possible_moves")))
+
+    def read_positions(self):
         """ Triggers initial board state send """
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
-                'type': 'initial_board_state',
+                'type': 'send_positions',
                 'white_pieces': self.game.white_pieces,
                 'black_pieces': self.game.black_pieces
             }
         )
 
-    def initial_board_state(self, event):
+    def send_positions(self, event):
         """ Sends the initial game state """
         self.send(text_data=json.dumps({
             'white_pieces': event['white_pieces'],
