@@ -66,11 +66,11 @@ class ChessConsumer(WebsocketConsumer):
         """ Handles data sent in websocket """
         data_json = json.loads(text_data)
         if data_json['data_type'] == 'move':
-            self.make_move(data_json)
-            self.read_positions()
+            self.send_board_state()
         elif data_json['data_type'] == 'init_board':
             self.initialize_board()
             self.jsonify_board_state()
+            self.send_board_state()
 
     # def unpack_positions(self, moves):
     #     moves_list = []
@@ -158,6 +158,36 @@ class ChessConsumer(WebsocketConsumer):
             self.edit_board_in_db(white_board, black_board, game_id)
         else:
             self.create_board_in_db(white_board, black_board)
+
+    def read_model_fields(self, model):
+        read_data = {}
+        for field in model._meta.get_fields():
+            if field.concrete and not field.is_relation:
+                field_name = field.name
+                field_value = getattr(model, field_name)
+                read_data[field_name] = field_value
+
+        return read_data
+
+    def read_board_from_db(self):
+        print("reading")
+        game_id = ChessGame.objects.get(room_id=self.room_id).pk
+        white_board = WhitePieces.objects.get(game_id=game_id)
+        black_board = BlackPieces.objects.get(game_id=game_id)
+
+        white_pieces_data = self.read_model_fields(white_board)
+        black_pieces_data = self.read_model_fields(black_board)
+
+        print(white_pieces_data)
+
+
+
+
+
+    def send_board_state(self):
+        self.read_board_from_db()
+        print('sending')
+
 
     def read_positions(self):
         """ Triggers sending pieces data """
