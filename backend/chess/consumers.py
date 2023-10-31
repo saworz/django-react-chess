@@ -113,6 +113,23 @@ class ChessConsumer(WebsocketConsumer):
         black_serializer.save()
         print("created board db")
 
+    def edit_board_in_db(self, white_board, black_board, game_id):
+        white_board_instance = WhitePieces.objects.get(game_id=game_id)
+        black_board_instance = BlackPieces.objects.get(game_id=game_id)
+
+        for key, value in white_board.items():
+            if not key == 'game_id':
+                setattr(white_board_instance, key, value)
+
+        for key, value in black_board.items():
+            if not key == 'game_id':
+                setattr(black_board_instance, key, value)
+
+        white_board_instance.save()
+        black_board_instance.save()
+
+        print("setted attributes")
+
     def jsonify_board_state(self):
         sides = {
             "white": self.game.white_pieces,
@@ -138,7 +155,7 @@ class ChessConsumer(WebsocketConsumer):
                     black_board[name] = piece_info
 
         if WhitePieces.objects.filter(game_id=game_id).exists() and BlackPieces.objects.filter(game_id=game_id).exists():
-            print("already exists")
+            self.edit_board_in_db(white_board, black_board, game_id)
         else:
             self.create_board_in_db(white_board, black_board)
 
