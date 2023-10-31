@@ -111,7 +111,6 @@ class ChessConsumer(WebsocketConsumer):
 
         white_serializer.save()
         black_serializer.save()
-        print("created board db")
 
     def edit_board_in_db(self, white_board, black_board, game_id):
         white_board_instance = WhitePieces.objects.get(game_id=game_id)
@@ -127,8 +126,6 @@ class ChessConsumer(WebsocketConsumer):
 
         white_board_instance.save()
         black_board_instance.save()
-
-        print("setted attributes")
 
     def jsonify_board_state(self):
         sides = {
@@ -146,6 +143,8 @@ class ChessConsumer(WebsocketConsumer):
                     "piece_type": piece.piece_type,
                     "position": piece.position,
                     "color": piece.color,
+                    "possible_moves": piece.possible_moves,
+                    "capturing_moves": piece.capturing_moves,
                 }
 
                 if color == 'white':
@@ -169,8 +168,13 @@ class ChessConsumer(WebsocketConsumer):
 
         return read_data
 
+    def add_moves_to_pieces(self, white_pieces_data, black_pieces_data):
+        game = GameLoader(room_id=self.room_id)
+        game.create_pieces_objects(white_pieces_data, black_pieces_data)
+        game.init_moves()
+        print(game.white_pieces["pawn_2"].possible_moves)
+
     def read_board_from_db(self):
-        print("reading")
         game_id = ChessGame.objects.get(room_id=self.room_id).pk
         white_board = WhitePieces.objects.get(game_id=game_id)
         black_board = BlackPieces.objects.get(game_id=game_id)
@@ -178,11 +182,7 @@ class ChessConsumer(WebsocketConsumer):
         white_pieces_data = self.read_model_fields(white_board)
         black_pieces_data = self.read_model_fields(black_board)
 
-        print(white_pieces_data)
-
-
-
-
+        self.add_moves_to_pieces(white_pieces_data, black_pieces_data)
 
     def send_board_state(self):
         self.read_board_from_db()
