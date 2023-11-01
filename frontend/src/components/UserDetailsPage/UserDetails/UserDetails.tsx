@@ -9,8 +9,11 @@ import {
 import UserDetailsButtons from "../UserDetailsButtons";
 import * as Types from "./UserDetails.types";
 import { EmailIcon } from "@chakra-ui/icons";
+import { useNavigate } from "react-router";
 
 const UserDetails = ({ user }: Types.IProps) => {
+  const navigate = useNavigate();
+
   return (
     <Box
       rounded={"lg"}
@@ -68,6 +71,7 @@ const UserDetails = ({ user }: Types.IProps) => {
           <Stack marginLeft="2" alignSelf="flex-start" h="100%">
             <UserDetailsButtons userDetails={user} />
             <Button
+              onClick={() => navigate(`/user_details/${user.id}/chat`)}
               leftIcon={<EmailIcon />}
               colorScheme="orange"
               w="100%"
