@@ -1,5 +1,6 @@
 import Ranks from "./Ranks";
 import Files from "./Files";
+import Pieces from "../Pieces";
 import * as Styles from "./ChessBoard.styles";
 import { Box, useColorModeValue } from "@chakra-ui/react";
 
@@ -29,21 +30,14 @@ const ChessBoard = () => {
           {ranks.map((rank, i) =>
             files.map((file, j) => {
               if ((i + j) % 2 === 0) {
-                return (
-                  <Styles.LightTile key={file + "-" + rank}>
-                    ({rank},{file})
-                  </Styles.LightTile>
-                );
+                return <Styles.LightTile key={file + "-" + rank} />;
               } else {
-                return (
-                  <Styles.DarkTile key={file + "-" + rank}>
-                    ({rank},{file})
-                  </Styles.DarkTile>
-                );
+                return <Styles.DarkTile key={file + "-" + rank} />;
               }
             })
           )}
         </Styles.Tiles>
+        <Pieces />
         <Files files={files} />
       </Styles.BoardContainer>
     </Box>

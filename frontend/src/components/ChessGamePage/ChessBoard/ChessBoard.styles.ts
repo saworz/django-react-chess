@@ -10,6 +10,7 @@ export const LightTile = styled(GridItem)`
 `;
 
 export const BoardContainer = styled(Grid)`
+  position: relative;
   grid-template-columns: calc(0.25 * var(--tile-size)) calc(
       8 * var(--tile-size)
     );
