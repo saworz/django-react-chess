@@ -41,8 +41,12 @@ class CreateNewGameView(CreateAPIView):
             "room_id": room_id
         }
 
+        if ChessGame.objects.filter(room_id=room_id).exists():
+            return JsonResponse({"message": "Game for room_id {} already exists".format(room_id)},
+                                status=status.HTTP_400_BAD_REQUEST)
+
         serializer = self.get_serializer(data=game_data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
