@@ -78,3 +78,10 @@ export interface IMessagesData {
   from: string;
   text: string;
 }
+
+export interface ICreateChessGameResponse {
+  current_player: string;
+  room_id: string;
+  player_white: number;
+  player_black: number;
+}

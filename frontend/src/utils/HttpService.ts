@@ -156,12 +156,38 @@ const getChatRoomId = async (userId: number) => {
   }
 };
 
+const createChessGame = async (userId: number) => {
+  try {
+    const response = await axios.get(API_URL + `chess/new_game/${userId}`, {
+      withCredentials: true,
+      headers: {
+        "X-CSRFToken": TokenService.getCsrfToken(),
+        "Content-Type": "application/json",
+      },
+    });
+    return response;
+  } catch (error: any) {
+    const message = error.response.data.message;
+    toast.error(message, {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "dark",
+    });
+  }
+};
+
 const HttpService = {
   updateProfile,
   updatePassword,
   getUserDetails,
   getChatRoomId,
   getPreviousMessages,
+  createChessGame,
 };
 
 export default HttpService;
