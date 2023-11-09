@@ -2,7 +2,7 @@ import json
 import random
 
 from django.shortcuts import render
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 from .serializers import ChessGameSerializer, MakeMoveSerializer, BlackBoardSerializer, WhiteBoardSerializer
 from rest_framework.response import Response
@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from django.contrib.auth.models import User
 from .models import ChessGame, WhitePieces, BlackPieces
+from rest_framework.exceptions import NotFound
 from django.shortcuts import get_object_or_404
 from django.core import serializers
 
@@ -50,3 +51,24 @@ class CreateNewGameView(CreateAPIView):
         self.perform_create(serializer)
 
         return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class RetrieveGameIdView(RetrieveAPIView):
+    serializer_class = ChessGameSerializer
+    queryset = ChessGame.objects.all()
+
+    def get_object(self):
+        pk = self.kwargs.get("pk")
+
+        logged_user = self.request.user
+        try:
+            other_user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound({"message": "User with pk {} does not exist.".format(pk)})
+
+        room_id = ''.join(sorted([str(logged_user.pk), str(other_user.pk)]))
+        obj = self.queryset.filter(room_id=room_id).first()
+
+        if obj is None:
+            raise NotFound({"message": "Game with room_id {} does not exist.".format(room_id)})
+        return obj
