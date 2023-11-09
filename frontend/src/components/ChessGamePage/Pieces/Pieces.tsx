@@ -1,7 +1,8 @@
 import * as Styles from "./Pieces.styles";
+import * as Types from "./Pieces.types";
 import Piece from "../Piece/Piece";
 
-const Pieces = () => {
+const Pieces = ({ isGameStarted }: Types.IProps) => {
   const position = new Array(8).fill("").map((x) => new Array(8).fill(""));
   position[0][0] = "wr";
   position[0][7] = "wr";
