@@ -31,31 +31,54 @@ const mapPiecesToArray = (
     | SharedTypes.IPiecesPositions["black_pieces"]
     | SharedTypes.IPiecesPositions["white_pieces"]
 ) => {
-  return Object.values(piecePositions).map((piece) => piece);
+  return Object.entries(piecePositions).map(([key, value]) => ({
+    id: key,
+    ...value,
+  }));
 };
 
-function fillPositionsPieces(
-  positionArray: string[][],
+const fillPositionsPieces = (
+  boardPositions: string[][],
   piecesObject:
-    | Record<string, SharedTypes.IBlackPiece>
-    | Record<string, SharedTypes.IWhitePiece>
-) {
-  const piecesArray = mapPiecesToArray(piecesObject);
-
-  piecesArray.forEach((piece) => {
+    | SharedTypes.IPiecesPositions["black_pieces"]
+    | SharedTypes.IPiecesPositions["white_pieces"]
+) => {
+  piecesObject.forEach((piece) => {
     const [row, col] = piece.position;
-    positionArray[col - 1][row - 1] =
+    boardPositions[col - 1][row - 1] =
       piece.color[0].toLowerCase() + piece.piece_type.toLowerCase();
   });
+};
 
-  console.log("A", positionArray);
-}
+const createInitGame = (piecesPositions: SharedTypes.IPiecesPositions) => {
+  const boardPositions: string[][] = new Array(8)
+    .fill("")
+    .map((x) => new Array(8).fill(""));
+  fillPositionsPieces(boardPositions, piecesPositions.black_pieces);
+  fillPositionsPieces(boardPositions, piecesPositions.white_pieces);
+
+  return boardPositions;
+};
+
+const copyPosition = (position: string[][]) => {
+  const newPosition = new Array(8).fill("").map((x) => new Array(8).fill(""));
+
+  for (let rank = 0; rank < position.length; rank++) {
+    for (let file = 0; file < position[0].length; file++) {
+      newPosition[rank][file] = position[rank][file];
+    }
+  }
+
+  return newPosition;
+};
 
 const Functions = {
   prepareChessGame,
+  createInitGame,
   computeGameId,
   mapPiecesToArray,
   fillPositionsPieces,
+  copyPosition,
 };
 
 export default Functions;

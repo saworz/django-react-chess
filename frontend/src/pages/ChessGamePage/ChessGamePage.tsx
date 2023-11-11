@@ -33,7 +33,7 @@ const ChessGamePage = () => {
             data_type: "init_board",
           })
         );
-        console.log("INIT");
+        console.log("Init Board");
       } catch (error) {
         console.log("Socket error:", error);
       }
@@ -47,7 +47,10 @@ const ChessGamePage = () => {
       const dataFromServer = JSON.parse(message.data.toString());
       console.log("got reply! ");
       if (dataFromServer) {
-        setPiecesPositions(dataFromServer);
+        setPiecesPositions({
+          white_pieces: Functions.mapPiecesToArray(dataFromServer.white_pieces),
+          black_pieces: Functions.mapPiecesToArray(dataFromServer.black_pieces),
+        });
       }
     };
 
@@ -56,6 +59,7 @@ const ChessGamePage = () => {
     return () => {
       clientWebSocket.close();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const isGameReady = gameRoomId && webSocket && piecesPositions ? true : false;
@@ -71,6 +75,7 @@ const ChessGamePage = () => {
       </Text>
       {isGameReady && (
         <ChessBoard
+          setPiecesPositions={setPiecesPositions}
           piecesPositions={piecesPositions!}
           gameRoomId={gameRoomId}
           isGameStarted={isGameStarted}

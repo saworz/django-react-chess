@@ -10,6 +10,7 @@ const ChessBoard = ({
   isGameStarted,
   gameRoomId,
   piecesPositions,
+  setPiecesPositions,
 }: Types.IProps) => {
   useEffect(() => {}, []);
 
@@ -48,6 +49,7 @@ const ChessBoard = ({
         <Pieces
           piecesPositions={piecesPositions}
           isGameStarted={isGameStarted}
+          setPiecesPositions={setPiecesPositions}
         />
         <Files files={files} />
       </Styles.BoardContainer>

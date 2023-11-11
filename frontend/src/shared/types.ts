@@ -87,6 +87,7 @@ export interface ICreateChessGameResponse {
 }
 
 export interface IPiece {
+  id: string;
   piece_type: string;
   color: string;
   capturing_moves: Array<number>[];
@@ -103,6 +104,6 @@ export interface IWhitePiece extends IPiece {
 }
 
 export interface IPiecesPositions {
-  black_pieces: Record<string, IBlackPiece>;
-  white_pieces: Record<string, IWhitePiece>;
+  black_pieces: IBlackPiece[];
+  white_pieces: IWhitePiece[];
 }

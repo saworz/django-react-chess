@@ -9,3 +9,7 @@ export interface IPieceProps {
   $file: number;
   $piece: string;
 }
+
+export interface DragEvent extends React.MouseEvent {
+  dataTransfer: DataTransfer;
+}
