@@ -76,8 +76,8 @@ class GameLoader:
             "bishop_2": {"piece_type": "bishop", "position": (6, 1), "color": "white"},
             "knight_1": {"piece_type": "knight", "position": (2, 1), "color": "white"},
             "knight_2": {"piece_type": "knight", "position": (7, 1), "color": "white"},
-            "queen": {"piece_type": "queen", "position": (5, 1), "color": "white"},
-            "king": {"piece_type": "king", "position": (4, 1), "color": "white"},
+            "queen": {"piece_type": "queen", "position": (4, 1), "color": "white"},
+            "king": {"piece_type": "king", "position": (5, 1), "color": "white"},
         }
 
         black_pieces_initial_data = {

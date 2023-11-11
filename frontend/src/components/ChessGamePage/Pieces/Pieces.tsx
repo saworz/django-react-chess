@@ -1,15 +1,13 @@
 import * as Styles from "./Pieces.styles";
 import * as Types from "./Pieces.types";
 import Piece from "../Piece/Piece";
+import Functions from "../../../utils/Functions";
 
-const Pieces = ({ isGameStarted }: Types.IProps) => {
+const Pieces = ({ isGameStarted, piecesPositions }: Types.IProps) => {
   const position = new Array(8).fill("").map((x) => new Array(8).fill(""));
-  position[0][0] = "wr";
-  position[0][7] = "wr";
-  position[7][7] = "br";
-  position[7][0] = "br";
+  Functions.fillPositionsPieces(position, piecesPositions.black_pieces);
+  Functions.fillPositionsPieces(position, piecesPositions.white_pieces);
 
-  console.log(position);
   return (
     <Styles.Pieces>
       {position.map((r, rank) =>

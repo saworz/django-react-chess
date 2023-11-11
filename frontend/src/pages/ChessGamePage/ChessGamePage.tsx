@@ -1,50 +1,64 @@
 import { Flex, Text } from "@chakra-ui/react";
 import ChessBoard from "../../components/ChessGamePage/ChessBoard";
 import { useParams } from "react-router-dom";
-import HttpService from "../../utils/HttpService";
-import Functions from "../../utils/Functions";
 import { useEffect, useState } from "react";
+import { w3cwebsocket as W3CWebSocket } from "websocket";
+import Functions from "../../utils/Functions";
+import { useSelector } from "react-redux";
+import { RootState } from "../../app/store";
+import * as SharedTypes from "../../shared/types";
 
 const ChessGamePage = () => {
   const { gameId } = useParams();
-  const [isLoading, setIsLoading] = useState(false);
   const [gameRoomId, setGameRoomId] = useState(0);
-  const [isGameExists, setIsGameExists] = useState(false);
   const [isGameStarted, setIsGameStarted] = useState(false);
+  const [webSocket, setWebSocket] = useState<W3CWebSocket>();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const [piecesPositions, setPiecesPositions] =
+    useState<SharedTypes.IPiecesPositions>();
 
   useEffect(() => {
-    setIsLoading(true);
-    HttpService.createChessGame(Number(gameId))
-      .then((response) => {
-        if (response?.status === 200) {
-          setGameRoomId(response.data.room_id);
-          setIsGameStarted(true);
-        } else if (response?.status === 400) {
-          setGameRoomId(Functions.getNumberFromText(response.data.message)!);
-          setIsGameExists(true);
-          setIsGameStarted(true);
-        } else {
-          throw new Error("Error during creating game");
-        }
-      })
-      .then(() => {
-        setIsGameStarted(true);
-        console.log("SELO");
-      })
-      .catch((error) => {
-        console.log(error.response.status);
-        if (error.response.status === 400) {
-          setGameRoomId(
-            Functions.getNumberFromText(error.response.data.message)!
-          );
-          setIsGameExists(true);
-          setIsGameStarted(true);
-        } else {
-          throw new Error("Error during creating game");
-        }
-      });
+    let clientWebSocket = new W3CWebSocket(
+      "ws://localhost:8000/ws/chess/" +
+        Functions.computeGameId(user?.id!, gameId!)
+    );
+
+    clientWebSocket.onopen = () => {
+      console.log("WebSocket connected");
+      setGameRoomId(Number(Functions.computeGameId(user?.id!, gameId!)));
+
+      try {
+        clientWebSocket?.send(
+          JSON.stringify({
+            data_type: "init_board",
+          })
+        );
+        console.log("INIT");
+      } catch (error) {
+        console.log("Socket error:", error);
+      }
+    };
+
+    clientWebSocket.onerror = () => {
+      Functions.prepareChessGame(gameId!, setGameRoomId, setIsGameStarted);
+    };
+
+    clientWebSocket.onmessage = (message) => {
+      const dataFromServer = JSON.parse(message.data.toString());
+      console.log("got reply! ");
+      if (dataFromServer) {
+        setPiecesPositions(dataFromServer);
+      }
+    };
+
+    setWebSocket(clientWebSocket);
+
+    return () => {
+      clientWebSocket.close();
+    };
   }, []);
 
+  const isGameReady = gameRoomId && webSocket && piecesPositions ? true : false;
   return (
     <Flex
       alignItems={"center"}
@@ -55,8 +69,12 @@ const ChessGamePage = () => {
       <Text fontSize={"4rem"} fontWeight="black">
         Chess Game
       </Text>
-      {isGameStarted && (
-        <ChessBoard gameRoomId={gameRoomId} isGameStarted={isGameStarted} />
+      {isGameReady && (
+        <ChessBoard
+          piecesPositions={piecesPositions!}
+          gameRoomId={gameRoomId}
+          isGameStarted={isGameStarted}
+        />
       )}
     </Flex>
   );

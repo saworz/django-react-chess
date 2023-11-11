@@ -164,43 +164,56 @@ const createChessGame = async (userId: number) => {
       "Content-Type": "application/json",
     },
   };
-  const response = await axios.post(
-    API_URL + `chess/new_game/${userId}`,
-    null,
-    config
-  );
-  return response;
+  try {
+    const response = await axios.post(
+      API_URL + `chess/new_game/${userId}`,
+      null,
+      config
+    );
+    return response;
+  } catch (error: any) {
+    const message = error.response.data.message;
+    toast.error(message, {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "dark",
+    });
+  }
 };
 
-// const createChessGame = async (userId: number) => {
-//   const config = {
-//     withCredentials: true,
-//     headers: {
-//       "X-CSRFToken": TokenService.getCsrfToken(),
-//       "Content-Type": "application/json",
-//     },
-//   };
-//   try {
-//     const response = await axios.post(
-//       API_URL + `chess/new_game/${userId}`,
-//       null,
-//       config
-//     );
-//     return response;
-//   } catch (error: any) {
-//     const message = error.response.data.message;
-//     toast.error(message, {
-//       position: "top-right",
-//       autoClose: 5000,
-//       hideProgressBar: false,
-//       closeOnClick: true,
-//       pauseOnHover: true,
-//       draggable: true,
-//       progress: undefined,
-//       theme: "dark",
-//     });
-//   }
-// };
+const getChessGameId = async (userId: number) => {
+  const config = {
+    withCredentials: true,
+    headers: {
+      "X-CSRFToken": TokenService.getCsrfToken(),
+      "Content-Type": "application/json",
+    },
+  };
+  try {
+    const response = await axios.get(
+      API_URL + `chess/get_room_id/${userId}`,
+      config
+    );
+    return response;
+  } catch (error: any) {
+    const message = error.response.data.message;
+    toast.error(message, {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "dark",
+    });
+  }
+};
 
 const HttpService = {
   updateProfile,
@@ -209,6 +222,7 @@ const HttpService = {
   getChatRoomId,
   getPreviousMessages,
   createChessGame,
+  getChessGameId,
 };
 
 export default HttpService;
