@@ -2,16 +2,19 @@ import * as Styles from "./Pieces.styles";
 import * as Types from "./Pieces.types";
 import Piece from "../Piece/Piece";
 import Functions from "../../../utils/Functions";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../../app/store";
+import { setChessBoard } from "../../../features/chess/chessSlice";
 
-const Pieces = ({
-  isGameStarted,
-  piecesPositions,
-  setPiecesPositions,
-}: Types.IProps) => {
-  const [boardPositions, setBoardPositions] = useState(
-    Functions.createInitGame(piecesPositions)
-  );
+const Pieces = () => {
+  const dispatch: AppDispatch = useDispatch();
+  const { chess } = useSelector((state: RootState) => state.chess);
+
+  useEffect(() => {
+    dispatch(setChessBoard(Functions.createInitGame(chess.piecesPosition)));
+  }, [chess.piecesPosition, dispatch]);
+
   const ref = useRef<HTMLDivElement>(null);
 
   const calculateCoords = (e: React.MouseEvent) => {
@@ -26,10 +29,10 @@ const Pieces = ({
     const { x, y } = calculateCoords(e); //New
     const [piece, rank, file] = e.dataTransfer.getData("text").split(","); //Old
 
-    const newPosition = Functions.copyPosition(boardPositions);
+    const newPosition = Functions.copyPosition(chess.chessBoard);
     newPosition[Number(rank)][Number(file)] = "";
     newPosition[x][y] = piece;
-    setBoardPositions(newPosition);
+    dispatch(setChessBoard(newPosition));
   };
 
   const onDragOver = (e: Types.DragEvent) => {
@@ -38,14 +41,14 @@ const Pieces = ({
 
   return (
     <Styles.Pieces ref={ref} onDrop={onDrop} onDragOver={onDragOver}>
-      {boardPositions.map((r, rank) =>
+      {chess.chessBoard.map((r, rank) =>
         r.map((f, file) =>
-          boardPositions[rank][file] ? (
+          chess.chessBoard[rank][file] ? (
             <Piece
               key={rank + "-" + file}
               rank={rank}
               file={file}
-              piece={boardPositions[rank][file]}
+              piece={chess.chessBoard[rank][file]}
             />
           ) : null
         )

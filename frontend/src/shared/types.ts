@@ -20,6 +20,23 @@ export interface IFriendSystemState {
   message: string;
 }
 
+export interface IChessState {
+  chess: {
+    gameRoomId: string;
+    isGameStarted: boolean;
+    chessBoard: string[][];
+    turn: string;
+    piecesPosition: {
+      black_pieces: IBlackPiece[];
+      white_pieces: IWhitePiece[];
+    };
+  };
+  isError: boolean;
+  isSuccess: boolean;
+  isLoading: boolean;
+  message: string;
+}
+
 export interface IRegisterUserData {
   username: string;
   email: string;
@@ -103,7 +120,7 @@ export interface IWhitePiece extends IPiece {
   color: "white";
 }
 
-export interface IPiecesPositions {
+export interface IPiecesPosition {
   black_pieces: IBlackPiece[];
   white_pieces: IWhitePiece[];
 }

@@ -2,18 +2,9 @@ import Ranks from "./Ranks";
 import Files from "./Files";
 import Pieces from "../Pieces";
 import * as Styles from "./ChessBoard.styles";
-import * as Types from "./ChessBoard.types";
 import { Box, useColorModeValue } from "@chakra-ui/react";
-import { useEffect } from "react";
 
-const ChessBoard = ({
-  isGameStarted,
-  gameRoomId,
-  piecesPositions,
-  setPiecesPositions,
-}: Types.IProps) => {
-  useEffect(() => {}, []);
-
+const ChessBoard = () => {
   const ranks = Array(8)
     .fill("")
     .map((x, i) => 8 - i);
@@ -46,11 +37,7 @@ const ChessBoard = ({
             })
           )}
         </Styles.Tiles>
-        <Pieces
-          piecesPositions={piecesPositions}
-          isGameStarted={isGameStarted}
-          setPiecesPositions={setPiecesPositions}
-        />
+        <Pieces />
         <Files files={files} />
       </Styles.BoardContainer>
     </Box>

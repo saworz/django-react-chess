@@ -4,18 +4,19 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { w3cwebsocket as W3CWebSocket } from "websocket";
 import Functions from "../../utils/Functions";
-import { useSelector } from "react-redux";
-import { RootState } from "../../app/store";
-import * as SharedTypes from "../../shared/types";
+import {
+  setPiecesPosition,
+  prepareChessGame,
+} from "../../features/chess/chessSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../app/store";
 
 const ChessGamePage = () => {
   const { gameId } = useParams();
-  const [gameRoomId, setGameRoomId] = useState(0);
-  const [isGameStarted, setIsGameStarted] = useState(false);
   const [webSocket, setWebSocket] = useState<W3CWebSocket>();
   const { user } = useSelector((state: RootState) => state.auth);
-  const [piecesPositions, setPiecesPositions] =
-    useState<SharedTypes.IPiecesPositions>();
+  const { chess } = useSelector((state: RootState) => state.chess);
+  const dispatch: AppDispatch = useDispatch();
 
   useEffect(() => {
     let clientWebSocket = new W3CWebSocket(
@@ -25,7 +26,12 @@ const ChessGamePage = () => {
 
     clientWebSocket.onopen = () => {
       console.log("WebSocket connected");
-      setGameRoomId(Number(Functions.computeGameId(user?.id!, gameId!)));
+      dispatch(
+        prepareChessGame({
+          gameRoomId: Number(Functions.computeGameId(user?.id!, gameId!)),
+          isGameStarted: true,
+        })
+      );
 
       try {
         clientWebSocket?.send(
@@ -40,17 +46,24 @@ const ChessGamePage = () => {
     };
 
     clientWebSocket.onerror = () => {
-      Functions.prepareChessGame(gameId!, setGameRoomId, setIsGameStarted);
+      const { gameRoomId, isGameStarted } = Functions.prepareChessGame(gameId!);
+      dispatch(prepareChessGame({ gameRoomId, isGameStarted }));
     };
 
     clientWebSocket.onmessage = (message) => {
       const dataFromServer = JSON.parse(message.data.toString());
       console.log("got reply! ");
       if (dataFromServer) {
-        setPiecesPositions({
-          white_pieces: Functions.mapPiecesToArray(dataFromServer.white_pieces),
-          black_pieces: Functions.mapPiecesToArray(dataFromServer.black_pieces),
-        });
+        dispatch(
+          setPiecesPosition({
+            white_pieces: Functions.mapPiecesToArray(
+              dataFromServer.white_pieces
+            ),
+            black_pieces: Functions.mapPiecesToArray(
+              dataFromServer.black_pieces
+            ),
+          })
+        );
       }
     };
 
@@ -62,7 +75,8 @@ const ChessGamePage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const isGameReady = gameRoomId && webSocket && piecesPositions ? true : false;
+  const isGameReady =
+    chess.gameRoomId && webSocket && chess.piecesPosition ? true : false;
   return (
     <Flex
       alignItems={"center"}
@@ -73,14 +87,7 @@ const ChessGamePage = () => {
       <Text fontSize={"4rem"} fontWeight="black">
         Chess Game
       </Text>
-      {isGameReady && (
-        <ChessBoard
-          setPiecesPositions={setPiecesPositions}
-          piecesPositions={piecesPositions!}
-          gameRoomId={gameRoomId}
-          isGameStarted={isGameStarted}
-        />
-      )}
+      {isGameReady && <ChessBoard />}
     </Flex>
   );
 };

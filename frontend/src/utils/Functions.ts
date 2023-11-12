@@ -1,19 +1,18 @@
 import HttpService from "./HttpService";
 import * as SharedTypes from "../shared/types";
 
-const prepareChessGame = (
-  gameId: string,
-  setGameRoomId: React.Dispatch<React.SetStateAction<number>>,
-  setIsGameStarted: React.Dispatch<React.SetStateAction<boolean>>
-) => {
+const prepareChessGame = (gameId: string) => {
+  let gameRoomId: string = "";
+  let isGameStarted: boolean = false;
   HttpService.createChessGame(Number(gameId)).then((response) => {
     if (response?.status === 201) {
-      setGameRoomId(response.data.room_id);
-      setIsGameStarted(true);
+      gameRoomId = response.data.room_id;
+      isGameStarted = true;
     } else {
-      //setIsGameStarted(true);
+      //setIsGameStarted(true); TODO
     }
   });
+  return { gameRoomId, isGameStarted };
 };
 
 const computeGameId = (loggedUserId: number, enemyId: string) => {
@@ -28,8 +27,8 @@ const computeGameId = (loggedUserId: number, enemyId: string) => {
 
 const mapPiecesToArray = (
   piecePositions:
-    | SharedTypes.IPiecesPositions["black_pieces"]
-    | SharedTypes.IPiecesPositions["white_pieces"]
+    | SharedTypes.IPiecesPosition["black_pieces"]
+    | SharedTypes.IPiecesPosition["white_pieces"]
 ) => {
   return Object.entries(piecePositions).map(([key, value]) => ({
     id: key,
@@ -40,8 +39,8 @@ const mapPiecesToArray = (
 const fillPositionsPieces = (
   boardPositions: string[][],
   piecesObject:
-    | SharedTypes.IPiecesPositions["black_pieces"]
-    | SharedTypes.IPiecesPositions["white_pieces"]
+    | SharedTypes.IPiecesPosition["black_pieces"]
+    | SharedTypes.IPiecesPosition["white_pieces"]
 ) => {
   piecesObject.forEach((piece) => {
     const [row, col] = piece.position;
@@ -50,7 +49,7 @@ const fillPositionsPieces = (
   });
 };
 
-const createInitGame = (piecesPositions: SharedTypes.IPiecesPositions) => {
+const createInitGame = (piecesPositions: SharedTypes.IPiecesPosition) => {
   const boardPositions: string[][] = new Array(8)
     .fill("")
     .map((x) => new Array(8).fill(""));
