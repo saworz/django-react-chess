@@ -5,14 +5,14 @@ import Functions from "../../../utils/Functions";
 import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../app/store";
-import { setChessBoard } from "../../../features/chess/chessSlice";
+import { makeMove, initGame } from "../../../features/chess/chessSlice";
 
 const Pieces = () => {
   const dispatch: AppDispatch = useDispatch();
   const { chess } = useSelector((state: RootState) => state.chess);
 
   useEffect(() => {
-    dispatch(setChessBoard(Functions.createInitGame(chess.piecesPosition)));
+    dispatch(initGame(Functions.createInitGame(chess.piecesPosition)));
   }, [chess.piecesPosition, dispatch]);
 
   const ref = useRef<HTMLDivElement>(null);
@@ -32,7 +32,10 @@ const Pieces = () => {
     const newPosition = Functions.copyPosition(chess.chessBoard);
     newPosition[Number(rank)][Number(file)] = "";
     newPosition[x][y] = piece;
-    dispatch(setChessBoard(newPosition));
+
+    const nextTurn = chess.turn === "white" ? "black" : "white";
+
+    dispatch(makeMove({ newPosition, nextTurn }));
   };
 
   const onDragOver = (e: Types.DragEvent) => {

@@ -26,9 +26,6 @@ export const chessSlice = createSlice({
     reset: (state) => {
       state = initialState;
     },
-    setChessBoard: (state, action) => {
-      state.chess.chessBoard = action.payload;
-    },
     setPiecesPosition: (state, action) => {
       state.chess.piecesPosition = action.payload;
     },
@@ -39,6 +36,14 @@ export const chessSlice = createSlice({
       state.chess.gameRoomId = action.payload.gameRoomId;
       state.chess.isGameStarted = action.payload.isGameStarted;
     },
+    makeMove: (state, action) => {
+      state.chess.turn = action.payload.nextTurn;
+      state.chess.chessBoard = action.payload.newPosition;
+    },
+    initGame: (state, action) => {
+      state.chess.turn = "white";
+      state.chess.chessBoard = action.payload;
+    },
   },
   //Account state - pendning, fullfiled, rejected
   extraReducers(builder) {},
@@ -46,9 +51,10 @@ export const chessSlice = createSlice({
 
 export const {
   reset,
-  setChessBoard,
   setPiecesPosition,
   setGameRoomId,
   prepareChessGame,
+  makeMove,
+  initGame,
 } = chessSlice.actions;
 export default chessSlice.reducer;
