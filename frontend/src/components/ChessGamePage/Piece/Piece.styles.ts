@@ -12,5 +12,4 @@ export const Piece = styled(Box)<Types.IPieceProps>`
     ${(props) => `${props.$file}00%`},
     ${(props) => `${-100 * props.$rank + 700}%`}
   );
-  pointer-events: none;
 `;

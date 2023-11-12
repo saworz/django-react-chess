@@ -25,16 +25,7 @@ const Pieces = ({
   const onDrop = (e: Types.DragEvent) => {
     const { x, y } = calculateCoords(e); //New
     const [piece, rank, file] = e.dataTransfer.getData("text").split(","); //Old
-    console.log("Old", rank, file);
-    console.log("New", x, y);
-    // const boardAfterMove = Functions.makeMove(
-    //   boardPositions,
-    //   rank,
-    //   file,
-    //   x,
-    //   y,
-    //   piece
-    // );
+
     const newPosition = Functions.copyPosition(boardPositions);
     newPosition[Number(rank)][Number(file)] = "";
     newPosition[x][y] = piece;
