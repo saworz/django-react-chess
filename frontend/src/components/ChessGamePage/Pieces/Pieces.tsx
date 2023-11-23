@@ -44,8 +44,8 @@ const Pieces = () => {
 
   return (
     <Styles.Pieces ref={ref} onDrop={onDrop} onDragOver={onDragOver}>
-      {chess.chessBoard.map((r, rank) =>
-        r.map((f, file) =>
+      {chess.chessBoard.map((f, file) =>
+        f.map((r, rank) =>
           chess.chessBoard[rank][file] ? (
             <Piece
               key={rank + "-" + file}
