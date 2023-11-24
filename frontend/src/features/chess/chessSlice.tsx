@@ -11,6 +11,7 @@ const initialState: SharedStyles.IChessState = {
       black_pieces: [],
       white_pieces: [],
     },
+    candidateMoves: [],
   },
   isError: false,
   isSuccess: false,
@@ -43,6 +44,13 @@ export const chessSlice = createSlice({
     initGame: (state, action) => {
       state.chess.turn = "white";
       state.chess.chessBoard = action.payload;
+      state.chess.candidateMoves = [];
+    },
+    generateCandidateMoves: (state, action) => {
+      state.chess.candidateMoves = action.payload;
+    },
+    clearCandidates: (state) => {
+      state.chess.candidateMoves = [];
     },
   },
   //Account state - pendning, fullfiled, rejected
@@ -56,5 +64,7 @@ export const {
   prepareChessGame,
   makeMove,
   initGame,
+  generateCandidateMoves,
+  clearCandidates,
 } = chessSlice.actions;
 export default chessSlice.reducer;

@@ -5,11 +5,16 @@ import Functions from "../../../utils/Functions";
 import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../app/store";
-import { makeMove, initGame } from "../../../features/chess/chessSlice";
+import {
+  makeMove,
+  initGame,
+  clearCandidates,
+} from "../../../features/chess/chessSlice";
 
 const Pieces = () => {
   const dispatch: AppDispatch = useDispatch();
   const { chess } = useSelector((state: RootState) => state.chess);
+  const { candidateMoves } = chess;
 
   useEffect(() => {
     dispatch(initGame(Functions.createInitGame(chess.piecesPosition)));
@@ -26,16 +31,18 @@ const Pieces = () => {
   };
 
   const onDrop = (e: Types.DragEvent) => {
+    const newPosition = Functions.copyPosition(chess.chessBoard);
     const { x, y } = calculateCoords(e); //New
     const [piece, rank, file] = e.dataTransfer.getData("text").split(","); //Old
 
-    const newPosition = Functions.copyPosition(chess.chessBoard);
-    newPosition[Number(rank)][Number(file)] = "";
-    newPosition[x][y] = piece;
+    if (candidateMoves?.find((pos) => pos[0] === x && pos[1] === y)) {
+      const nextTurn = chess.turn === "white" ? "black" : "white";
+      newPosition[Number(rank)][Number(file)] = "";
+      newPosition[x][y] = piece;
+      dispatch(makeMove({ newPosition, nextTurn }));
+    }
 
-    const nextTurn = chess.turn === "white" ? "black" : "white";
-
-    dispatch(makeMove({ newPosition, nextTurn }));
+    dispatch(clearCandidates());
   };
 
   const onDragOver = (e: Types.DragEvent) => {
@@ -44,8 +51,8 @@ const Pieces = () => {
 
   return (
     <Styles.Pieces ref={ref} onDrop={onDrop} onDragOver={onDragOver}>
-      {chess.chessBoard.map((f, file) =>
-        f.map((r, rank) =>
+      {chess.chessBoard.map((r, rank) =>
+        r.map((f, file) =>
           chess.chessBoard[rank][file] ? (
             <Piece
               key={rank + "-" + file}

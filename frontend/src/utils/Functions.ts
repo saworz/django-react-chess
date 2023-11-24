@@ -43,8 +43,8 @@ const fillPositionsPieces = (
     | SharedTypes.IPiecesPosition["white_pieces"]
 ) => {
   piecesObject.forEach((piece) => {
-    const [row, col] = piece.position;
-    boardPositions[col - 1][row - 1] =
+    const [x, y] = piece.position;
+    boardPositions[y - 1][x - 1] =
       piece.color[0].toLowerCase() + piece.piece_type.toLowerCase();
   });
 };

@@ -24,3 +24,26 @@ code {
 ::-webkit-scrollbar-thumb {
   background-color: #171923;
 }
+
+.highlight:after {
+  content: "";
+  display: block;
+  position: relative;
+  width: calc(0.5 * var(--tile-size));
+  height: calc(0.5 * var(--tile-size));
+  background-color: var(--highlight);
+  border-radius: 50%;
+  left: 25%;
+  top: 25%;
+}
+.attacking:after {
+  content: "";
+  display: block;
+  position: relative;
+  width: 73px;
+  height: 73px;
+  border-radius: 50%;
+  border: 6px solid var(--highlight);
+  left: 0;
+  top: 0;
+}

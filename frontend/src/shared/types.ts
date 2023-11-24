@@ -30,6 +30,7 @@ export interface IChessState {
       black_pieces: IBlackPiece[];
       white_pieces: IWhitePiece[];
     };
+    candidateMoves: number[][];
   };
   isError: boolean;
   isSuccess: boolean;
