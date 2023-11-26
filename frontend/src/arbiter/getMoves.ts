@@ -1,5 +1,3 @@
-import { dir } from "console";
-
 interface IGetMoves {
   position: string[][];
   piece: string;
