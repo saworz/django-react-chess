@@ -1,6 +1,14 @@
-import { getRookMoves } from "./getMoves";
+import {
+  getBishopMoves,
+  getKingMoves,
+  getKnightMoves,
+  getPawnCaptures,
+  getPawnMoves,
+  getQueenMoves,
+  getRookMoves,
+} from "./getMoves";
 
-interface IGetRookMoves {
+interface IGetMoves {
   position: string[][];
   piece: string;
   rank: number;
@@ -8,8 +16,28 @@ interface IGetRookMoves {
 }
 
 const arbiter = {
-  getRegularMoves: function ({ position, piece, rank, file }: IGetRookMoves) {
-    return getRookMoves({ position, piece, rank, file });
+  getRegularMoves: function ({ position, piece, rank, file }: IGetMoves) {
+    if (piece.endsWith("rook")) {
+      return getRookMoves({ position, piece, rank, file });
+    }
+    if (piece.endsWith("knight")) {
+      return getKnightMoves({ position, piece, rank, file });
+    }
+    if (piece.endsWith("bishop")) {
+      return getBishopMoves({ position, piece, rank, file });
+    }
+    if (piece.endsWith("queen")) {
+      return getQueenMoves({ position, piece, rank, file });
+    }
+    if (piece.endsWith("king")) {
+      return getKingMoves({ position, piece, rank, file });
+    }
+    if (piece.endsWith("pawn")) {
+      return [
+        ...getPawnMoves({ position, piece, rank, file }),
+        ...getPawnCaptures({ position, piece, rank, file }),
+      ];
+    }
   },
 };
 
