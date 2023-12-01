@@ -2,12 +2,12 @@ from abc import ABC, abstractmethod
 
 
 class Piece(ABC):
-    def __init__(self, position, color):
+    def __init__(self, base_position, position, color):
         self.piece_type = ''
         self.position = position
         self.x_position = position[0]
         self.y_position = position[1]
-        self.init_position = position
+        self.base_position = base_position
         self.color = color
         self.possible_moves = []
         self.capturing_moves = []
@@ -23,9 +23,6 @@ class Piece(ABC):
     def reload_position(self):
         self.x_position = self.position[0]
         self.y_position = self.position[1]
-
-    def init_from_json(self, data):
-        print(data)
 
     def move_validator(self, white_occupied_positions, black_occupied_positions):
         """Validates possible moves"""
@@ -91,8 +88,8 @@ class BishopMoves(Piece):
 
 
 class PiecePawn(Piece):
-    def __init__(self, position, color):
-        super().__init__(position, color)
+    def __init__(self, base_position, position, color):
+        super().__init__(base_position, position, color)
         self.weight = 1
         self.piece_type = "pawn"
 
@@ -103,34 +100,30 @@ class PiecePawn(Piece):
             move_dir = -1
 
         possible_moves = [[(self.x_position, self.y_position + 1 * move_dir)]]
-        # if self.at_base_position():
-        #     possible_moves.extend([[(self.x_position, self.y_position + 2 * move_dir)]])
+
+        if self.base_position == self.position:
+            possible_moves[0].extend([(self.x_position, self.y_position + 2 * move_dir)])
 
         return possible_moves
 
-    def at_base_position(self):
-        if self.position == self.init_position:
-            return True
-        return False
-
 
 class PieceRook(RookMoves):
-    def __init__(self, position, color):
-        super().__init__(position, color)
+    def __init__(self, base_position, position, color):
+        super().__init__(base_position, position, color)
         self.weight = 5
         self.piece_type = "rook"
 
 
 class PieceBishop(BishopMoves):
-    def __init__(self, position, color):
-        super().__init__(position, color)
+    def __init__(self, base_position,  position, color):
+        super().__init__(base_position, position, color)
         self.weight = 3
         self.piece_type = "bishop"
 
 
 class PieceKnight(Piece):
-    def __init__(self, position, color):
-        super().__init__(position, color)
+    def __init__(self, base_position,  position, color):
+        super().__init__(base_position, position, color)
         self.weight = 3
         self.piece_type = "knight"
 
@@ -145,8 +138,8 @@ class PieceKnight(Piece):
 
 
 class PieceQueen(Piece):
-    def __init__(self, position, color):
-        super().__init__(position, color)
+    def __init__(self,base_position,  position, color):
+        super().__init__(base_position, position, color)
         self.weight = 9
         self.piece_type = "queen"
 
@@ -159,8 +152,8 @@ class PieceQueen(Piece):
 
 
 class PieceKing(Piece):
-    def __init__(self, position, color):
-        super().__init__(position, color)
+    def __init__(self,base_position,  position, color):
+        super().__init__(base_position, position, color)
         self.weight = 0
         self.piece_type = "king"
 
