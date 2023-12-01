@@ -38,7 +38,10 @@ const Piece = ({ file, piece, rank }: Types.IProps) => {
     }
 
     if (turn[0] === piece[0]) {
-      const candidateMoves = selectedPiece?.possible_moves
+      const candidateMoves = [
+        ...selectedPiece?.possible_moves,
+        selectedPiece?.capturing_moves,
+      ]
         .flat()
         .map((pos) => [pos[1] - 1, pos[0] - 1]);
       dispatch(generateCandidateMoves(candidateMoves));
