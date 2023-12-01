@@ -32,6 +32,17 @@ class GameDataHandler:
         white_board_instance = WhitePieces.objects.get(game_id=game_id)
         black_board_instance = BlackPieces.objects.get(game_id=game_id)
 
+        existing_white_keys = [field.name for field in WhitePieces._meta.get_fields()]
+        existing_black_keys = [field.name for field in BlackPieces._meta.get_fields()]
+
+        for key in existing_white_keys:
+            if key not in white_board and not key == 'id' and not key == 'game_id':
+                setattr(white_board_instance, key, None)
+
+        for key in existing_black_keys:
+            if key not in black_board and not key == 'id' and not key == 'game_id':
+                setattr(black_board_instance, key, None)
+
         for key, value in white_board.items():
             if not key == 'game_id':
                 setattr(white_board_instance, key, value)
@@ -70,7 +81,8 @@ class GameDataHandler:
                 elif color == 'black':
                     black_board[name] = piece_info
 
-        if WhitePieces.objects.filter(game_id=game_id).exists() and BlackPieces.objects.filter(game_id=game_id).exists():
+        if WhitePieces.objects.filter(game_id=game_id).exists() and BlackPieces.objects.filter(
+                game_id=game_id).exists():
             self.edit_board_in_db(white_board, black_board, game_id)
         else:
             self.create_board_in_db(white_board, black_board)
@@ -83,14 +95,16 @@ class GameDataHandler:
                 field_name = field.name
                 field_value = getattr(model, field_name)
                 deserialized_data = {}
-                for key, value in field_value.items():
-                    if isinstance(value, list):
-                        data = self.deserialize_lists(value)
-                    else:
-                        data = value
-                    deserialized_data[key] = data
 
-                read_data[field_name] = deserialized_data
+                if field_value:
+                    for key, value in field_value.items():
+                        if isinstance(value, list):
+                            data = self.deserialize_lists(value)
+                        else:
+                            data = value
+                        deserialized_data[key] = data
+
+                    read_data[field_name] = deserialized_data
         return read_data
 
     def deserialize_lists(self, lst):
@@ -137,6 +151,14 @@ class GameDataHandler:
         """ Rewrites position (e.g. 45 to (4, 5)) """
         return int(position[0]), int(position[1])
 
+    def remove_piece(self, piece_to_remove, game):
+        if piece_to_remove.color == 'black':
+            new_pieces_set = {key: value for key, value in game.black_pieces.items() if value != piece_to_remove}
+            game.black_pieces = new_pieces_set
+        elif piece_to_remove.color == 'white':
+            new_pieces_set = {key: value for key, value in game.white_pieces.items() if value != piece_to_remove}
+            game.white_pieces = new_pieces_set
+
     def validate_move_request(self, move_data, game):
         """ Checks whether the move request is valid """
         if move_data['color'] == 'white':
@@ -146,10 +168,15 @@ class GameDataHandler:
 
         new_position = self.position_to_tuple(move_data['new_position'])
         possible_positions = self.unpack_positions(piece.possible_moves)
+        possible_captures = piece.capturing_moves
 
-        if new_position not in possible_positions:
+        if new_position not in possible_positions + possible_captures:
             print("Incorrect request")
             return
+
+        if new_position in possible_captures:
+            piece_to_capture = piece.capture_piece(new_position, game)
+            self.remove_piece(piece_to_capture, game)
 
         piece.position = new_position
         return game
@@ -184,11 +211,11 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
         data_json = json.loads(text_data)
         if data_json['data_type'] == 'move':
             read_game = self.read_board_from_db()
-            self.validate_move_request(data_json, read_game)
-            read_game.init_moves()
-            self.save_board_state_to_db(read_game)
+            updated_game = self.validate_move_request(data_json, read_game)
+            updated_game.init_moves()
+            self.save_board_state_to_db(updated_game)
             self.read_board_from_db()
-            self.send_board_state(read_game)
+            self.send_board_state(updated_game)
         elif data_json['data_type'] == 'init_board':
             initialized_game = self.initialize_board()
             self.save_board_state_to_db(initialized_game)

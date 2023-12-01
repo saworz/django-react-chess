@@ -22,19 +22,20 @@ class GameLoader:
         return {"board_state": {"white": whites_state, "black": blacks_state}}
 
     def init_moves(self):
-        black_pieces_state = self.get_board_state().get('board_state').get('black')
-        white_pieces_state = self.get_board_state().get('board_state').get('white')
+        black_board = self.get_board_state().get('board_state').get('black')
+        white_board = self.get_board_state().get('board_state').get('white')
 
-        black_occupied_positions = [piece.position for piece in black_pieces_state.values()]
-        white_occupied_positions = [piece.position for piece in white_pieces_state.values()]
+        black_occupied_positions = [piece.position for piece in black_board.values()]
+        white_occupied_positions = [piece.position for piece in white_board.values()]
 
-        for name, piece in black_pieces_state.items():
+        for name, piece in black_board.items():
             piece.reload_position()
-            piece.move_validator(white_occupied_positions, black_occupied_positions)
-
-        for name, piece in white_pieces_state.items():
+            # piece.move_validator(white_occupied_positions, black_occupied_positions)
+            piece.move_validator(white_board, black_board)
+        for name, piece in white_board.items():
             piece.reload_position()
-            piece.move_validator(white_occupied_positions, black_occupied_positions)
+            # piece.move_validator(white_occupied_positions, black_occupied_positions)
+            piece.move_validator(white_board, black_board)
 
     def piece_object_loop(self, data, attribute):
         class_mapping = {

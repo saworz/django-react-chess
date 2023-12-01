@@ -3,22 +3,22 @@ from django.contrib.auth.models import User
 
 
 class PiecesSetup(models.Model):
-    pawn_1 = models.JSONField()
-    pawn_2 = models.JSONField()
-    pawn_3 = models.JSONField()
-    pawn_4 = models.JSONField()
-    pawn_5 = models.JSONField()
-    pawn_6 = models.JSONField()
-    pawn_7 = models.JSONField()
-    pawn_8 = models.JSONField()
-    rook_1 = models.JSONField()
-    rook_2 = models.JSONField()
-    bishop_1 = models.JSONField()
-    bishop_2 = models.JSONField()
-    knight_1 = models.JSONField()
-    knight_2 = models.JSONField()
-    queen = models.JSONField()
-    king = models.JSONField()
+    pawn_1 = models.JSONField(null=True)
+    pawn_2 = models.JSONField(null=True)
+    pawn_3 = models.JSONField(null=True)
+    pawn_4 = models.JSONField(null=True)
+    pawn_5 = models.JSONField(null=True)
+    pawn_6 = models.JSONField(null=True)
+    pawn_7 = models.JSONField(null=True)
+    pawn_8 = models.JSONField(null=True)
+    rook_1 = models.JSONField(null=True)
+    rook_2 = models.JSONField(null=True)
+    bishop_1 = models.JSONField(null=True)
+    bishop_2 = models.JSONField(null=True)
+    knight_1 = models.JSONField(null=True)
+    knight_2 = models.JSONField(null=True)
+    queen = models.JSONField(null=True)
+    king = models.JSONField(null=True)
 
     class Meta:
         abstract = True

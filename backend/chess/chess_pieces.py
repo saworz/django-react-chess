@@ -11,6 +11,7 @@ class Piece(ABC):
         self.color = color
         self.possible_moves = []
         self.capturing_moves = []
+        self.pieces_to_capture = []
 
     def __repr__(self):
         return f'{self.color} {self.piece_type} at {self.position}'
@@ -24,14 +25,14 @@ class Piece(ABC):
         self.x_position = self.position[0]
         self.y_position = self.position[1]
 
-    def move_validator(self, white_occupied_positions, black_occupied_positions):
+    def move_validator(self, white_board, black_board):
         """Validates possible moves"""
         self.possible_moves = []
         self.boundaries_validator()
         if self.color == 'white':
-            self.pieces_blocking(white_occupied_positions, black_occupied_positions)
+            self.pieces_blocking(white_board, black_board)
         elif self.color == 'black':
-            self.pieces_blocking(black_occupied_positions, white_occupied_positions)
+            self.pieces_blocking(black_board, white_board)
 
     def boundaries_validator(self):
         for moves in self.movement():
@@ -42,24 +43,42 @@ class Piece(ABC):
             if len(move_set) > 0:
                 self.possible_moves.append(move_set)
 
-    def pieces_blocking(self, friendly_occupied_positions, enemy_occupied_positions):
+    def capture_piece(self, position, game):
+        for move, piece in zip(self.capturing_moves, self.pieces_to_capture):
+            if move == position:
+                return piece
+
+    def get_capturing_moves(self, position, enemy_pieces):
+        for enemy_piece in enemy_pieces:
+            if position == enemy_piece.position:
+                self.capturing_moves.append(position)
+                self.pieces_to_capture.append(enemy_piece)
+
+    def pieces_blocking(self, friendly_board, enemy_board):
         non_blocked_move_sets = []
-        capturing_moves = []
+
+        friendly_pieces = [piece for piece in friendly_board.values()]
+        friendly_positions = [piece.position for piece in friendly_pieces]
+
+        enemy_pieces = [piece for piece in enemy_board.values()]
+        enemy_positions = [piece.position for piece in enemy_pieces]
+
+        self.capturing_moves = []
+        self.pieces_to_capture = []
 
         for move_set in self.possible_moves:
             non_blocked_moves = []
             for move in move_set:
-                if move in friendly_occupied_positions:
+                if move in friendly_positions:
                     break
-                if move in enemy_occupied_positions:
-                    capturing_moves.append(move)
+                if move in enemy_positions:
+                    self.get_capturing_moves(move, enemy_pieces)
                     break
                 non_blocked_moves.append(move)
 
             if len(non_blocked_moves) > 0:
                 non_blocked_move_sets.append(non_blocked_moves)
 
-        self.capturing_moves = capturing_moves
         self.possible_moves = non_blocked_move_sets
 
 
