@@ -4,9 +4,6 @@
 #Models
 models/
 
-#.env.dev changes
-.env.dev
-
 #sql
 mysql/
 
