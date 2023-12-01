@@ -47,13 +47,57 @@ class GameLoader:
 
         }
 
+        white_base_positions = {
+            "pawn_1": (1, 2),
+            "pawn_2": (2, 2),
+            "pawn_3": (3, 2),
+            "pawn_4": (4, 2),
+            "pawn_5": (5, 2),
+            "pawn_6": (6, 2),
+            "pawn_7": (7, 2),
+            "pawn_8": (8, 2),
+            "rook_1": (1, 1),
+            "rook_2": (8, 1),
+            "knight_1": (2, 1),
+            "knight_2": (7, 1),
+            "bishop_1": (3, 1),
+            "bishop_2": (6, 1),
+            "queen": (4, 1),
+            "king": (5, 1),
+        }
+
+        black_base_positions = {
+            "pawn_1": (1, 7),
+            "pawn_2": (2, 7),
+            "pawn_3": (3, 7),
+            "pawn_4": (4, 7),
+            "pawn_5": (5, 7),
+            "pawn_6": (6, 7),
+            "pawn_7": (7, 7),
+            "pawn_8": (8, 7),
+            "rook_1": (1, 1),
+            "rook_2": (8, 1),
+            "knight_1": (2, 8),
+            "knight_2": (7, 8),
+            "bishop_1": (3, 8),
+            "bishop_2": (6, 8),
+            "queen": (4, 8),
+            "king": (5, 8),
+        }
+
         for piece, value in data:
             if not piece == "id":
                 piece_type = value["piece_type"]
                 piece_position = value["position"]
                 piece_color = value["color"]
                 piece_class = class_mapping[piece_type]
-                attribute[piece] = piece_class(piece_position, piece_color)
+
+                if piece_color == 'white':
+                    piece_base_position = white_base_positions[piece]
+                elif piece_color == 'black':
+                    piece_base_position = black_base_positions[piece]
+
+                attribute[piece] = piece_class(piece_base_position, piece_position, piece_color)
 
     def create_pieces_objects(self, white_data, black_data):
         self.piece_object_loop(white_data.items(), self.white_pieces)
