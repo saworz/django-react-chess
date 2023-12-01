@@ -12,6 +12,7 @@ const initialState: SharedStyles.IChessState = {
       white_pieces: [],
     },
     candidateMoves: [],
+    selectedPiece: null,
   },
   isError: false,
   isSuccess: false,
@@ -37,12 +38,20 @@ export const chessSlice = createSlice({
       state.chess.gameRoomId = action.payload.gameRoomId;
       state.chess.isGameStarted = action.payload.isGameStarted;
     },
-    makeMove: (state, action) => {
-      state.chess.turn = action.payload.nextTurn;
-      state.chess.chessBoard = action.payload.newPosition;
+    createChessGame: (state, action) => {
+      state.chess.gameRoomId = action.payload.gameRoomId;
+      state.chess.isGameStarted = action.payload.isGameStarted;
+      state.chess.turn = "white";
+    },
+    changeTurn: (state, action) => {
+      state.chess.turn = action.payload;
     },
     initGame: (state, action) => {
       state.chess.turn = "white";
+      state.chess.chessBoard = action.payload;
+      state.chess.candidateMoves = [];
+    },
+    updateBoard: (state, action) => {
       state.chess.chessBoard = action.payload;
       state.chess.candidateMoves = [];
     },
@@ -51,10 +60,14 @@ export const chessSlice = createSlice({
     },
     clearCandidates: (state) => {
       state.chess.candidateMoves = [];
+      state.chess.selectedPiece = null;
+    },
+    setSelectedPiece: (state, action) => {
+      state.chess.selectedPiece = action.payload;
     },
   },
-  //Account state - pendning, fullfiled, rejected
-  extraReducers(builder) {},
+  //State - pendning, fullfiled, rejected
+  extraReducers() {},
 });
 
 export const {
@@ -62,9 +75,12 @@ export const {
   setPiecesPosition,
   setGameRoomId,
   prepareChessGame,
-  makeMove,
+  changeTurn,
   initGame,
   generateCandidateMoves,
   clearCandidates,
+  updateBoard,
+  setSelectedPiece,
+  createChessGame,
 } = chessSlice.actions;
 export default chessSlice.reducer;

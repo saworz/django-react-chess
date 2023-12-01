@@ -31,6 +31,7 @@ export interface IChessState {
       white_pieces: IWhitePiece[];
     };
     candidateMoves: number[][];
+    selectedPiece: IBlackPiece | IWhitePiece | null;
   };
   isError: boolean;
   isSuccess: boolean;
@@ -110,7 +111,7 @@ export interface IPiece {
   color: string;
   capturing_moves: Array<number>[];
   position: number[];
-  possible_moves: Array<number>[];
+  possible_moves: Array<number>[][];
 }
 
 export interface IBlackPiece extends IPiece {

@@ -49,7 +49,7 @@ const fillPositionsPieces = (
   });
 };
 
-const createInitGame = (piecesPositions: SharedTypes.IPiecesPosition) => {
+const placeOnTheBoard = (piecesPositions: SharedTypes.IPiecesPosition) => {
   const boardPositions: string[][] = new Array(8)
     .fill("")
     .map((x) => new Array(8).fill(""));
@@ -73,7 +73,7 @@ const copyPosition = (position: string[][]) => {
 
 const Functions = {
   prepareChessGame,
-  createInitGame,
+  placeOnTheBoard,
   computeGameId,
   mapPiecesToArray,
   fillPositionsPieces,

@@ -2,16 +2,20 @@ import * as Types from "./Piece.types";
 import * as Styles from "./Piece.styles";
 import { AppDispatch, RootState } from "../../../app/store";
 import { useDispatch, useSelector } from "react-redux";
-import arbiter from "../../../arbiter/arbiter";
-import { generateCandidateMoves } from "../../../features/chess/chessSlice";
+import {
+  generateCandidateMoves,
+  setSelectedPiece,
+} from "../../../features/chess/chessSlice";
 
 const Piece = ({ file, piece, rank }: Types.IProps) => {
   const { chess } = useSelector((state: RootState) => state.chess);
   const dispatch: AppDispatch = useDispatch();
-  const { turn, chessBoard } = chess;
-  const currentPosition = chessBoard;
+  const { turn, piecesPosition } = chess;
+  let selectedPiece = null;
 
   const onDragStart = (e: Types.DragEvent) => {
+    const pieceColor = piece[0];
+
     const target = e.target as HTMLDivElement;
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", `${piece},${rank},${file}`);
@@ -19,14 +23,24 @@ const Piece = ({ file, piece, rank }: Types.IProps) => {
       target.style.display = "none";
     }, 0);
 
+    if (pieceColor === "w") {
+      selectedPiece = piecesPosition.white_pieces.filter(
+        (piece) =>
+          piece.position[0] === file + 1 && piece.position[1] === rank + 1
+      )[0];
+      dispatch(setSelectedPiece(selectedPiece));
+    } else {
+      selectedPiece = piecesPosition.black_pieces.filter(
+        (piece) =>
+          piece.position[0] === file + 1 && piece.position[1] === rank + 1
+      )[0];
+      dispatch(setSelectedPiece(selectedPiece));
+    }
+
     if (turn[0] === piece[0]) {
-      const candidateMoves = arbiter.getRegularMoves({
-        position: currentPosition,
-        piece,
-        file,
-        rank,
-      });
-      console.log("possible moves", candidateMoves);
+      const candidateMoves = selectedPiece?.possible_moves
+        .flat()
+        .map((pos) => [pos[1] - 1, pos[0] - 1]);
       dispatch(generateCandidateMoves(candidateMoves));
     }
   };

@@ -2,11 +2,12 @@ import Ranks from "./Ranks";
 import Files from "./Files";
 import Pieces from "../Pieces";
 import * as Styles from "./ChessBoard.styles";
+import * as Types from "./ChessBoard.types";
 import { Box, useColorModeValue } from "@chakra-ui/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../app/store";
 
-const ChessBoard = () => {
+const ChessBoard = ({ webSocket }: Types.IProps) => {
   const { chess } = useSelector((state: RootState) => state.chess);
   const { candidateMoves, chessBoard } = chess;
 
@@ -64,7 +65,7 @@ const ChessBoard = () => {
             })
           )}
         </Styles.Tiles>
-        <Pieces />
+        <Pieces webSocket={webSocket} />
         <Files files={files} />
       </Styles.BoardContainer>
     </Box>

@@ -6,18 +6,19 @@ import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../app/store";
 import {
-  makeMove,
-  initGame,
+  changeTurn,
   clearCandidates,
+  updateBoard,
 } from "../../../features/chess/chessSlice";
 
-const Pieces = () => {
+const Pieces = ({ webSocket }: Types.IProps) => {
   const dispatch: AppDispatch = useDispatch();
   const { chess } = useSelector((state: RootState) => state.chess);
   const { candidateMoves } = chess;
 
   useEffect(() => {
-    dispatch(initGame(Functions.createInitGame(chess.piecesPosition)));
+    dispatch(updateBoard(Functions.placeOnTheBoard(chess.piecesPosition)));
+    console.log("eeffec pieces");
   }, [chess.piecesPosition, dispatch]);
 
   const ref = useRef<HTMLDivElement>(null);
@@ -39,7 +40,15 @@ const Pieces = () => {
       const nextTurn = chess.turn === "white" ? "black" : "white";
       newPosition[Number(rank)][Number(file)] = "";
       newPosition[x][y] = piece;
-      dispatch(makeMove({ newPosition, nextTurn }));
+      dispatch(changeTurn(nextTurn));
+      webSocket.send(
+        JSON.stringify({
+          data_type: "move",
+          color: chess.selectedPiece?.color,
+          piece: chess.selectedPiece?.id,
+          new_position: `${y + 1}${x + 1}`,
+        })
+      );
     }
 
     dispatch(clearCandidates());

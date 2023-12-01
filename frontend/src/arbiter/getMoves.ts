@@ -63,7 +63,6 @@ export const getKnightMoves = ({ position, piece, rank, file }: IGetMoves) => {
       moves.push([rank + c[0], file + c[1]]);
     }
   });
-  console.log(moves);
   return moves;
 };
 

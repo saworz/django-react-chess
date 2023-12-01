@@ -6,7 +6,7 @@ import { w3cwebsocket as W3CWebSocket } from "websocket";
 import Functions from "../../utils/Functions";
 import {
   setPiecesPosition,
-  prepareChessGame,
+  createChessGame,
 } from "../../features/chess/chessSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../app/store";
@@ -25,9 +25,10 @@ const ChessGamePage = () => {
     );
 
     clientWebSocket.onopen = () => {
+      //createChessGame i prepareChessGame TODO
       console.log("WebSocket connected");
       dispatch(
-        prepareChessGame({
+        createChessGame({
           gameRoomId: Number(Functions.computeGameId(user?.id!, gameId!)),
           isGameStarted: true,
         })
@@ -47,7 +48,8 @@ const ChessGamePage = () => {
 
     clientWebSocket.onerror = () => {
       const { gameRoomId, isGameStarted } = Functions.prepareChessGame(gameId!);
-      dispatch(prepareChessGame({ gameRoomId, isGameStarted }));
+      dispatch(createChessGame({ gameRoomId, isGameStarted }));
+      console.log("Websoket Error");
     };
 
     clientWebSocket.onmessage = (message) => {
@@ -87,7 +89,7 @@ const ChessGamePage = () => {
       <Text fontSize={"4rem"} fontWeight="black">
         Chess Game
       </Text>
-      {isGameReady && <ChessBoard />}
+      {isGameReady && <ChessBoard webSocket={webSocket!} />}
     </Flex>
   );
 };
