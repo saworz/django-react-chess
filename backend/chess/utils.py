@@ -77,7 +77,7 @@ def validate_move_request(move_data, game, room_id):
 
     piece.position = new_position
     game_instance = ChessGame.objects.get(room_id=room_id)
-    print("here setting color")
+
     if game_instance.current_player == 'white':
         game_instance.current_player = 'black'
     else:
@@ -109,6 +109,7 @@ def read_model_fields(model):
 
 
 def remove_piece(piece_to_remove, game):
+    """ Removes captures piece """
     if piece_to_remove.color == 'black':
         new_pieces_set = {key: value for key, value in game.black_pieces.items() if value != piece_to_remove}
         game.black_pieces = new_pieces_set

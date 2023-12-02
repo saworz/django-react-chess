@@ -18,10 +18,11 @@ class Piece(ABC):
 
     @abstractmethod
     def movement(self):
-        """Returns list of default moves"""
+        """ Returns list of default moves """
         pass
 
     def reload_position(self):
+        """ Reloads piece's position after moving """
         self.x_position = self.position[0]
         self.y_position = self.position[1]
 
@@ -35,6 +36,7 @@ class Piece(ABC):
             self.pieces_blocking(black_board, white_board)
 
     def boundaries_validator(self):
+        """ Validates if possible move is within the board """
         for moves in self.movement():
             move_set = []
             for move in moves:
@@ -43,12 +45,14 @@ class Piece(ABC):
             if len(move_set) > 0:
                 self.possible_moves.append(move_set)
 
-    def capture_piece(self, position, game):
+    def capture_piece(self, position):
+        """ Returns piece object that's about to be captured """
         for move, piece in zip(self.capturing_moves, self.pieces_to_capture):
             if move == position:
                 return piece
 
     def pawn_capture_logic(self, enemy_pieces):
+        """ Pawns have different type of capturing - they attack diagonal """
         direction = 1 if self.color == 'white' else -1
 
         for enemy_piece in enemy_pieces:
@@ -62,17 +66,17 @@ class Piece(ABC):
                 self.capturing_moves.append(diag_right_pos)
                 self.pieces_to_capture.append(enemy_piece)
 
-    def basic_capture_logic(self, position, enemy_piece):
-        if position == enemy_piece.position:
-            self.capturing_moves.append(position)
-            self.pieces_to_capture.append(enemy_piece)
-
-    def get_capturing_moves(self, position, enemy_pieces):
+    def basic_capture_logic(self, position, enemy_pieces):
+        """ Capture logic for all pieces but pawns """
         for enemy_piece in enemy_pieces:
-            self.basic_capture_logic(position, enemy_piece)
-
+            if position == enemy_piece.position:
+                self.capturing_moves.append(position)
+                self.pieces_to_capture.append(enemy_piece)
 
     def pieces_blocking(self, friendly_board, enemy_board):
+        """ Checks what which fields are blocked by friendly or enemy pawns
+         If path is blocked by friendly piece, it just can't go any further.
+         If path is blocked by enemy piece, it can be captured (not for pawns)"""
         non_blocked_move_sets = []
 
         friendly_pieces = [piece for piece in friendly_board.values()]
@@ -91,7 +95,7 @@ class Piece(ABC):
                     break
                 if move in enemy_positions:
                     if self.piece_type != 'pawn':
-                        self.get_capturing_moves(move, enemy_pieces)
+                        self.basic_capture_logic(move, enemy_pieces)
                     break
                 non_blocked_moves.append(move)
 
@@ -105,6 +109,8 @@ class Piece(ABC):
 
 class RookMoves(Piece):
     def movement(self):
+        """ Move scheme
+         Used also for queen"""
         possible_moves = []
         x_moves_left = [(i, self.y_position) for i in reversed(range(1, self.x_position))]
         x_moves_right = [(i, self.y_position) for i in range(self.x_position + 1, 9)]
@@ -117,6 +123,8 @@ class RookMoves(Piece):
 
 class BishopMoves(Piece):
     def movement(self):
+        """ Move scheme
+         Used also for queen"""
         possible_moves = []
         move_left_up = [(self.x_position - i, self.y_position + i) for i in range(1, 9)]
         move_left_down = [(self.x_position - i, self.y_position - i) for i in range(1, 9)]
@@ -134,11 +142,8 @@ class PiecePawn(Piece):
         self.piece_type = "pawn"
 
     def movement(self):
-        if self.color == "white":
-            move_dir = 1
-        else:
-            move_dir = -1
-
+        """ Move scheme """
+        move_dir = 1 if self.color == 'white' else -1
         possible_moves = [[(self.x_position, self.y_position + 1 * move_dir)]]
 
         if self.base_position == self.position:
@@ -168,6 +173,7 @@ class PieceKnight(Piece):
         self.piece_type = "knight"
 
     def movement(self):
+        """ Move scheme """
         possible_moves = [
             [(self.x_position - 2, self.y_position + 1)], [(self.x_position - 2, self.y_position - 1)],
             [(self.x_position + 2, self.y_position + 1)], [(self.x_position + 2, self.y_position - 1)],
@@ -184,6 +190,7 @@ class PieceQueen(Piece):
         self.piece_type = "queen"
 
     def movement(self):
+        """ Move scheme """
         possible_moves = []
         rook_moves = RookMoves.movement(self)
         bishop_moves = BishopMoves.movement(self)
@@ -198,6 +205,7 @@ class PieceKing(Piece):
         self.piece_type = "king"
 
     def movement(self):
+        """ Move scheme """
         possible_moves = [[(self.x_position - 1, self.y_position + 1)], [(self.x_position, self.y_position + 1)],
                           [(self.x_position + 1, self.y_position + 1)], [(self.x_position + 1, self.y_position)],
                           [(self.x_position + 1, self.y_position - 1)], [(self.x_position, self.y_position - 1)],
