@@ -25,16 +25,11 @@ class GameLoader:
         black_board = self.get_board_state().get('board_state').get('black')
         white_board = self.get_board_state().get('board_state').get('white')
 
-        black_occupied_positions = [piece.position for piece in black_board.values()]
-        white_occupied_positions = [piece.position for piece in white_board.values()]
-
         for name, piece in black_board.items():
             piece.reload_position()
-            # piece.move_validator(white_occupied_positions, black_occupied_positions)
             piece.move_validator(white_board, black_board)
         for name, piece in white_board.items():
             piece.reload_position()
-            # piece.move_validator(white_occupied_positions, black_occupied_positions)
             piece.move_validator(white_board, black_board)
 
     def piece_object_loop(self, data, attribute):

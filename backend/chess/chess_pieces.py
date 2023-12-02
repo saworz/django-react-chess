@@ -48,11 +48,29 @@ class Piece(ABC):
             if move == position:
                 return piece
 
+    def pawn_capture_logic(self, enemy_pieces):
+        direction = 1 if self.color == 'white' else -1
+
+        for enemy_piece in enemy_pieces:
+            diag_left_pos = self.position[0] - 1, self.position[1] + direction
+            diag_right_pos = self.position[0] + 1, self.position[1] + direction
+
+            if diag_left_pos == enemy_piece.position:
+                self.capturing_moves.append(diag_left_pos)
+                self.pieces_to_capture.append(enemy_piece)
+            if diag_right_pos == enemy_piece.position:
+                self.capturing_moves.append(diag_right_pos)
+                self.pieces_to_capture.append(enemy_piece)
+
+    def basic_capture_logic(self, position, enemy_piece):
+        if position == enemy_piece.position:
+            self.capturing_moves.append(position)
+            self.pieces_to_capture.append(enemy_piece)
+
     def get_capturing_moves(self, position, enemy_pieces):
         for enemy_piece in enemy_pieces:
-            if position == enemy_piece.position:
-                self.capturing_moves.append(position)
-                self.pieces_to_capture.append(enemy_piece)
+            self.basic_capture_logic(position, enemy_piece)
+
 
     def pieces_blocking(self, friendly_board, enemy_board):
         non_blocked_move_sets = []
@@ -72,13 +90,16 @@ class Piece(ABC):
                 if move in friendly_positions:
                     break
                 if move in enemy_positions:
-                    self.get_capturing_moves(move, enemy_pieces)
+                    if self.piece_type != 'pawn':
+                        self.get_capturing_moves(move, enemy_pieces)
                     break
                 non_blocked_moves.append(move)
 
             if len(non_blocked_moves) > 0:
                 non_blocked_move_sets.append(non_blocked_moves)
 
+        if self.piece_type == 'pawn':
+            self.pawn_capture_logic(enemy_pieces)
         self.possible_moves = non_blocked_move_sets
 
 
