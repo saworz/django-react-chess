@@ -28,7 +28,7 @@ def create_board_in_db(white_board, black_board):
     black_serializer.save()
 
 
-def edit_board_in_db(white_board, black_board, game_id):
+def edit_board_in_db(white_board, black_board, game_id, current_player):
     """ Edits pieces info in already existing table """
     white_board_instance = WhitePieces.objects.get(game_id=game_id)
     black_board_instance = BlackPieces.objects.get(game_id=game_id)
@@ -56,7 +56,7 @@ def edit_board_in_db(white_board, black_board, game_id):
     black_board_instance.save()
 
 
-def validate_move_request(move_data, game):
+def validate_move_request(move_data, game, room_id):
     """ Checks whether the move request is valid """
     if move_data['color'] == 'white':
         piece = game.white_pieces[move_data['piece']]
@@ -76,6 +76,14 @@ def validate_move_request(move_data, game):
         remove_piece(piece_to_capture, game)
 
     piece.position = new_position
+    game_instance = ChessGame.objects.get(room_id=room_id)
+    print("here setting color")
+    if game_instance.current_player == 'white':
+        game_instance.current_player = 'black'
+    else:
+        game_instance.current_player = 'white'
+    game_instance.save()
+
     return game
 
 

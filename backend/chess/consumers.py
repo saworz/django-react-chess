@@ -22,6 +22,7 @@ class GameDataHandler:
         }
 
         game_id = ChessGame.objects.get(room_id=self.room_id).pk
+        current_player = ChessGame.objects.get(room_id=self.room_id).current_player
         white_board = {"game_id": game_id}
         black_board = {"game_id": game_id}
 
@@ -43,9 +44,11 @@ class GameDataHandler:
 
         if WhitePieces.objects.filter(game_id=game_id).exists() and BlackPieces.objects.filter(
                 game_id=game_id).exists():
-            edit_board_in_db(white_board, black_board, game_id)
+            edit_board_in_db(white_board, black_board, game_id, current_player)
         else:
             create_board_in_db(white_board, black_board)
+
+        return current_player
 
     def get_possible_moves(self, white_pieces_data, black_pieces_data):
         """ Gets list of possible_moves for each piece """
@@ -55,7 +58,7 @@ class GameDataHandler:
         return game
 
     def read_board_from_db(self):
-        """ Reads pieces info from databse """
+        """ Reads pieces info from database """
         game_id = ChessGame.objects.get(room_id=self.room_id).pk
         white_board = WhitePieces.objects.get(game_id=game_id)
         black_board = BlackPieces.objects.get(game_id=game_id)
@@ -87,36 +90,41 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
         data_json = json.loads(text_data)
         if data_json['data_type'] == 'move':
             read_game = self.read_board_from_db()
-            updated_game = validate_move_request(data_json, read_game)
+            updated_game = validate_move_request(data_json, read_game, self.room_id)
             updated_game.init_moves()
-            self.save_board_state_to_db(updated_game)
-            self.read_board_from_db()
-            self.send_board_state(updated_game)
+            current_player = self.save_board_state_to_db(updated_game)
+            self.trigger_send_board_state(updated_game, current_player)
         elif data_json['data_type'] == 'init_board':
             initialized_game = self.initialize_board()
-            self.save_board_state_to_db(initialized_game)
+            current_player = self.save_board_state_to_db(initialized_game)
             read_game = self.read_board_from_db()
-            self.send_board_state(read_game)
+            self.trigger_send_board_state(read_game, current_player)
 
-    def send_board_state(self, game):
-        """ Triggers send_positions with chess pieces data """
+    def trigger_send_board_state(self, game, current_player):
+        """ Triggers send_board_state with chess pieces data """
         white_pieces_data = prepare_data(game.white_pieces.items())
         black_pieces_data = prepare_data(game.black_pieces.items())
 
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
-                'type': 'send_positions',
+                'type': 'send_board_state',
+                'current_player': current_player,
                 'white_pieces': white_pieces_data,
-                'black_pieces': black_pieces_data
+                'black_pieces': black_pieces_data,
+                'check': False,
+                'checkmate': False,
             }
         )
 
-    def send_positions(self, event):
-        """ Sends data about pieces on board """
+    def send_board_state(self, event):
+        """ Sends data about board """
         self.send(text_data=json.dumps({
+            'current_player': event['current_player'],
             'white_pieces': event['white_pieces'],
-            'black_pieces': event['black_pieces']
+            'black_pieces': event['black_pieces'],
+            'check': event['check'],
+            'checkmate': event['checkmate'],
         }))
 
     def disconnect(self, code):
