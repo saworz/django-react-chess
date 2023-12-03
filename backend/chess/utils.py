@@ -72,7 +72,7 @@ def validate_move_request(move_data, game, room_id):
         return
 
     if new_position in possible_captures:
-        piece_to_capture = piece.capture_piece(new_position, game)
+        piece_to_capture = piece.capture_piece(new_position)
         remove_piece(piece_to_capture, game)
 
     piece.position = new_position

@@ -1,5 +1,6 @@
 from .chess_pieces import PiecePawn, PieceRook, PieceBishop, PieceKnight, PieceKing, PieceQueen
 from .models import WhitePieces, BlackPieces, ChessGame
+from .utils import unpack_positions
 
 
 class GameLoader:
@@ -9,6 +10,10 @@ class GameLoader:
         self.game = ChessGame.objects.filter(room_id=self.room_id).first()
         self.white_pieces = {}
         self.black_pieces = {}
+        self.white_check = False
+        self.white_checkmate = False
+        self.black_check = False
+        self.black_checkmate = False
 
     def get_board_state(self):
         whites_state = {}
@@ -140,3 +145,15 @@ class GameLoader:
         }
 
         self.create_pieces_objects(white_pieces_initial_data, black_pieces_initial_data)
+
+    def check_king_safety(self):
+        white_king_position = self.white_pieces['king'].position
+        black_king_position = self.black_pieces['king'].position
+
+        for name, piece in self.white_pieces.items():
+            if black_king_position in piece.capturing_moves:
+                self.black_check = True
+
+        for name, piece in self.black_pieces.items():
+            if white_king_position in piece.capturing_moves:
+                self.white_check = True

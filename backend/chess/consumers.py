@@ -92,6 +92,7 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
             read_game = self.read_board_from_db()
             updated_game = validate_move_request(data_json, read_game, self.room_id)
             updated_game.init_moves()
+            updated_game.check_king_safety()
             current_player = self.save_board_state_to_db(updated_game)
             self.trigger_send_board_state(updated_game, current_player)
         elif data_json['data_type'] == 'init_board':
@@ -112,8 +113,11 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
                 'current_player': current_player,
                 'white_pieces': white_pieces_data,
                 'black_pieces': black_pieces_data,
-                'check': False,
-                'checkmate': False,
+
+                'white_checked': game.white_check,
+                'white_checkmated': False,
+                'black_checked': game.black_check,
+                'black_checkmated': False
             }
         )
 
@@ -123,8 +127,10 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
             'current_player': event['current_player'],
             'white_pieces': event['white_pieces'],
             'black_pieces': event['black_pieces'],
-            'check': event['check'],
-            'checkmate': event['checkmate'],
+            'white_checked': event['white_checked'],
+            'white_checkmated': event['white_checkmated'],
+            'black_checked': event['black_checked'],
+            'black_checkmated': event['black_checkmated']
         }))
 
     def disconnect(self, code):
