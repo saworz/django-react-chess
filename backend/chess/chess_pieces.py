@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+from .utils import unpack_positions
 
 class Piece(ABC):
     def __init__(self, base_position, position, color):
@@ -9,9 +9,16 @@ class Piece(ABC):
         self.y_position = position[1]
         self.base_position = base_position
         self.color = color
+
         self.possible_moves = []
         self.capturing_moves = []
         self.pieces_to_capture = []
+        self.illegal_moves = []
+
+        self.friendly_pieces = []
+        self.friendly_positions = []
+        self.enemy_pieces = []
+        self.enemy_positions = []
 
     def __repr__(self):
         return f'{self.color} {self.piece_type} at {self.position}'
@@ -26,14 +33,31 @@ class Piece(ABC):
         self.x_position = self.position[0]
         self.y_position = self.position[1]
 
+    def set_friendly_board(self, friendly_board):
+        self.friendly_pieces = [piece for piece in friendly_board.values()]
+        self.friendly_positions = [piece.position for piece in self.friendly_pieces]
+
+    def set_enemy_board(self, enemy_board):
+        self.enemy_pieces = [piece for piece in enemy_board.values()]
+        self.enemy_positions = [piece.position for piece in self.enemy_pieces]
+
     def move_validator(self, white_board, black_board):
-        """Validates possible moves"""
+        """ Validates possible moves """
         self.possible_moves = []
         self.boundaries_validator()
         if self.color == 'white':
-            self.pieces_blocking(white_board, black_board)
+            self.set_friendly_board(white_board)
+            self.set_enemy_board(black_board)
+            self.pieces_blocking()
         elif self.color == 'black':
-            self.pieces_blocking(black_board, white_board)
+            self.set_friendly_board(black_board)
+            self.set_enemy_board(white_board)
+            self.pieces_blocking()
+
+    def king_defensive_moves(self, white_board, black_board):
+        """ Validates possible moves when king is checked """
+
+        pass
 
     def boundaries_validator(self):
         """ Validates if possible move is within the board """
@@ -73,17 +97,11 @@ class Piece(ABC):
                 self.capturing_moves.append(position)
                 self.pieces_to_capture.append(enemy_piece)
 
-    def pieces_blocking(self, friendly_board, enemy_board):
+    def pieces_blocking(self):
         """ Checks what which fields are blocked by friendly or enemy pawns
          If path is blocked by friendly piece, it just can't go any further.
          If path is blocked by enemy piece, it can be captured (not for pawns)"""
         non_blocked_move_sets = []
-
-        friendly_pieces = [piece for piece in friendly_board.values()]
-        friendly_positions = [piece.position for piece in friendly_pieces]
-
-        enemy_pieces = [piece for piece in enemy_board.values()]
-        enemy_positions = [piece.position for piece in enemy_pieces]
 
         self.capturing_moves = []
         self.pieces_to_capture = []
@@ -91,11 +109,11 @@ class Piece(ABC):
         for move_set in self.possible_moves:
             non_blocked_moves = []
             for move in move_set:
-                if move in friendly_positions:
+                if move in self.friendly_positions:
                     break
-                if move in enemy_positions:
+                if move in self.enemy_positions:
                     if self.piece_type != 'pawn':
-                        self.basic_capture_logic(move, enemy_pieces)
+                        self.basic_capture_logic(move, self.enemy_pieces)
                     break
                 non_blocked_moves.append(move)
 
@@ -103,7 +121,7 @@ class Piece(ABC):
                 non_blocked_move_sets.append(non_blocked_moves)
 
         if self.piece_type == 'pawn':
-            self.pawn_capture_logic(enemy_pieces)
+            self.pawn_capture_logic(self.enemy_pieces)
         self.possible_moves = non_blocked_move_sets
 
 

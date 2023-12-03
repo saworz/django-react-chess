@@ -1,3 +1,5 @@
+import copy
+
 from .serializers import BlackBoardSerializer, WhiteBoardSerializer
 from .models import ChessGame, WhitePieces, BlackPieces
 
@@ -56,6 +58,22 @@ def edit_board_in_db(white_board, black_board, game_id, current_player):
     black_board_instance.save()
 
 
+def is_move_illegal(game, move_data, new_position):
+    temporary_game_state = copy.deepcopy(game)
+    if move_data['color'] == 'white':
+        temp_piece = temporary_game_state.white_pieces[move_data['piece']]
+    elif move_data['color'] == 'black':
+        temp_piece = temporary_game_state.black_pieces[move_data['piece']]
+
+    temp_piece.position = new_position
+    temporary_game_state.init_moves()
+    temporary_game_state.check_king_safety()
+
+    if ((move_data['color'] == 'white' and temporary_game_state.white_check) or
+            (move_data['color'] == 'black' and temporary_game_state.black_check)):
+        return True
+
+
 def validate_move_request(move_data, game, room_id):
     """ Checks whether the move request is valid """
     if move_data['color'] == 'white':
@@ -70,6 +88,10 @@ def validate_move_request(move_data, game, room_id):
     if new_position not in possible_positions + possible_captures:
         print("Incorrect request")
         return
+
+    # if king is checked after setting new_position thne its illegal move
+    if is_move_illegal(game, move_data, new_position):
+        print('illegal move')
 
     if new_position in possible_captures:
         piece_to_capture = piece.capture_piece(new_position)
