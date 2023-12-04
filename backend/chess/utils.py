@@ -86,12 +86,13 @@ def validate_move_request(move_data, game, room_id):
     possible_captures = piece.capturing_moves
 
     if new_position not in possible_positions + possible_captures:
-        print("Incorrect request")
-        return
+        error = "Incorrect request"
+        return error
 
     # if king is checked after setting new_position thne its illegal move
     if is_move_illegal(game, move_data, new_position):
-        print('illegal move')
+        error = "Illegal move - uncovers the king"
+        return error
 
     if new_position in possible_captures:
         piece_to_capture = piece.capture_piece(new_position)

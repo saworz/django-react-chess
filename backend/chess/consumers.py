@@ -90,7 +90,14 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
         data_json = json.loads(text_data)
         if data_json['data_type'] == 'move':
             read_game = self.read_board_from_db()
-            updated_game = validate_move_request(data_json, read_game, self.room_id)
+            response = validate_move_request(data_json, read_game, self.room_id)
+
+            if isinstance(response, GameLoader):
+                updated_game = response
+            else:
+                updated_game = read_game
+                self.trigger_send_error(response)
+
             updated_game.init_moves()
             updated_game.check_king_safety()
             current_player = self.save_board_state_to_db(updated_game)
@@ -100,6 +107,16 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
             current_player = self.save_board_state_to_db(initialized_game)
             read_game = self.read_board_from_db()
             self.trigger_send_board_state(read_game, current_player)
+
+    def trigger_send_error(self, error):
+        """ Sends an error via websocket """
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'send_error',
+                'error': error,
+            }
+        )
 
     def trigger_send_board_state(self, game, current_player):
         """ Triggers send_board_state with chess pieces data """
@@ -131,6 +148,12 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
             'white_checkmated': event['white_checkmated'],
             'black_checked': event['black_checked'],
             'black_checkmated': event['black_checkmated']
+        }))
+
+    def send_error(self, event):
+        """ Sends error """
+        self.send(text_data=json.dumps({
+            'error': event['error'],
         }))
 
     def disconnect(self, code):
