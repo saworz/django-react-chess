@@ -25,13 +25,17 @@ export interface IChessState {
     gameRoomId: string;
     isGameStarted: boolean;
     chessBoard: string[][];
-    turn: string;
+    current_player: string;
     piecesPosition: {
       black_pieces: IBlackPiece[];
       white_pieces: IWhitePiece[];
     };
     candidateMoves: number[][];
     selectedPiece: IBlackPiece | IWhitePiece | null;
+    black_checked: boolean;
+    black_checkmated: boolean;
+    white_checked: boolean;
+    white_checkmated: boolean;
   };
   isError: boolean;
   isSuccess: boolean;

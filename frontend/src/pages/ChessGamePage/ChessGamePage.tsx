@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { w3cwebsocket as W3CWebSocket } from "websocket";
 import Functions from "../../utils/Functions";
 import {
-  setPiecesPosition,
+  updatePositions,
   createChessGame,
 } from "../../features/chess/chessSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -55,15 +55,21 @@ const ChessGamePage = () => {
     clientWebSocket.onmessage = (message) => {
       const dataFromServer = JSON.parse(message.data.toString());
       console.log("got reply! ");
-      if (dataFromServer) {
+      if (dataFromServer.data_type === "send_error") {
+      } else if (dataFromServer.data_type === "move") {
         dispatch(
-          setPiecesPosition({
+          updatePositions({
             white_pieces: Functions.mapPiecesToArray(
               dataFromServer.white_pieces
             ),
             black_pieces: Functions.mapPiecesToArray(
               dataFromServer.black_pieces
             ),
+            black_checkmated: dataFromServer.black_checkmated,
+            black_checked: dataFromServer.black_checked,
+            white_checked: dataFromServer.white_checked,
+            white_checkmated: dataFromServer.white_checkmated,
+            current_player: dataFromServer.current_player,
           })
         );
       }

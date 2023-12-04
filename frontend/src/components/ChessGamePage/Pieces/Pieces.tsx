@@ -6,7 +6,6 @@ import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../app/store";
 import {
-  changeTurn,
   clearCandidates,
   updateBoard,
 } from "../../../features/chess/chessSlice";
@@ -37,10 +36,8 @@ const Pieces = ({ webSocket }: Types.IProps) => {
     const [piece, rank, file] = e.dataTransfer.getData("text").split(","); //Old
 
     if (candidateMoves?.find((pos) => pos[0] === x && pos[1] === y)) {
-      const nextTurn = chess.turn === "white" ? "black" : "white";
       newPosition[Number(rank)][Number(file)] = "";
       newPosition[x][y] = piece;
-      dispatch(changeTurn(nextTurn));
       webSocket.send(
         JSON.stringify({
           data_type: "move",

@@ -10,7 +10,7 @@ import {
 const Piece = ({ file, piece, rank }: Types.IProps) => {
   const { chess } = useSelector((state: RootState) => state.chess);
   const dispatch: AppDispatch = useDispatch();
-  const { turn, piecesPosition } = chess;
+  const { current_player, piecesPosition } = chess;
   let selectedPiece = null;
 
   const onDragStart = (e: Types.DragEvent) => {
@@ -37,7 +37,7 @@ const Piece = ({ file, piece, rank }: Types.IProps) => {
       dispatch(setSelectedPiece(selectedPiece));
     }
 
-    if (turn[0] === piece[0]) {
+    if (current_player[0] === piece[0]) {
       const candidateMoves = [
         ...selectedPiece?.possible_moves,
         selectedPiece?.capturing_moves,
