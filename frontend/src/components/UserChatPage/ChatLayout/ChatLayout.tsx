@@ -71,6 +71,7 @@ const ChatLayout = ({ userDetails, chatRoomId }: Types.IProps) => {
     return () => {
       clientWebSocket.close();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSendMessage = () => {

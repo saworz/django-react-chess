@@ -26,7 +26,7 @@ const breakpoints = {
   "3md": "650px",
   lg: "960px",
   "2lg": "1000px",
-
+  "3lg": "1020px",
   xl: "1200px",
   "2xl": "1536px",
 };

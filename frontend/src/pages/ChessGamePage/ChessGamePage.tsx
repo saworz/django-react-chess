@@ -1,4 +1,11 @@
-import { Flex, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Grid,
+  GridItem,
+  Text,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import ChessBoard from "../../components/ChessGamePage/ChessBoard";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -10,6 +17,7 @@ import {
 } from "../../features/chess/chessSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../app/store";
+import ChessGameChat from "../../components/ChessGamePage/ChessGameChat";
 
 const ChessGamePage = () => {
   const { gameId } = useParams();
@@ -95,7 +103,34 @@ const ChessGamePage = () => {
       <Text fontSize={"4rem"} fontWeight="black">
         Chess Game
       </Text>
-      {isGameReady && <ChessBoard webSocket={webSocket!} />}
+      <Grid templateColumns={{ base: "1fr", "3lg": "1fr 1fr" }}>
+        <GridItem>
+          {isGameReady && <ChessBoard webSocket={webSocket!} />}
+        </GridItem>
+        <GridItem marginLeft={2} marginTop={{ base: 2, "3lg": 0 }}>
+          <Grid templateRows={"5fr 2fr"} gap={3}>
+            <GridItem>
+              <Box
+                rounded={"lg"}
+                bg={useColorModeValue("white", "gray.700")}
+                boxShadow={"lg"}
+                p={4}
+                height="100%"
+                alignItems="center"
+                display="flex"
+                justifyContent="center"
+              >
+                <Text textAlign="center" fontSize={"4rem"} fontWeight="black">
+                  Coming soon...
+                </Text>
+              </Box>
+            </GridItem>
+            <GridItem>
+              {isGameReady && <ChessGameChat webSocket={webSocket!} />}
+            </GridItem>
+          </Grid>
+        </GridItem>
+      </Grid>
     </Flex>
   );
 };
