@@ -7,11 +7,13 @@ import { AppDispatch, RootState } from "../../../../app/store";
 import { toast } from "react-toastify";
 import { getSuggestionsList } from "../../../../features/friendSystem/friendSystemSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = "http://localhost:8000/api/friends";
 
 const AddFriendButton = ({ userId }: Types.IButtonProps) => {
   const dispatch: AppDispatch = useDispatch();
+  const navigate = useNavigate();
   const { friendSystem } = useSelector(
     (state: RootState) => state.friendSystem
   );
@@ -40,6 +42,7 @@ const AddFriendButton = ({ userId }: Types.IButtonProps) => {
           theme: "dark",
         });
         dispatch(getSuggestionsList(friendSystem.searchInput));
+        navigate("/");
       }
     } catch (error) {
       // Obsłuż błąd, jeśli wystąpi

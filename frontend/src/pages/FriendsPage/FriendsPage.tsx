@@ -52,7 +52,7 @@ const FriendsPage = () => {
 
   return (
     <Flex alignItems={"center"} flex={1} direction="column">
-      <Stack w={{ base: "100%", lg: "50%" }} alignItems={"center"}>
+      <Stack w={{ base: "100%", "2lg": "50%" }} alignItems={"center"}>
         <Text
           marginLeft="3"
           fontSize={"2rem"}

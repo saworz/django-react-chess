@@ -7,11 +7,13 @@ import { AppDispatch } from "../../../../app/store";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { getPendingRequests } from "../../../../features/friendSystem/friendSystemSlice";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = "http://localhost:8000/api/friends";
 
 const AcceptFriendButton = ({ userId }: Types.IButtonProps) => {
   const dispatch: AppDispatch = useDispatch();
+  const navigate = useNavigate();
 
   const performButtonAction = async () => {
     try {
@@ -39,6 +41,7 @@ const AcceptFriendButton = ({ userId }: Types.IButtonProps) => {
           theme: "dark",
         });
         dispatch(getPendingRequests());
+        navigate("/");
       }
     } catch (error) {
       // Obsłuż błąd, jeśli wystąpi
