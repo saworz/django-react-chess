@@ -114,7 +114,8 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
             self.room_group_name,
             {
                 'type': 'send_error',
-                'error': error,
+                'message': error['message'],
+                'king_position': error['king_position']
             }
         )
 
@@ -154,8 +155,9 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
     def send_error(self, event):
         """ Sends error """
         self.send(text_data=json.dumps({
-            'data_type': 'send_error',
-            'error': event['error'],
+            'data_type': 'error',
+            'message': event['message'],
+            'king_position': event['king_position']
         }))
 
     def disconnect(self, code):
