@@ -107,9 +107,22 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
             current_player = self.save_board_state_to_db(initialized_game)
             read_game = self.read_board_from_db()
             self.trigger_send_board_state(read_game, current_player)
+        elif data_json['data_type'] == 'chat_message':
+            self.trigger_send_message(data_json['message'])
+
+    def trigger_send_message(self, message):
+        """ Triggers sending message via websocket """
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'send_message',
+                'message': message,
+                'sender': self.scope['user'].pk
+            }
+        )
 
     def trigger_send_error(self, error):
-        """ Sends an error via websocket """
+        """ Triggers sending an error via websocket """
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
@@ -138,6 +151,14 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
                 'black_checkmated': False
             }
         )
+
+    def send_message(self, event):
+        """ Sends chat message """
+        self.send(text_data=json.dumps({
+            'type': 'chat_message',
+            'message': event['message'],
+            'sender': event['sender']
+        }))
 
     def send_board_state(self, event):
         """ Sends data about board """
