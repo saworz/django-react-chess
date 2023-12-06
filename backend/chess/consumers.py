@@ -1,12 +1,17 @@
 from channels.generic.websocket import WebsocketConsumer
 from .models import ChessGame, WhitePieces, BlackPieces
 from .chess_logic import GameLoader
-from .utils import (edit_board_in_db, create_board_in_db, read_model_fields, validate_move_request, prepare_data)
+from .utils import (edit_board_in_db, create_board_in_db, read_model_fields, validate_move_request, prepare_data,
+                    get_illegal_moves)
 from asgiref.sync import async_to_sync
 import json
 
 
 class GameDataHandler:
+    def __init__(self):
+        self.white_board = {}
+        self.black_board = {}
+
     def initialize_board(self):
         """ Initializes positions for a new game """
         game = GameLoader(room_id=self.room_id)
@@ -23,8 +28,8 @@ class GameDataHandler:
 
         game_id = ChessGame.objects.get(room_id=self.room_id).pk
         current_player = ChessGame.objects.get(room_id=self.room_id).current_player
-        white_board = {"game_id": game_id}
-        black_board = {"game_id": game_id}
+        self.white_board = {"game_id": game_id}
+        self.black_board = {"game_id": game_id}
 
         for color, board in sides.items():
             for name, piece in board.items():
@@ -37,18 +42,41 @@ class GameDataHandler:
                 }
 
                 if color == 'white':
-                    white_board[name] = piece_info
+                    self.white_board[name] = piece_info
 
                 elif color == 'black':
-                    black_board[name] = piece_info
+                    self.black_board[name] = piece_info
 
         if WhitePieces.objects.filter(game_id=game_id).exists() and BlackPieces.objects.filter(
                 game_id=game_id).exists():
-            edit_board_in_db(white_board, black_board, game_id, current_player)
+            edit_board_in_db(self.white_board, self.black_board, game_id, current_player)
         else:
-            create_board_in_db(white_board, black_board)
+            create_board_in_db(self.white_board, self.black_board)
 
         return current_player
+
+    def save_illegal_moves_to_db(self, game):
+        white_pieces_dict = {field_name: value for field_name, value in
+                             self.white_board.items() if field_name != "game_id"}
+        black_pieces_dict = {field_name: value for field_name, value in
+                             self.black_board.items() if field_name != "game_id"}
+
+        new_white_board_data = {}
+        new_black_board_data = {}
+        for (db_field, db_data), (piece_name, piece) in zip(white_pieces_dict.items(), game.white_pieces.items()):
+            piece_info = db_data
+            piece_info['illegal_moves'] = piece.illegal_moves
+            new_white_board_data[db_field] = piece_info
+        for (db_field, db_data), (piece_name, piece) in zip(black_pieces_dict.items(), game.black_pieces.items()):
+            piece_info = db_data
+            piece_info['illegal_moves'] = piece.illegal_moves
+            new_black_board_data[db_field] = piece_info
+
+        game_id = ChessGame.objects.get(room_id=self.room_id).pk
+        new_white_board_data['game_id'] = game_id
+        new_black_board_data['game_id'] = game_id
+
+        edit_board_in_db(new_white_board_data, new_black_board_data, game_id)
 
     def get_possible_moves(self, white_pieces_data, black_pieces_data):
         """ Gets list of possible_moves for each piece """
@@ -102,6 +130,9 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
             updated_game.check_king_safety()
             current_player = self.save_board_state_to_db(updated_game)
             self.trigger_send_board_state(updated_game, current_player)
+            get_illegal_moves(updated_game)
+            self.save_illegal_moves_to_db(updated_game)
+
         elif data_json['data_type'] == 'init_board':
             initialized_game = self.initialize_board()
             current_player = self.save_board_state_to_db(initialized_game)

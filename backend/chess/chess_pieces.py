@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from .utils import unpack_positions
 
+
 class Piece(ABC):
     def __init__(self, base_position, position, color):
         self.piece_type = ''

@@ -30,7 +30,7 @@ def create_board_in_db(white_board, black_board):
     black_serializer.save()
 
 
-def edit_board_in_db(white_board, black_board, game_id, current_player):
+def edit_board_in_db(white_board, black_board, game_id, current_player=None):
     """ Edits pieces info in already existing table """
     white_board_instance = WhitePieces.objects.get(game_id=game_id)
     black_board_instance = BlackPieces.objects.get(game_id=game_id)
@@ -58,20 +58,50 @@ def edit_board_in_db(white_board, black_board, game_id, current_player):
     black_board_instance.save()
 
 
-def is_move_illegal(game, move_data, new_position):
-    temporary_game_state = copy.deepcopy(game)
-    if move_data['color'] == 'white':
-        temp_piece = temporary_game_state.white_pieces[move_data['piece']]
-    elif move_data['color'] == 'black':
-        temp_piece = temporary_game_state.black_pieces[move_data['piece']]
+# def is_move_illegal(game, move_data, new_position):
+#     temporary_game_state = copy.deepcopy(game)
+#     if move_data['color'] == 'white':
+#         temp_piece = temporary_game_state.white_pieces[move_data['piece']]
+#     elif move_data['color'] == 'black':
+#         temp_piece = temporary_game_state.black_pieces[move_data['piece']]
+#
+#     temp_piece.position = new_position
+#     temporary_game_state.init_moves()
+#     temporary_game_state.check_king_safety()
+#
+#     if ((move_data['color'] == 'white' and temporary_game_state.white_check) or
+#             (move_data['color'] == 'black' and temporary_game_state.black_check)):
+#         return True
 
-    temp_piece.position = new_position
+def is_move_illegal(game, name, piece, move):
+
+    temporary_game_state = copy.deepcopy(game)
+    if piece.color == 'white':
+        temp_piece = temporary_game_state.white_pieces[name]
+    elif piece.color == 'black':
+        temp_piece = temporary_game_state.black_pieces[name]
+
+    temp_piece.position = move
     temporary_game_state.init_moves()
     temporary_game_state.check_king_safety()
 
-    if ((move_data['color'] == 'white' and temporary_game_state.white_check) or
-            (move_data['color'] == 'black' and temporary_game_state.black_check)):
+    if ((piece.color == 'white' and temporary_game_state.white_check) or
+            (piece.color == 'black' and temporary_game_state.black_check)):
         return True
+
+
+def get_illegal_moves(game):
+    """ Gets legal moves for each piece on board """
+    print("Getting illegal moves")
+    for name, piece in game.white_pieces.items():
+        for move in unpack_positions(piece.possible_moves) + piece.capturing_moves:
+            if is_move_illegal(game, name, piece, move):
+                piece.illegal_moves.append(move)
+
+    for name, piece in game.black_pieces.items():
+        for move in unpack_positions(piece.possible_moves):
+            if is_move_illegal(game, name, piece, move):
+                piece.illegal_moves.append(move)
 
 
 def validate_move_request(move_data, game, room_id):
@@ -91,15 +121,15 @@ def validate_move_request(move_data, game, room_id):
         return error
 
     # if king is checked after setting new_position thne its illegal move
-    if is_move_illegal(game, move_data, new_position):
-        error_message = "Illegal move - uncovers the king"
-        if move_data['color'] == 'white':
-            king_position = game.white_pieces['king'].position
-        elif move_data['color'] == 'black':
-            king_position = game.black_pieces['king'].position
-
-        error = {'message': error_message, 'king_position': king_position}
-        return error
+    # if is_move_illegal(game, move_data, new_position):
+    #     error_message = "Illegal move - uncovers the king"
+    #     if move_data['color'] == 'white':
+    #         king_position = game.white_pieces['king'].position
+    #     elif move_data['color'] == 'black':
+    #         king_position = game.black_pieces['king'].position
+    #
+    #     error = {'message': error_message, 'king_position': king_position}
+    #     return error
 
     if new_position in possible_captures:
         piece_to_capture = piece.capture_piece(new_position)
