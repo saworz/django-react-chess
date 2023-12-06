@@ -1,12 +1,10 @@
 import { Box, Flex, useColorModeValue } from "@chakra-ui/react";
 import * as Types from "./ChessGameChat.types";
-import * as SharedTypes from "../../../shared/types";
 import ChessGameChatFooter from "./ChessGameChatFooter";
 import ChessGameChatMessages from "./ChessGameChatMessages";
 import { useState } from "react";
 
-const ChessGameChat = ({ webSocket }: Types.IProps) => {
-  const [messages, setMessages] = useState<SharedTypes.IMessagesData[]>([]);
+const ChessGameChat = ({ webSocket, messages, enemyDetails }: Types.IProps) => {
   const [inputMessage, setInputMessage] = useState("");
 
   const handleSendMessage = () => {
@@ -17,7 +15,7 @@ const ChessGameChat = ({ webSocket }: Types.IProps) => {
     try {
       webSocket?.send(
         JSON.stringify({
-          type: "chat_message",
+          data_type: "chat_message",
           message: data,
         })
       );
@@ -42,7 +40,10 @@ const ChessGameChat = ({ webSocket }: Types.IProps) => {
         align="center"
       >
         <Flex w={["100%", "100%"]} h="90%" flexDir="column">
-          <ChessGameChatMessages messages={messages} />
+          <ChessGameChatMessages
+            enemyDetails={enemyDetails}
+            messages={messages}
+          />
           <ChessGameChatFooter
             inputMessage={inputMessage}
             setInputMessage={setInputMessage}

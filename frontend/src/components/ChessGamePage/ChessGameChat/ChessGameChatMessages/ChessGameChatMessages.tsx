@@ -1,27 +1,21 @@
-import { useEffect, useRef } from "react";
 import { Flex, Text } from "@chakra-ui/react";
 import * as Types from "./ChessGameChatMessages.types";
 
-const ChessGameChatMessages = ({ messages }: Types.IProps) => {
-  const AlwaysScrollToBottom = () => {
-    const elementRef = useRef<null | HTMLDivElement>(null);
-    useEffect(() => elementRef.current?.scrollIntoView());
-    return <div ref={elementRef} />;
-  };
-
+const ChessGameChatMessages = ({ messages, enemyDetails }: Types.IProps) => {
   return (
     <Flex w="100%" h="60vh" overflowY="scroll" flexDirection="column" p="3">
       {messages.map((item: any, index: number) => {
         if (item.from === "me") {
           return (
-            <Flex key={index} w="100%" justify="flex-end">
+            <Flex key={index} w="100%" direction="column" alignItems="flex-end">
+              <Text>You:</Text>
               <Flex
                 bg="black"
                 color="white"
                 minW="100px"
-                maxW="350px"
+                maxW="150px"
                 my="1"
-                p="3"
+                p="2"
               >
                 <Text>{item.text}</Text>
               </Flex>
@@ -29,14 +23,15 @@ const ChessGameChatMessages = ({ messages }: Types.IProps) => {
           );
         } else {
           return (
-            <Flex key={index} w="100%">
+            <Flex key={index} w="100%" direction="column">
+              <Text>{enemyDetails.username}:</Text>
               <Flex
                 bg="gray.100"
                 color="black"
                 minW="100px"
-                maxW="350px"
+                maxW="150px"
                 my="1"
-                p="3"
+                p="2"
               >
                 <Text>{item.text}</Text>
               </Flex>
@@ -44,7 +39,6 @@ const ChessGameChatMessages = ({ messages }: Types.IProps) => {
           );
         }
       })}
-      <AlwaysScrollToBottom />
     </Flex>
   );
 };

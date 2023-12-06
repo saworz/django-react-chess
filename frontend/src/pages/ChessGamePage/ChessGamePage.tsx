@@ -6,27 +6,42 @@ import {
   Text,
   useColorModeValue,
 } from "@chakra-ui/react";
+import {
+  updatePositions,
+  createChessGame,
+} from "../../features/chess/chessSlice";
 import ChessBoard from "../../components/ChessGamePage/ChessBoard";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { w3cwebsocket as W3CWebSocket } from "websocket";
 import Functions from "../../utils/Functions";
-import {
-  updatePositions,
-  createChessGame,
-} from "../../features/chess/chessSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../app/store";
+import HttpService from "../../utils/HttpService";
 import ChessGameChat from "../../components/ChessGamePage/ChessGameChat";
+import * as SharedTypes from "../../shared/types";
 
 const ChessGamePage = () => {
   const { gameId } = useParams();
   const [webSocket, setWebSocket] = useState<W3CWebSocket>();
   const { user } = useSelector((state: RootState) => state.auth);
   const { chess } = useSelector((state: RootState) => state.chess);
+  const [messages, setMessages] = useState<SharedTypes.IMessagesData[]>([]);
+  const [isUserFound, setIsUserFound] = useState(false);
   const dispatch: AppDispatch = useDispatch();
+  const [enemyDetails, setEnemyDetails] =
+    useState<SharedTypes.ISuggestionFriendData>();
 
   useEffect(() => {
+    HttpService.getUserDetails(Number(gameId)).then((response) => {
+      if (response?.status === 200) {
+        setIsUserFound(true);
+        setEnemyDetails(response.data);
+      } else {
+        setIsUserFound(false);
+      }
+    });
+
     let clientWebSocket = new W3CWebSocket(
       "ws://localhost:8000/ws/chess/" +
         Functions.computeGameId(user?.id!, gameId!)
@@ -63,8 +78,8 @@ const ChessGamePage = () => {
     clientWebSocket.onmessage = (message) => {
       const dataFromServer = JSON.parse(message.data.toString());
       console.log("got reply! ");
-      if (dataFromServer.data_type === "send_error") {
-      } else if (dataFromServer.data_type === "move") {
+      if (dataFromServer.type === "error") {
+      } else if (dataFromServer.type === "move") {
         dispatch(
           updatePositions({
             white_pieces: Functions.mapPiecesToArray(
@@ -80,6 +95,14 @@ const ChessGamePage = () => {
             current_player: dataFromServer.current_player,
           })
         );
+      } else if (dataFromServer.type === "chat_message") {
+        setMessages((prevState) => [
+          ...prevState,
+          {
+            from: dataFromServer.sender === user?.id ? "me" : "computer",
+            text: dataFromServer.message,
+          },
+        ]);
       }
     };
 
@@ -92,7 +115,9 @@ const ChessGamePage = () => {
   }, []);
 
   const isGameReady =
-    chess.gameRoomId && webSocket && chess.piecesPosition ? true : false;
+    chess.gameRoomId && webSocket && chess.piecesPosition && isUserFound
+      ? true
+      : false;
   return (
     <Flex
       alignItems={"center"}
@@ -126,7 +151,13 @@ const ChessGamePage = () => {
               </Box>
             </GridItem>
             <GridItem>
-              {isGameReady && <ChessGameChat webSocket={webSocket!} />}
+              {isGameReady && (
+                <ChessGameChat
+                  enemyDetails={enemyDetails!}
+                  messages={messages}
+                  webSocket={webSocket!}
+                />
+              )}
             </GridItem>
           </Grid>
         </GridItem>
