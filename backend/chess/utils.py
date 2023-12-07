@@ -199,6 +199,7 @@ def prepare_data(pieces):
     prepared_data = {}
     for key, piece in pieces:
         prepared_data[key] = {'piece_type': piece.piece_type, 'position': piece.position, 'color': piece.color,
-                              'possible_moves': piece.possible_moves, 'capturing_moves': piece.capturing_moves}
+                              'illegal_moves': piece.illegal_moves, 'possible_moves': piece.possible_moves,
+                              'capturing_moves': piece.capturing_moves}
 
     return prepared_data
