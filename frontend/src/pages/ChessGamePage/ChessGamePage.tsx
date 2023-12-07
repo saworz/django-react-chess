@@ -7,8 +7,9 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import {
-  updatePositions,
+  updateGame,
   createChessGame,
+  updatePositions,
 } from "../../features/chess/chessSlice";
 import ChessBoard from "../../components/ChessGamePage/ChessBoard";
 import { useParams } from "react-router-dom";
@@ -80,6 +81,16 @@ const ChessGamePage = () => {
       console.log("got reply! ");
       if (dataFromServer.type === "error") {
       } else if (dataFromServer.type === "move") {
+        dispatch(
+          updateGame({
+            black_checkmated: dataFromServer.black_checkmated,
+            black_checked: dataFromServer.black_checked,
+            white_checked: dataFromServer.white_checked,
+            white_checkmated: dataFromServer.white_checkmated,
+            current_player: dataFromServer.current_player,
+          })
+        );
+      } else if (dataFromServer.type === "init") {
         dispatch(
           updatePositions({
             white_pieces: Functions.mapPiecesToArray(

@@ -17,7 +17,6 @@ const Pieces = ({ webSocket }: Types.IProps) => {
 
   useEffect(() => {
     dispatch(updateBoard(Functions.placeOnTheBoard(chess.piecesPosition)));
-    console.log("eeffec pieces");
   }, [chess.piecesPosition, dispatch]);
 
   const ref = useRef<HTMLDivElement>(null);
