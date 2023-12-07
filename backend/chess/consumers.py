@@ -116,6 +116,7 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
     def receive(self, text_data):
         """ Handles data sent in websocket """
         data_json = json.loads(text_data)
+
         if data_json['data_type'] == 'move':
             read_game = self.read_board_from_db()
             response = validate_move_request(data_json, read_game, self.room_id)
@@ -128,16 +129,19 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
 
             updated_game.init_moves()
             updated_game.check_king_safety()
-            current_player = self.save_board_state_to_db(updated_game)
-            self.trigger_send_board_state(updated_game, current_player)
+            self.save_board_state_to_db(updated_game)
             get_illegal_moves(updated_game)
             self.save_illegal_moves_to_db(updated_game)
-            self.trigger_send_board_state(updated_game, current_player, "move")
+            self.trigger_send_board_state(updated_game, "move")
+
         elif data_json['data_type'] == 'init_board':
             initialized_game = self.initialize_board()
-            current_player = self.save_board_state_to_db(initialized_game)
+            self.save_board_state_to_db(initialized_game)
+            get_illegal_moves(initialized_game)
+            self.save_illegal_moves_to_db(initialized_game)
             read_game = self.read_board_from_db()
-            self.trigger_send_board_state(read_game, current_player,"init")
+            self.trigger_send_board_state(read_game, "init")
+
         elif data_json['data_type'] == 'chat_message':
             self.trigger_send_message(data_json['message'])
 
@@ -163,10 +167,11 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
             }
         )
 
-    def trigger_send_board_state(self, game, current_player, send_type):
+    def trigger_send_board_state(self, game, send_type):
         """ Triggers send_board_state with chess pieces data """
         white_pieces_data = prepare_data(game.white_pieces.items())
         black_pieces_data = prepare_data(game.black_pieces.items())
+        current_player = ChessGame.objects.get(room_id=self.room_id).current_player
 
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,

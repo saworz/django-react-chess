@@ -120,7 +120,7 @@ def validate_move_request(move_data, game, room_id):
         error = {'message': error_message}
         return error
 
-    print(piece.illegal_moves)
+    # print(piece.illegal_moves)
     # if king is checked after setting new_position thne its illegal move
     # if is_move_illegal(game, move_data, new_position):
     #     error_message = "Illegal move - uncovers the king"
