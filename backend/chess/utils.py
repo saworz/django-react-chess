@@ -120,6 +120,7 @@ def validate_move_request(move_data, game, room_id):
         error = {'message': error_message}
         return error
 
+    print(piece.illegal_moves)
     # if king is checked after setting new_position thne its illegal move
     # if is_move_illegal(game, move_data, new_position):
     #     error_message = "Illegal move - uncovers the king"
@@ -165,6 +166,7 @@ def read_model_fields(model):
                     deserialized_data[key] = data
 
                 read_data[field_name] = deserialized_data
+    print(read_data)
     return read_data
 
 
