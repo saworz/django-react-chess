@@ -32,9 +32,16 @@ export const chessSlice = createSlice({
     reset: (state) => {
       state = initialState;
     },
-    updatePositions: (state, action) => {
+    updateGame: (state, action) => {
       state.chess.piecesPosition.white_pieces = action.payload.white_pieces;
       state.chess.piecesPosition.black_pieces = action.payload.black_pieces;
+      state.chess.black_checkmated = action.payload.black_checkmated;
+      state.chess.black_checked = action.payload.black_checked;
+      state.chess.white_checked = action.payload.white_checked;
+      state.chess.white_checkmated = action.payload.white_checkmated;
+      state.chess.current_player = action.payload.current_player;
+    },
+    updatePositions: (state, action) => {
       state.chess.black_checkmated = action.payload.black_checkmated;
       state.chess.black_checked = action.payload.black_checked;
       state.chess.white_checked = action.payload.white_checked;
@@ -52,9 +59,6 @@ export const chessSlice = createSlice({
       state.chess.gameRoomId = action.payload.gameRoomId;
       state.chess.isGameStarted = action.payload.isGameStarted;
       state.chess.current_player = "white";
-    },
-    changeTurn: (state, action) => {
-      state.chess.current_player = action.payload;
     },
     initGame: (state, action) => {
       state.chess.current_player = "white";
@@ -82,10 +86,10 @@ export const chessSlice = createSlice({
 
 export const {
   reset,
+  updateGame,
   updatePositions,
   setGameRoomId,
   prepareChessGame,
-  changeTurn,
   initGame,
   generateCandidateMoves,
   clearCandidates,

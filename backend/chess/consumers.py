@@ -132,12 +132,12 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
             self.trigger_send_board_state(updated_game, current_player)
             get_illegal_moves(updated_game)
             self.save_illegal_moves_to_db(updated_game)
-
+            self.trigger_send_board_state(updated_game, current_player, "move")
         elif data_json['data_type'] == 'init_board':
             initialized_game = self.initialize_board()
             current_player = self.save_board_state_to_db(initialized_game)
             read_game = self.read_board_from_db()
-            self.trigger_send_board_state(read_game, current_player)
+            self.trigger_send_board_state(read_game, current_player,"init")
         elif data_json['data_type'] == 'chat_message':
             self.trigger_send_message(data_json['message'])
 
@@ -163,7 +163,7 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
             }
         )
 
-    def trigger_send_board_state(self, game, current_player):
+    def trigger_send_board_state(self, game, current_player, send_type):
         """ Triggers send_board_state with chess pieces data """
         white_pieces_data = prepare_data(game.white_pieces.items())
         black_pieces_data = prepare_data(game.black_pieces.items())
@@ -179,7 +179,8 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
                 'white_checked': game.white_check,
                 'white_checkmated': False,
                 'black_checked': game.black_check,
-                'black_checkmated': False
+                'black_checkmated': False,
+                'send_type': send_type,
             }
         )
 
@@ -194,7 +195,7 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
     def send_board_state(self, event):
         """ Sends data about board """
         self.send(text_data=json.dumps({
-            'data_type': 'move',
+            'type': event['send_type'],
             'current_player': event['current_player'],
             'white_pieces': event['white_pieces'],
             'black_pieces': event['black_pieces'],
@@ -207,7 +208,7 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
     def send_error(self, event):
         """ Sends error """
         self.send(text_data=json.dumps({
-            'data_type': 'error',
+            'type': 'error',
             'message': event['message'],
             'king_position': event['king_position']
         }))
