@@ -9,7 +9,7 @@ import {
 import {
   updateGame,
   createChessGame,
-  updatePositions,
+  initGame,
 } from "../../features/chess/chessSlice";
 import ChessBoard from "../../components/ChessGamePage/ChessBoard";
 import { useParams } from "react-router-dom";
@@ -88,11 +88,17 @@ const ChessGamePage = () => {
             white_checked: dataFromServer.white_checked,
             white_checkmated: dataFromServer.white_checkmated,
             current_player: dataFromServer.current_player,
+            black_pieces: Functions.mapPiecesToArray(
+              dataFromServer.black_pieces
+            ),
+            white_pieces: Functions.mapPiecesToArray(
+              dataFromServer.white_pieces
+            ),
           })
         );
       } else if (dataFromServer.type === "init") {
         dispatch(
-          updatePositions({
+          initGame({
             white_pieces: Functions.mapPiecesToArray(
               dataFromServer.white_pieces
             ),
@@ -104,6 +110,12 @@ const ChessGamePage = () => {
             white_checked: dataFromServer.white_checked,
             white_checkmated: dataFromServer.white_checkmated,
             current_player: dataFromServer.current_player,
+            copy_white_pieces: Functions.mapPiecesToArray(
+              dataFromServer.white_pieces
+            ),
+            copy_black_pieces: Functions.mapPiecesToArray(
+              dataFromServer.black_pieces
+            ),
           })
         );
       } else if (dataFromServer.type === "chat_message") {

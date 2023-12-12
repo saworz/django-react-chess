@@ -30,6 +30,10 @@ export interface IChessState {
       black_pieces: IBlackPiece[];
       white_pieces: IWhitePiece[];
     };
+    copyPiecesPosition: {
+      black_pieces: IBlackPiece[];
+      white_pieces: IWhitePiece[];
+    };
     candidateMoves: number[][];
     selectedPiece: IBlackPiece | IWhitePiece | null;
     black_checked: boolean;
@@ -41,6 +45,29 @@ export interface IChessState {
   isSuccess: boolean;
   isLoading: boolean;
   message: string;
+}
+
+export interface IPiece {
+  id: string;
+  piece_type: string;
+  color: string;
+  capturing_moves: Array<number>[];
+  position: number[];
+  possible_moves: Array<number>[][];
+  illegal_moves: Array<number>[];
+}
+
+export interface IBlackPiece extends IPiece {
+  color: "black";
+}
+
+export interface IWhitePiece extends IPiece {
+  color: "white";
+}
+
+export interface IPiecesPosition {
+  black_pieces: IBlackPiece[];
+  white_pieces: IWhitePiece[];
 }
 
 export interface IRegisterUserData {
@@ -107,26 +134,4 @@ export interface ICreateChessGameResponse {
   room_id: string;
   player_white: number;
   player_black: number;
-}
-
-export interface IPiece {
-  id: string;
-  piece_type: string;
-  color: string;
-  capturing_moves: Array<number>[];
-  position: number[];
-  possible_moves: Array<number>[][];
-}
-
-export interface IBlackPiece extends IPiece {
-  color: "black";
-}
-
-export interface IWhitePiece extends IPiece {
-  color: "white";
-}
-
-export interface IPiecesPosition {
-  black_pieces: IBlackPiece[];
-  white_pieces: IWhitePiece[];
 }

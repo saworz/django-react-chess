@@ -8,6 +8,7 @@ import { AppDispatch, RootState } from "../../../app/store";
 import {
   clearCandidates,
   updateBoard,
+  updatePosition,
 } from "../../../features/chess/chessSlice";
 
 const Pieces = ({ webSocket }: Types.IProps) => {
@@ -34,7 +35,12 @@ const Pieces = ({ webSocket }: Types.IProps) => {
     const { x, y } = calculateCoords(e); //New
     const [piece, rank, file] = e.dataTransfer.getData("text").split(","); //Old
 
-    if (candidateMoves?.find((pos) => pos[0] === x && pos[1] === y)) {
+    const placedPawnColor = chess.chessBoard[x][y][0];
+    const placedPawn = chess.chessBoard[x][y];
+
+    let updatedPiecesPosition = { ...chess.piecesPosition };
+
+    if (candidateMoves.find((pos) => pos[0] === x && pos[1] === y)) {
       newPosition[Number(rank)][Number(file)] = "";
       newPosition[x][y] = piece;
       webSocket.send(
@@ -45,8 +51,24 @@ const Pieces = ({ webSocket }: Types.IProps) => {
           new_position: `${y + 1}${x + 1}`,
         })
       );
-    }
 
+      updatedPiecesPosition = Functions.updatePiecePostion(
+        updatedPiecesPosition,
+        chess.selectedPiece!,
+        x + 1,
+        y + 1
+      );
+
+      if (placedPawn) {
+        Functions.raisePawn(
+          updatedPiecesPosition,
+          placedPawnColor,
+          x + 1,
+          y + 1
+        );
+      }
+      dispatch(updatePosition(updatedPiecesPosition));
+    }
     dispatch(clearCandidates());
   };
 

@@ -11,6 +11,10 @@ const initialState: SharedStyles.IChessState = {
       black_pieces: [],
       white_pieces: [],
     },
+    copyPiecesPosition: {
+      black_pieces: [],
+      white_pieces: [],
+    },
     candidateMoves: [],
     selectedPiece: null,
     black_checked: false,
@@ -33,6 +37,20 @@ export const chessSlice = createSlice({
       state = initialState;
     },
     updateGame: (state, action) => {
+      state.chess.black_checkmated = action.payload.black_checkmated;
+      state.chess.black_checked = action.payload.black_checked;
+      state.chess.white_checked = action.payload.white_checked;
+      state.chess.white_checkmated = action.payload.white_checkmated;
+      state.chess.current_player = action.payload.current_player;
+      state.chess.copyPiecesPosition.black_pieces = action.payload.black_pieces;
+      state.chess.copyPiecesPosition.white_pieces = action.payload.white_pieces;
+    },
+    initGame: (state, action) => {
+      state.chess.copyPiecesPosition.black_pieces =
+        action.payload.copy_black_pieces;
+      state.chess.copyPiecesPosition.white_pieces =
+        action.payload.copy_white_pieces;
+      ///
       state.chess.piecesPosition.white_pieces = action.payload.white_pieces;
       state.chess.piecesPosition.black_pieces = action.payload.black_pieces;
       state.chess.black_checkmated = action.payload.black_checkmated;
@@ -40,13 +58,7 @@ export const chessSlice = createSlice({
       state.chess.white_checked = action.payload.white_checked;
       state.chess.white_checkmated = action.payload.white_checkmated;
       state.chess.current_player = action.payload.current_player;
-    },
-    updatePositions: (state, action) => {
-      state.chess.black_checkmated = action.payload.black_checkmated;
-      state.chess.black_checked = action.payload.black_checked;
-      state.chess.white_checked = action.payload.white_checked;
-      state.chess.white_checkmated = action.payload.white_checkmated;
-      state.chess.current_player = action.payload.current_player;
+      state.chess.candidateMoves = [];
     },
     setGameRoomId: (state, action) => {
       state.chess.gameRoomId = action.payload;
@@ -59,11 +71,6 @@ export const chessSlice = createSlice({
       state.chess.gameRoomId = action.payload.gameRoomId;
       state.chess.isGameStarted = action.payload.isGameStarted;
       state.chess.current_player = "white";
-    },
-    initGame: (state, action) => {
-      state.chess.current_player = "white";
-      state.chess.chessBoard = action.payload;
-      state.chess.candidateMoves = [];
     },
     updateBoard: (state, action) => {
       state.chess.chessBoard = action.payload;
@@ -79,6 +86,9 @@ export const chessSlice = createSlice({
     setSelectedPiece: (state, action) => {
       state.chess.selectedPiece = action.payload;
     },
+    updatePosition: (state, action) => {
+      state.chess.piecesPosition = action.payload;
+    },
   },
   //State - pendning, fullfiled, rejected
   extraReducers() {},
@@ -87,7 +97,6 @@ export const chessSlice = createSlice({
 export const {
   reset,
   updateGame,
-  updatePositions,
   setGameRoomId,
   prepareChessGame,
   initGame,
@@ -96,5 +105,6 @@ export const {
   updateBoard,
   setSelectedPiece,
   createChessGame,
+  updatePosition,
 } = chessSlice.actions;
 export default chessSlice.reducer;

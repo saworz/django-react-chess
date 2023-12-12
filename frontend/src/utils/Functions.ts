@@ -71,13 +71,95 @@ const copyPosition = (position: string[][]) => {
   return newPosition;
 };
 
+const updatePiecePostion = (
+  piecesPosition: {
+    black_pieces: SharedTypes.IBlackPiece[];
+    white_pieces: SharedTypes.IWhitePiece[];
+  },
+  selectedPiece: SharedTypes.IBlackPiece | SharedTypes.IWhitePiece,
+  newX: number,
+  newY: number
+) => {
+  if (selectedPiece.color === "white") {
+    const whitePieceIndex = piecesPosition.white_pieces.findIndex(
+      (piece) => piece.id === selectedPiece.id
+    );
+    if (whitePieceIndex !== -1) {
+      const updatedWhitePiece = {
+        ...piecesPosition.white_pieces[whitePieceIndex],
+      };
+      updatedWhitePiece.position = [newY, newX];
+
+      // Zaktualizuj tablicę białych figur w stanie gry
+      piecesPosition.white_pieces = [
+        ...piecesPosition.white_pieces.slice(0, whitePieceIndex),
+        updatedWhitePiece,
+        ...piecesPosition.white_pieces.slice(whitePieceIndex + 1),
+      ];
+
+      return piecesPosition;
+    }
+  } else {
+    const blackPieceIndex = piecesPosition.black_pieces.findIndex(
+      (piece) => piece.id === selectedPiece.id
+    );
+    if (blackPieceIndex !== -1) {
+      const updatedBlackPiece = {
+        ...piecesPosition.black_pieces[blackPieceIndex],
+      };
+      updatedBlackPiece.position = [newY, newX];
+
+      // Zaktualizuj tablicę czarnych figur w stanie gry
+      piecesPosition.black_pieces = [
+        ...piecesPosition.black_pieces.slice(0, blackPieceIndex),
+        updatedBlackPiece,
+        ...piecesPosition.black_pieces.slice(blackPieceIndex + 1),
+      ];
+
+      return piecesPosition;
+    }
+  }
+  return piecesPosition;
+};
+
+const raisePawn = (
+  piecesPosition: {
+    black_pieces: SharedTypes.IBlackPiece[];
+    white_pieces: SharedTypes.IWhitePiece[];
+  },
+  placedPawnColor: string,
+  newX: number,
+  newY: number
+) => {
+  if (placedPawnColor === "w") {
+    const whitePieceIndex = piecesPosition.white_pieces.findIndex(
+      (piece) => piece.position[0] === newY && piece.position[1] === newX
+    );
+    piecesPosition.white_pieces = [
+      ...piecesPosition.white_pieces.slice(0, whitePieceIndex),
+      ...piecesPosition.white_pieces.slice(whitePieceIndex + 1),
+    ];
+  } else {
+    const blackPieceIndex = piecesPosition.black_pieces.findIndex(
+      (piece) => piece.position[0] === newY && piece.position[1] === newX
+    );
+    piecesPosition.black_pieces = [
+      ...piecesPosition.black_pieces.slice(0, blackPieceIndex),
+      ...piecesPosition.black_pieces.slice(blackPieceIndex + 1),
+    ];
+  }
+  return piecesPosition;
+};
+
 const Functions = {
+  updatePiecePostion,
   prepareChessGame,
   placeOnTheBoard,
   computeGameId,
   mapPiecesToArray,
   fillPositionsPieces,
   copyPosition,
+  raisePawn,
 };
 
 export default Functions;
