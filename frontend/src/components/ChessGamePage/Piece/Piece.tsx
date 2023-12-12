@@ -41,16 +41,9 @@ const Piece = ({ file, piece, rank }: Types.IProps) => {
 
     if (current_player[0] === piece[0]) {
       const candidateMoves = [
-        ...selectedPiece?.possible_moves,
-        selectedPiece?.capturing_moves,
-      ]
-        .flat()
-        .filter(
-          (pos) =>
-            pos[0] !== selectedPiece?.illegal_moves.flat()[0] &&
-            pos[1] !== selectedPiece?.illegal_moves.flat()[1]
-        )
-        .map((pos) => [pos[1] - 1, pos[0] - 1]);
+        ...selectedPiece?.possible_moves.flat(),
+        ...selectedPiece?.capturing_moves,
+      ].map((pos) => [pos[1] - 1, pos[0] - 1]);
       dispatch(generateCandidateMoves(candidateMoves));
     }
   };
