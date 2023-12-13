@@ -2,7 +2,7 @@ from channels.generic.websocket import WebsocketConsumer
 from .models import ChessGame, WhitePieces, BlackPieces
 from .chess_logic import GameLoader
 from .utils import (edit_board_in_db, create_board_in_db, read_model_fields, validate_move_request, prepare_data,
-                    get_illegal_moves)
+                    get_valid_moves)
 from asgiref.sync import async_to_sync
 import json
 import time
@@ -121,6 +121,7 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
         data_json = json.loads(text_data)
 
         if data_json['data_type'] == 'move':
+            print('got move command')
             read_game = self.read_board_from_db()
             response = validate_move_request(data_json, read_game, self.room_id)
 
@@ -133,15 +134,14 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
             updated_game.init_moves()
             updated_game.check_king_safety()
             self.save_board_state_to_db(updated_game)
-            get_illegal_moves(updated_game)
+            get_valid_moves(updated_game)
             self.save_illegal_moves_to_db(updated_game)
             self.trigger_send_board_state(updated_game, "move")
         elif data_json['data_type'] == 'init_board':
             initialized_game = self.initialize_board()
             self.save_board_state_to_db(initialized_game)
-            get_illegal_moves(initialized_game)
+            get_valid_moves(initialized_game)
             self.save_illegal_moves_to_db(initialized_game)
-            # read_game = self.read_board_from_db()
             self.trigger_send_board_state(initialized_game, "init")
 
         elif data_json['data_type'] == 'chat_message':
@@ -200,7 +200,7 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
         }))
 
     def send_board_state(self, event):
-        print(event['white_pieces'])
+        # print(event['white_pieces'])
         """ Sends data about board """
         self.send(text_data=json.dumps({
             'type': event['send_type'],
