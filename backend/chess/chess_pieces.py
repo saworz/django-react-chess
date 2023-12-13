@@ -15,6 +15,7 @@ class Piece(ABC):
         self.capturing_moves = []
         self.pieces_to_capture = []
         self.illegal_moves = []
+        self.valid_moves = []
 
         self.friendly_pieces = []
         self.friendly_positions = []

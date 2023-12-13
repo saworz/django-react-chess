@@ -73,35 +73,61 @@ def edit_board_in_db(white_board, black_board, game_id, current_player=None):
 #             (move_data['color'] == 'black' and temporary_game_state.black_check)):
 #         return True
 
-def is_move_illegal(game, name, piece, move):
+def is_move_illegal(temporary_game_state, name, piece, move):
 
-    temporary_game_state = copy.deepcopy(game)
     if piece.color == 'white':
         temp_piece = temporary_game_state.white_pieces[name]
     elif piece.color == 'black':
         temp_piece = temporary_game_state.black_pieces[name]
 
+    base_position = temp_piece.position
     temp_piece.position = move
+
+    if move in temp_piece.capturing_moves:
+        piece_to_capture = temp_piece.capture_piece(move)
+        # remove_piece(piece_to_capture, temporary_game_state)
+
     temporary_game_state.init_moves()
     temporary_game_state.check_king_safety()
 
+    flag = False
+    # print("Testing this piece on new position")
+    # print(f"Moved from: {base_position}")
+    # print(temp_piece)
+    # print("is it check?")
+    # print(f"white: {temporary_game_state.white_check}, black: {temporary_game_state.black_check}")
     if ((piece.color == 'white' and temporary_game_state.white_check) or
             (piece.color == 'black' and temporary_game_state.black_check)):
+        flag = True
+    # print(f'so the move is illegal: {flag}')
+
+    temp_piece.position = base_position
+    if flag:
         return True
 
 
 def get_illegal_moves(game):
     """ Gets legal moves for each piece on board """
     print("Getting illegal moves")
+    temporary_game_state = copy.deepcopy(game)
+
     for name, piece in game.white_pieces.items():
-        for move in unpack_positions(piece.possible_moves) + piece.capturing_moves:
-            if is_move_illegal(game, name, piece, move):
+        unpacked_moves = unpack_positions(piece.possible_moves)
+        for move in unpacked_moves + piece.capturing_moves:
+            if is_move_illegal(temporary_game_state, name, piece, move):
                 piece.illegal_moves.append(move)
+        for move in unpacked_moves:
+            if move not in piece.illegal_moves:
+                piece.valid_moves.append(move)
 
     for name, piece in game.black_pieces.items():
-        for move in unpack_positions(piece.possible_moves):
-            if is_move_illegal(game, name, piece, move):
+        unpacked_moves = unpack_positions(piece.possible_moves)
+        for move in unpacked_moves + piece.capturing_moves:
+            if is_move_illegal(temporary_game_state, name, piece, move):
                 piece.illegal_moves.append(move)
+        for move in unpacked_moves:
+            if move not in piece.illegal_moves:
+                piece.valid_moves.append(move)
 
 
 def validate_move_request(move_data, game, room_id):
@@ -166,7 +192,6 @@ def read_model_fields(model):
                     deserialized_data[key] = data
 
                 read_data[field_name] = deserialized_data
-    print(read_data)
     return read_data
 
 
@@ -200,6 +225,6 @@ def prepare_data(pieces):
     for key, piece in pieces:
         prepared_data[key] = {'piece_type': piece.piece_type, 'position': piece.position, 'color': piece.color,
                               'illegal_moves': piece.illegal_moves, 'possible_moves': piece.possible_moves,
-                              'capturing_moves': piece.capturing_moves}
+                              'valid_moves': piece.valid_moves, 'capturing_moves': piece.capturing_moves}
 
     return prepared_data
