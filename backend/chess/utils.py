@@ -82,6 +82,11 @@ def is_move_illegal(temporary_game_state, name, piece, move):
 
     base_position = temp_piece.position
     temp_piece.position = move
+
+    if move in temp_piece.capturing_moves:
+        piece_to_capture = temp_piece.capture_piece(move)
+        # remove_piece(piece_to_capture, temporary_game_state)
+
     temporary_game_state.init_moves()
     temporary_game_state.check_king_safety()
 
@@ -95,6 +100,7 @@ def is_move_illegal(temporary_game_state, name, piece, move):
             (piece.color == 'black' and temporary_game_state.black_check)):
         flag = True
     # print(f'so the move is illegal: {flag}')
+
     temp_piece.position = base_position
     if flag:
         return True
@@ -106,15 +112,22 @@ def get_illegal_moves(game):
     temporary_game_state = copy.deepcopy(game)
 
     for name, piece in game.white_pieces.items():
-        for move in unpack_positions(piece.possible_moves) + piece.capturing_moves:
-            print(temporary_game_state.white_pieces)
+        unpacked_moves = unpack_positions(piece.possible_moves)
+        for move in unpacked_moves + piece.capturing_moves:
             if is_move_illegal(temporary_game_state, name, piece, move):
                 piece.illegal_moves.append(move)
+        for move in unpacked_moves:
+            if move not in piece.illegal_moves:
+                piece.valid_moves.append(move)
 
     for name, piece in game.black_pieces.items():
-        for move in unpack_positions(piece.possible_moves):
+        unpacked_moves = unpack_positions(piece.possible_moves)
+        for move in unpacked_moves + piece.capturing_moves:
             if is_move_illegal(temporary_game_state, name, piece, move):
                 piece.illegal_moves.append(move)
+        for move in unpacked_moves:
+            if move not in piece.illegal_moves:
+                piece.valid_moves.append(move)
 
 
 def validate_move_request(move_data, game, room_id):
@@ -212,6 +225,6 @@ def prepare_data(pieces):
     for key, piece in pieces:
         prepared_data[key] = {'piece_type': piece.piece_type, 'position': piece.position, 'color': piece.color,
                               'illegal_moves': piece.illegal_moves, 'possible_moves': piece.possible_moves,
-                              'capturing_moves': piece.capturing_moves}
+                              'valid_moves': piece.valid_moves, 'capturing_moves': piece.capturing_moves}
 
     return prepared_data

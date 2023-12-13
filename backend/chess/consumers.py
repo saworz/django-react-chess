@@ -176,6 +176,7 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
         black_pieces_data = prepare_data(game.black_pieces.items())
         current_player = ChessGame.objects.get(room_id=self.room_id).current_player
 
+        print(white_pieces_data)
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
