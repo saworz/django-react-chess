@@ -53,8 +53,7 @@ export interface IPiece {
   color: string;
   capturing_moves: Array<number>[];
   position: number[];
-  possible_moves: Array<number>[][];
-  illegal_moves: Array<number>[];
+  valid_moves: Array<number>[];
 }
 
 export interface IBlackPiece extends IPiece {
