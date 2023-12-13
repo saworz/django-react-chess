@@ -192,6 +192,8 @@ def read_model_fields(model):
                     deserialized_data[key] = data
 
                 read_data[field_name] = deserialized_data
+    print("READ DATA")
+    print(read_data)
     return read_data
 
 
