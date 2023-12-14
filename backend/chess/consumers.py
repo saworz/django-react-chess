@@ -121,7 +121,6 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
         data_json = json.loads(text_data)
 
         if data_json['data_type'] == 'move':
-            print('got move command')
             read_game = self.read_board_from_db()
             response = validate_move_request(data_json, read_game, self.room_id)
 
@@ -175,6 +174,11 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
         black_pieces_data = prepare_data(game.black_pieces.items())
         current_player = ChessGame.objects.get(room_id=self.room_id).current_player
 
+        print(f"White check: {game.white_check}\n"
+              f"Black check: {game.black_check}\n"
+              f"White check mate: {game.white_checkmate}\n"
+              f"Black check mate: {game.black_checkmate}")
+
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
@@ -184,9 +188,9 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
                 'black_pieces': black_pieces_data,
 
                 'white_checked': game.white_check,
-                'white_checkmated': False,
+                'white_checkmated': game.white_checkmate,
                 'black_checked': game.black_check,
-                'black_checkmated': False,
+                'black_checkmated': game.black_checkmate,
                 'send_type': send_type,
             }
         )
@@ -200,7 +204,6 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
         }))
 
     def send_board_state(self, event):
-        # print(event['white_pieces'])
         """ Sends data about board """
         self.send(text_data=json.dumps({
             'type': event['send_type'],

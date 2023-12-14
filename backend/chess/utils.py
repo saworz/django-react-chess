@@ -98,6 +98,8 @@ def is_capture_illegal(temporary_game_state, name, piece, move):
     if not piece_name == 'king':
         temporary_game_state.init_moves()
         temporary_game_state.check_king_safety()
+    else:
+        illegal_capture = True
 
     if ((piece.color == 'white' and temporary_game_state.white_check) or
             (piece.color == 'black' and temporary_game_state.black_check)):
@@ -108,28 +110,42 @@ def is_capture_illegal(temporary_game_state, name, piece, move):
 
 def check_move(temporary_game_state, name, piece):
     """ Checks if move is illegal """
+
     for move in unpack_positions(piece.possible_moves):
         if is_move_illegal(temporary_game_state, name, piece, move):
             piece.illegal_moves.append(move)
         else:
             piece.valid_moves.append(move)
 
+    capturing_moves_copy = copy.deepcopy(piece.capturing_moves)
     for move in piece.capturing_moves:
         capture_game_state = copy.deepcopy(temporary_game_state)
+
         if is_capture_illegal(capture_game_state, name, piece, move):
-            piece.capturing_moves.remove(move)
+            capturing_moves_copy.remove(move)
+
+    piece.capturing_moves = capturing_moves_copy
 
 
 def get_valid_moves(game):
     """ Gets valid and illegal moves for each piece on board """
     temporary_game_state = copy.deepcopy(game)
     temporary_game_state.init_moves()
-
+    amount_of_possible_moves = 0
     for name, piece in game.white_pieces.items():
         check_move(temporary_game_state, name, piece)
+        amount_of_possible_moves += (len(piece.valid_moves) + len(piece.capturing_moves))
 
+    if amount_of_possible_moves == 0:
+        game.white_checkmate = True
+
+    amount_of_possible_moves = 0
     for name, piece in game.black_pieces.items():
         check_move(temporary_game_state, name, piece)
+        amount_of_possible_moves += (len(piece.valid_moves) + len(piece.capturing_moves))
+
+    if amount_of_possible_moves == 0:
+        game.black_checkmate = True
 
 
 def validate_move_request(move_data, game, room_id):
