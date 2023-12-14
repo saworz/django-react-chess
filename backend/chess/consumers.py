@@ -88,16 +88,28 @@ class GameDataHandler:
         game.init_moves()
         return game
 
+    def set_castle_data(self, game, white_castle_data, black_castle_data):
+        game.white_rook_1_moved = white_castle_data['rook_1_moved']
+        game.white_rook_2_moved = white_castle_data['rook_2_moved']
+        game.white_king_moved = white_castle_data['king_moved']
+        game.black_rook_1_moved = black_castle_data['rook_1_moved']
+        game.black_rook_2_moved = black_castle_data['rook_2_moved']
+        game.black_king_moved = black_castle_data['king_moved']
+        game.white_castled = white_castle_data['castled']
+        game.black_castled = black_castle_data['castled']
+        return game
+
     def read_board_from_db(self):
         """ Reads pieces info from database """
         game_id = ChessGame.objects.get(room_id=self.room_id).pk
         white_board = WhitePieces.objects.get(game_id=game_id)
         black_board = BlackPieces.objects.get(game_id=game_id)
 
-        white_pieces_data = read_model_fields(white_board)
-        black_pieces_data = read_model_fields(black_board)
+        white_pieces_data, white_castle_data = read_model_fields(white_board)
+        black_pieces_data, black_castle_data = read_model_fields(black_board)
 
         game = self.get_possible_moves(white_pieces_data, black_pieces_data)
+        game = self.set_castle_data(game, white_castle_data, black_castle_data)
         return game
 
 

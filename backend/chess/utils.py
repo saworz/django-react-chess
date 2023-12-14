@@ -56,7 +56,6 @@ def edit_board_in_db(white_board, black_board, game_id, socket_data=None):
             setattr(black_board_instance, key, value)
 
     if socket_data:
-        print(socket_data)
         data_type = socket_data['data_type']
         piece = socket_data['piece']
         color = socket_data['color']
@@ -202,7 +201,8 @@ def validate_move_request(move_data, game, room_id):
 
 def read_model_fields(model):
     """ Saves model data as dict """
-    read_data = {}
+    pieces_data = {}
+    castle_data = {}
     for field in model._meta.get_fields():
         if field.concrete and not field.is_relation and not field.name == 'id':
             field_name = field.name
@@ -217,12 +217,12 @@ def read_model_fields(model):
                         data = value
                     deserialized_data[key] = data
 
-                read_data[field_name] = deserialized_data
+                pieces_data[field_name] = deserialized_data
 
             if isinstance(field_value, bool):
-                read_data[field_name] = field_value
+                castle_data[field_name] = field_value
 
-    return read_data
+    return pieces_data, castle_data
 
 
 def remove_piece(piece_to_remove, game):

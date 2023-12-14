@@ -15,6 +15,15 @@ class GameLoader:
         self.black_check = False
         self.black_checkmate = False
 
+        self.white_rook_1_moved = False
+        self.white_rook_2_moved = False
+        self.white_king_moved = False
+        self.black_rook_1_moved = False
+        self.black_rook_2_moved = False
+        self.black_king_moved = False
+        self.white_castled = False
+        self.black_castled = False
+
     def get_board_state(self):
         whites_state = {}
         blacks_state = {}
@@ -33,14 +42,10 @@ class GameLoader:
         for name, piece in black_board.items():
             piece.reload_position()
             piece.move_validator(white_board, black_board)
-            # if self.black_check:
-            #     piece.king_defensive_moves(white_board, black_board)
 
         for name, piece in white_board.items():
             piece.reload_position()
             piece.move_validator(white_board, black_board)
-            # if self.white_check:
-            #     piece.king_defensive_moves(white_board, black_board)
 
     def piece_object_loop(self, data, attribute):
         class_mapping = {
