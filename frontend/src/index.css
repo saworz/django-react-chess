@@ -47,3 +47,12 @@ code {
   left: 0;
   top: 0;
 }
+
+.checked:after {
+  content: "";
+  display: block;
+  position: relative;
+  width: var(--tile-size);
+  height: var(--tile-size);
+  background-color: var(--check);
+}
