@@ -73,7 +73,9 @@ def edit_board_in_db(white_board, black_board, game_id, current_player=None):
 #             (move_data['color'] == 'black' and temporary_game_state.black_check)):
 #         return True
 
+
 def is_move_illegal(temporary_game_state, name, piece, move):
+    illegal_move = False
 
     if piece.color == 'white':
         temp_piece = temporary_game_state.white_pieces[name]
@@ -82,92 +84,117 @@ def is_move_illegal(temporary_game_state, name, piece, move):
 
     base_position = temp_piece.position
     temp_piece.position = move
-
-    piece_captured = False
-    piece_to_capture = None
-    if move in temp_piece.capturing_moves:
-        # print("This move is capturing")
-        piece_to_capture = temp_piece.capture_piece(move)
-        # print(f"Removing this piece {piece_to_capture}")
-        piece_copy = copy.deepcopy(piece_to_capture)
-        # print(f"Game state before: {temporary_game_state.black_pieces}")
-        game, piece_name = remove_piece(piece_to_capture, temporary_game_state)
-        piece_captured = True
-        # print(f"game state after: {temporary_game_state.black_pieces}")
-        # print(f"Returned game: {game.black_pieces}")
-        # print("Removing this piece")
-        # print(piece_name)
-
     temporary_game_state.init_moves()
-    print(temporary_game_state.white_pieces)
-    print(piece, move)
-    print(piece_to_capture)
-    print(piece_captured)
     temporary_game_state.check_king_safety()
 
-    flag = False
-
-    if piece.color == 'white' and temporary_game_state.white_check:
-        flag = True
-        if piece_captured:
-            print(f"{piece_to_capture} captured by {piece}")
-
-
-        # if move in temp_piece.capturing_moves:
-        #     temp_piece.capturing_moves.remove(move)
-    elif piece.color == 'black' and temporary_game_state.black_check:
-        flag = True
-        # if move in temp_piece.capturing_moves:
-        #     temp_piece.capturing_moves.remove(move)
+    if ((piece.color == 'white' and temporary_game_state.white_check) or
+            (piece.color == 'black' and temporary_game_state.black_check)):
+        illegal_move = True
 
     temp_piece.position = base_position
-    if piece_captured:
-        # print("Recapturing piece")
-        # print("State now")
-        # print(temporary_game_state.black_pieces)
-        # print(f"Piece name: {piece_name}, piece_copy: {piece_copy}")
-        # print(f"Is it still check? {flag}")
-        if temp_piece.color == 'white':
-            temporary_game_state.black_pieces[piece_name] = piece_copy
-        elif temp_piece.color == 'black':
-            temporary_game_state.white_pieces[piece_name] = piece_copy
-        # print("New state:")
-        # print(temporary_game_state.black_pieces)
+    return illegal_move
 
-    if flag:
-        # print(temporary_game_state.white_pieces)
-        return True
+
+# def is_move_illegal(temporary_game_state, name, piece, move):
+#
+#     if piece.color == 'white':
+#         temp_piece = temporary_game_state.white_pieces[name]
+#     elif piece.color == 'black':
+#         temp_piece = temporary_game_state.black_pieces[name]
+#
+#     base_position = temp_piece.position
+#     temp_piece.position = move
+#
+#     piece_captured = False
+#     piece_to_capture = None
+#     if move in temp_piece.capturing_moves:
+#         # print("This move is capturing")
+#         piece_to_capture = temp_piece.capture_piece(move)
+#         # print(f"Removing this piece {piece_to_capture}")
+#         piece_copy = copy.deepcopy(piece_to_capture)
+#         # print(f"Game state before: {temporary_game_state.black_pieces}")
+#         game, piece_name = remove_piece(piece_to_capture, temporary_game_state)
+#         piece_captured = True
+#         # print(f"game state after: {temporary_game_state.black_pieces}")
+#         # print(f"Returned game: {game.black_pieces}")
+#         # print("Removing this piece")
+#         # print(piece_name)
+#
+#     temporary_game_state.init_moves()
+#     print(temporary_game_state.white_pieces)
+#     print(piece, move)
+#     print(piece_to_capture)
+#     print(piece_captured)
+#     temporary_game_state.check_king_safety()
+#
+#     flag = False
+#
+#     if piece.color == 'white' and temporary_game_state.white_check:
+#         flag = True
+#         if piece_captured:
+#             print(f"{piece_to_capture} captured by {piece}")
+#
+#
+#         # if move in temp_piece.capturing_moves:
+#         #     temp_piece.capturing_moves.remove(move)
+#     elif piece.color == 'black' and temporary_game_state.black_check:
+#         flag = True
+#         # if move in temp_piece.capturing_moves:
+#         #     temp_piece.capturing_moves.remove(move)
+#
+#     temp_piece.position = base_position
+#     if piece_captured:
+#         # print("Recapturing piece")
+#         # print("State now")
+#         # print(temporary_game_state.black_pieces)
+#         # print(f"Piece name: {piece_name}, piece_copy: {piece_copy}")
+#         # print(f"Is it still check? {flag}")
+#         if temp_piece.color == 'white':
+#             temporary_game_state.black_pieces[piece_name] = piece_copy
+#         elif temp_piece.color == 'black':
+#             temporary_game_state.white_pieces[piece_name] = piece_copy
+#         # print("New state:")
+#         # print(temporary_game_state.black_pieces)
+#
+#     if flag:
+#         # print(temporary_game_state.white_pieces)
+#         return True
 
 
 def check_move(temporary_game_state, name, piece):
     """ Checks if move is illegal """
-    unpacked_moves = unpack_positions(piece.possible_moves)
-    for move in unpacked_moves + piece.capturing_moves:
+    # for move in unpacked_moves + piece.capturing_moves:
+    for move in unpack_positions(piece.possible_moves):
         if is_move_illegal(temporary_game_state, name, piece, move):
             piece.illegal_moves.append(move)
-            if move in piece.capturing_moves:
-                piece.capturing_moves.remove(move)
+            # if move in piece.capturing_moves:
+            #     piece.capturing_moves.remove(move)
         else:
             piece.valid_moves.append(move)
+
+    # for move in piece.capturing_moves:
+    # remove from capturing mvoes here
 
     # for move in unpacked_moves + piece.capturing_moves:
     #     if is_move_illegal(temporary_game_state, name, piece, move):
     #         piece.illegal_moves.append(move)
     #         if move in piece.capturing_moves:
     #             piece.capturing_moves.remove(move)
-        # if move not in piece.illegal_moves:
-        #     piece.illegal_moves.append(move)
-        #     if move in piece.capturing_moves:
-        #         piece.capturing_moves.remove(move)
+    # if move not in piece.illegal_moves:
+    #     piece.illegal_moves.append(move)
+    #     if move in piece.capturing_moves:
+    #         piece.capturing_moves.remove(move)
 
 
 def get_valid_moves(game):
     """ Gets valid and illegal moves for each piece on board """
     temporary_game_state = copy.deepcopy(game)
 
+    print("Getting valid moves for white pieces")
     for name, piece in game.white_pieces.items():
         check_move(temporary_game_state, name, piece)
 
+    print("Getting valid moves for black pieces")
     for name, piece in game.black_pieces.items():
         check_move(temporary_game_state, name, piece)
 
