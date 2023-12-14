@@ -73,9 +73,6 @@ class Piece(ABC):
 
     def capture_piece(self, position):
         """ Returns piece object that's about to be captured """
-        print("IN CAPTURE PIECE")
-        print(self)
-        print(self.capturing_moves, self.pieces_to_capture)
         for move, piece in zip(self.capturing_moves, self.pieces_to_capture):
             if move == position:
                 return piece
