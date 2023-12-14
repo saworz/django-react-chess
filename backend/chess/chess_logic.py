@@ -30,21 +30,17 @@ class GameLoader:
         black_board = self.get_board_state().get('board_state').get('black')
         white_board = self.get_board_state().get('board_state').get('white')
 
-        # self.check_king_safety()
-        # print('is white checked before move')
-        # print(self.white_check)
-
         for name, piece in black_board.items():
             piece.reload_position()
             piece.move_validator(white_board, black_board)
-            if self.black_check:
-                piece.king_defensive_moves(white_board, black_board)
+            # if self.black_check:
+            #     piece.king_defensive_moves(white_board, black_board)
 
         for name, piece in white_board.items():
             piece.reload_position()
             piece.move_validator(white_board, black_board)
-            if self.white_check:
-                piece.king_defensive_moves(white_board, black_board)
+            # if self.white_check:
+            #     piece.king_defensive_moves(white_board, black_board)
 
     def piece_object_loop(self, data, attribute):
         class_mapping = {

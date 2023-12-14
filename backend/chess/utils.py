@@ -75,6 +75,7 @@ def edit_board_in_db(white_board, black_board, game_id, current_player=None):
 
 
 def is_move_illegal(temporary_game_state, name, piece, move):
+    """ Checks if move on an empty space is illegal """
     illegal_move = False
 
     if piece.color == 'white':
@@ -84,7 +85,6 @@ def is_move_illegal(temporary_game_state, name, piece, move):
 
     base_position = temp_piece.position
     temp_piece.position = move
-    temporary_game_state.init_moves()
     temporary_game_state.check_king_safety()
 
     if ((piece.color == 'white' and temporary_game_state.white_check) or
@@ -94,6 +94,56 @@ def is_move_illegal(temporary_game_state, name, piece, move):
     temp_piece.position = base_position
     return illegal_move
 
+
+def is_capture_illegal(temporary_game_state, name, piece, move):
+    """ Checks if capturing is illegal """
+    illegal_capture = False
+
+    if piece.color == 'white':
+        temp_piece = temporary_game_state.white_pieces[name]
+    elif piece.color == 'black':
+        temp_piece = temporary_game_state.black_pieces[name]
+
+    print("Board before capturing")
+    print(temporary_game_state.black_pieces)
+    print(temporary_game_state.white_pieces)
+
+    base_position = temp_piece.position
+    piece_to_capture = temp_piece.capture_piece(move)
+    piece_copy = copy.deepcopy(piece_to_capture)
+
+    # print("PIECE TO CAPTURE:")
+    # print(piece_to_capture)
+    # print(temporary_game_state.black_pieces)
+    piece_name = remove_piece(piece_to_capture, temporary_game_state)
+
+    print("Board after remove_piece:")
+    print(temporary_game_state.black_pieces)
+    print(temporary_game_state.white_pieces)
+
+    if not piece_name == "king":
+        temporary_game_state.init_moves()
+        temporary_game_state.check_king_safety()
+    else:
+        print("GAME OVER?!")
+
+    if ((piece.color == 'white' and temporary_game_state.white_check) or
+            (piece.color == 'black' and temporary_game_state.black_check)):
+        illegal_capture = True
+
+    temp_piece.position = base_position
+    if temp_piece.color == 'white':
+        temporary_game_state.black_pieces[piece_name] = piece_copy
+    elif temp_piece.color == 'black':
+        temporary_game_state.white_pieces[piece_name] = piece_copy
+
+    print(f"{piece} captures {piece_to_capture} with this move {move}")
+    print(f"Captured piece name: {piece_name}")
+
+    print("Board after replacing:")
+    print(temporary_game_state.black_pieces)
+    print(temporary_game_state.white_pieces)
+    return illegal_capture
 
 # def is_move_illegal(temporary_game_state, name, piece, move):
 #
@@ -167,28 +217,18 @@ def check_move(temporary_game_state, name, piece):
     for move in unpack_positions(piece.possible_moves):
         if is_move_illegal(temporary_game_state, name, piece, move):
             piece.illegal_moves.append(move)
-            # if move in piece.capturing_moves:
-            #     piece.capturing_moves.remove(move)
         else:
             piece.valid_moves.append(move)
 
-    # for move in piece.capturing_moves:
-    # remove from capturing mvoes here
-
-    # for move in unpacked_moves + piece.capturing_moves:
-    #     if is_move_illegal(temporary_game_state, name, piece, move):
-    #         piece.illegal_moves.append(move)
-    #         if move in piece.capturing_moves:
-    #             piece.capturing_moves.remove(move)
-    # if move not in piece.illegal_moves:
-    #     piece.illegal_moves.append(move)
-    #     if move in piece.capturing_moves:
-    #         piece.capturing_moves.remove(move)
+    for move in piece.capturing_moves:
+        if is_capture_illegal(temporary_game_state, name, piece, move):
+            piece.capturing_moves.remove(move)
 
 
 def get_valid_moves(game):
     """ Gets valid and illegal moves for each piece on board """
     temporary_game_state = copy.deepcopy(game)
+    temporary_game_state.init_moves()
 
     print("Getting valid moves for white pieces")
     for name, piece in game.white_pieces.items():
@@ -217,7 +257,7 @@ def validate_move_request(move_data, game, room_id):
 
     if new_position in possible_captures:
         piece_to_capture = piece.capture_piece(new_position)
-        g, _ = remove_piece(piece_to_capture, game)
+        _ = remove_piece(piece_to_capture, game)
 
     piece.position = new_position
     game_instance = ChessGame.objects.get(room_id=room_id)
@@ -258,7 +298,7 @@ def remove_piece(piece_to_remove, game):
 
     if piece_to_remove.color == 'black':
         for key, value in game.black_pieces.items():
-            if value == piece_to_remove:
+            if value.position == piece_to_remove.position:
                 piece_name = key
             else:
                 new_pieces_set[key] = value
@@ -266,13 +306,13 @@ def remove_piece(piece_to_remove, game):
 
     elif piece_to_remove.color == 'white':
         for key, value in game.white_pieces.items():
-            if value == piece_to_remove:
+            if value.position == piece_to_remove.position:
                 piece_name = key
             else:
                 new_pieces_set[key] = value
         game.white_pieces = new_pieces_set
 
-    return game, piece_name
+    return piece_name
 
 
 def unpack_positions(moves):
