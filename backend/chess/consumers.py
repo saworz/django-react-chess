@@ -20,7 +20,7 @@ class GameDataHandler:
         game.init_moves()
         return game
 
-    def save_board_state_to_db(self, game):
+    def save_board_state_to_db(self, game, socket_data=None):
         """ Saves board state to database """
         sides = {
             "white": game.white_pieces,
@@ -50,7 +50,7 @@ class GameDataHandler:
 
         if WhitePieces.objects.filter(game_id=game_id).exists() and BlackPieces.objects.filter(
                 game_id=game_id).exists():
-            edit_board_in_db(self.white_board, self.black_board, game_id, current_player)
+            edit_board_in_db(self.white_board, self.black_board, game_id, socket_data)
         else:
             create_board_in_db(self.white_board, self.black_board)
 
@@ -132,7 +132,7 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
 
             updated_game.init_moves()
             updated_game.check_king_safety()
-            self.save_board_state_to_db(updated_game)
+            self.save_board_state_to_db(updated_game, data_json)
             get_valid_moves(updated_game)
             self.save_illegal_moves_to_db(updated_game)
             self.trigger_send_board_state(updated_game, "move")

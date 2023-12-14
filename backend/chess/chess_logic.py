@@ -92,7 +92,7 @@ class GameLoader:
         }
 
         for piece, value in data:
-            if not piece == "id":
+            if not piece == "id" and not isinstance(value, bool):
                 piece_type = value["piece_type"]
                 piece_position = value["position"]
                 piece_color = value["color"]

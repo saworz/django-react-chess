@@ -30,7 +30,7 @@ def create_board_in_db(white_board, black_board):
     black_serializer.save()
 
 
-def edit_board_in_db(white_board, black_board, game_id, current_player=None):
+def edit_board_in_db(white_board, black_board, game_id, socket_data=None):
     """ Edits pieces info in already existing table """
     white_board_instance = WhitePieces.objects.get(game_id=game_id)
     black_board_instance = BlackPieces.objects.get(game_id=game_id)
@@ -38,12 +38,13 @@ def edit_board_in_db(white_board, black_board, game_id, current_player=None):
     existing_white_keys = [field.name for field in WhitePieces._meta.get_fields()]
     existing_black_keys = [field.name for field in BlackPieces._meta.get_fields()]
 
+    keys_to_skip = ['game_id', 'castled', 'rook_1_moved', 'rook_2_moved', 'king_moved']
     for key in existing_white_keys:
-        if key not in white_board and not key == 'id' and not key == 'game_id':
+        if key not in white_board and not key == 'id' and key not in keys_to_skip:
             setattr(white_board_instance, key, None)
 
     for key in existing_black_keys:
-        if key not in black_board and not key == 'id' and not key == 'game_id':
+        if key not in black_board and not key == 'id' and key not in keys_to_skip:
             setattr(black_board_instance, key, None)
 
     for key, value in white_board.items():
@@ -53,6 +54,25 @@ def edit_board_in_db(white_board, black_board, game_id, current_player=None):
     for key, value in black_board.items():
         if not key == 'game_id':
             setattr(black_board_instance, key, value)
+
+    if socket_data:
+        print(socket_data)
+        data_type = socket_data['data_type']
+        piece = socket_data['piece']
+        color = socket_data['color']
+
+        if data_type == 'move' and piece == 'rook_1' and color == 'white':
+            setattr(white_board_instance, 'rook_1_moved', True)
+        elif data_type == 'move' and piece == 'rook_2' and color == 'white':
+            setattr(white_board_instance, 'rook_2_moved', True)
+        elif data_type == 'move' and piece == 'rook_1' and color == 'black':
+            setattr(black_board_instance, 'rook_1_moved', True)
+        elif data_type == 'move' and piece == 'rook_2' and color == 'black':
+            setattr(black_board_instance, 'rook_2_moved', True)
+        elif data_type == 'move' and piece == 'king' and color == 'white':
+            setattr(white_board_instance, 'king_moved', True)
+        elif data_type == 'move' and piece == 'king' and color == 'black':
+            setattr(black_board_instance, 'king_moved', True)
 
     white_board_instance.save()
     black_board_instance.save()
@@ -189,7 +209,7 @@ def read_model_fields(model):
             field_value = getattr(model, field_name)
             deserialized_data = {}
 
-            if field_value:
+            if field_value and not isinstance(field_value, bool):
                 for key, value in field_value.items():
                     if isinstance(value, list):
                         data = deserialize_lists(value)
@@ -198,6 +218,10 @@ def read_model_fields(model):
                     deserialized_data[key] = data
 
                 read_data[field_name] = deserialized_data
+
+            if isinstance(field_value, bool):
+                read_data[field_name] = field_value
+
     return read_data
 
 
