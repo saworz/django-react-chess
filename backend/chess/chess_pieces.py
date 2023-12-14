@@ -56,10 +56,10 @@ class Piece(ABC):
             self.set_enemy_board(white_board)
             self.pieces_blocking()
 
-    def king_defensive_moves(self, white_board, black_board):
-        """ Validates possible moves when king is checked """
-
-        pass
+    # def king_defensive_moves(self, white_board, black_board):
+    #     """ Validates possible moves when king is checked """
+    #
+    #     pass
 
     def boundaries_validator(self):
         """ Validates if possible move is within the board """

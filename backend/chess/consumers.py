@@ -2,7 +2,7 @@ from channels.generic.websocket import WebsocketConsumer
 from .models import ChessGame, WhitePieces, BlackPieces
 from .chess_logic import GameLoader
 from .utils import (edit_board_in_db, create_board_in_db, read_model_fields, validate_move_request, prepare_data,
-                    get_illegal_moves)
+                    get_valid_moves)
 from asgiref.sync import async_to_sync
 import json
 import time
@@ -133,15 +133,14 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
             updated_game.init_moves()
             updated_game.check_king_safety()
             self.save_board_state_to_db(updated_game)
-            get_illegal_moves(updated_game)
+            get_valid_moves(updated_game)
             self.save_illegal_moves_to_db(updated_game)
             self.trigger_send_board_state(updated_game, "move")
         elif data_json['data_type'] == 'init_board':
             initialized_game = self.initialize_board()
             self.save_board_state_to_db(initialized_game)
-            get_illegal_moves(initialized_game)
+            get_valid_moves(initialized_game)
             self.save_illegal_moves_to_db(initialized_game)
-            # read_game = self.read_board_from_db()
             self.trigger_send_board_state(initialized_game, "init")
 
         elif data_json['data_type'] == 'chat_message':
@@ -175,6 +174,11 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
         black_pieces_data = prepare_data(game.black_pieces.items())
         current_player = ChessGame.objects.get(room_id=self.room_id).current_player
 
+        print(f"White check: {game.white_check}\n"
+              f"Black check: {game.black_check}\n"
+              f"White check mate: {game.white_checkmate}\n"
+              f"Black check mate: {game.black_checkmate}")
+
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
@@ -184,9 +188,9 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
                 'black_pieces': black_pieces_data,
 
                 'white_checked': game.white_check,
-                'white_checkmated': False,
+                'white_checkmated': game.white_checkmate,
                 'black_checked': game.black_check,
-                'black_checkmated': False,
+                'black_checkmated': game.black_checkmate,
                 'send_type': send_type,
             }
         )
@@ -200,7 +204,6 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
         }))
 
     def send_board_state(self, event):
-        print(event['white_pieces'])
         """ Sends data about board """
         self.send(text_data=json.dumps({
             'type': event['send_type'],
