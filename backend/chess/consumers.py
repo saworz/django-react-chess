@@ -189,7 +189,12 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
         print(f"White check: {game.white_check}\n"
               f"Black check: {game.black_check}\n"
               f"White check mate: {game.white_checkmate}\n"
-              f"Black check mate: {game.black_checkmate}")
+              f"Black check mate: {game.black_checkmate}\n")
+
+        print(f"White short castle legal: {game.white_short_castle_legal}\n"
+              f"White long castle legal: {game.white_long_castle_legal}\n"
+              f"black short castle legal: {game.black_short_castle_legal}\n"
+              f"black long castle legal: {game.black_long_castle_legal}")
 
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
@@ -203,6 +208,11 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
                 'white_checkmated': game.white_checkmate,
                 'black_checked': game.black_check,
                 'black_checkmated': game.black_checkmate,
+
+                'white_short_castle_legal': game.white_short_castle_legal,
+                'white_long_castle_legal': game.white_long_castle_legal,
+                'black_short_castle_legal': game.black_short_castle_legal,
+                'black_long_castle_legal': game.black_short_castle_legal,
                 'send_type': send_type,
             }
         )
@@ -220,12 +230,19 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
         self.send(text_data=json.dumps({
             'type': event['send_type'],
             'current_player': event['current_player'],
+
             'white_pieces': event['white_pieces'],
             'black_pieces': event['black_pieces'],
+
             'white_checked': event['white_checked'],
             'white_checkmated': event['white_checkmated'],
             'black_checked': event['black_checked'],
-            'black_checkmated': event['black_checkmated']
+            'black_checkmated': event['black_checkmated'],
+
+            'white_short_castle_legal': event['white_short_castle_legal'],
+            'white_long_castle_legal': event['white_long_castle_legal'],
+            'black_short_castle_legal': event['black_short_castle_legal'],
+            'black_long_castle_legal': event['black_long_castle_legal'],
         }))
 
     def send_error(self, event):

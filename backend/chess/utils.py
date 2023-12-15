@@ -146,25 +146,82 @@ def check_move(temporary_game_state, name, piece):
     piece.capturing_moves = capturing_moves_copy
 
 
+def are_castle_fields_free(required_fields, taken_fields):
+    for field in required_fields:
+        if field in taken_fields:
+            return False
+    return True
+
+
+def are_castle_fields_not_attacked(required_fields, enemy_pieces_moves):
+    for field in required_fields:
+        if field in enemy_pieces_moves:
+            return False
+    return True
+
+
+def is_castle_legal(game, taken_fields, white_moves, black_moves):
+    game.white_short_castle_legal = False
+    game.black_short_castle_legal = False
+    game.white_long_castle_legal = False
+    game.black_long_castle_legal = False
+
+    if not game.white_check and not game.white_king_moved:
+        # white short castle
+        required_free_fields = [(6, 1), (7, 1)]
+        if (not game.white_rook_2_moved and are_castle_fields_free(required_free_fields, taken_fields) and
+                are_castle_fields_not_attacked(required_free_fields, black_moves)):
+            game.white_short_castle_legal = True
+        # white long castle
+        required_free_fields = [(2, 1), (3, 1), (4, 1)]
+        if (not game.white_rook_1_moved and are_castle_fields_free(required_free_fields, taken_fields) and
+                are_castle_fields_not_attacked(required_free_fields, black_moves)):
+            game.white_long_castle_legal = True
+    if not game.black_check and not game.black_king_moved:
+        # black short castle
+        required_free_fields = [(6, 8), (7, 8)]
+        if (not game.black_rook_2_moved and are_castle_fields_free(required_free_fields, taken_fields) and
+                are_castle_fields_not_attacked(required_free_fields, white_moves)):
+            game.black_short_castle_legal = True
+        # black long castle
+        required_free_fields = [(2, 8), (3, 8), (4, 8)]
+        if (not game.black_rook_1_moved and are_castle_fields_free(required_free_fields, taken_fields) and
+                are_castle_fields_not_attacked(required_free_fields, white_moves)):
+            game.black_long_castle_legal = True
+
+
 def get_valid_moves(game):
     """ Gets valid and illegal moves for each piece on board """
     temporary_game_state = copy.deepcopy(game)
     temporary_game_state.init_moves()
     amount_of_possible_moves = 0
+    taken_fields = []
+    white_possible_moves = []
+    black_possible_moves = []
+
     for name, piece in game.white_pieces.items():
         check_move(temporary_game_state, name, piece)
         amount_of_possible_moves += (len(piece.valid_moves) + len(piece.capturing_moves))
+        taken_fields.append(piece.position)
+        for move in unpack_positions(piece.possible_moves):
+            white_possible_moves.append(move)
 
     if amount_of_possible_moves == 0:
         game.white_checkmate = True
 
     amount_of_possible_moves = 0
+
     for name, piece in game.black_pieces.items():
         check_move(temporary_game_state, name, piece)
         amount_of_possible_moves += (len(piece.valid_moves) + len(piece.capturing_moves))
+        taken_fields.append(piece.position)
+        for move in unpack_positions(piece.possible_moves):
+            black_possible_moves.append(move)
 
     if amount_of_possible_moves == 0:
         game.black_checkmate = True
+
+    is_castle_legal(game, taken_fields, white_possible_moves, black_possible_moves)
 
 
 def validate_move_request(move_data, game, room_id):
