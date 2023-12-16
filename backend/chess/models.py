@@ -24,6 +24,7 @@ class PiecesSetup(models.Model):
     rook_1_moved = models.BooleanField(default=False, null=True)
     rook_2_moved = models.BooleanField(default=False, null=True)
     king_moved = models.BooleanField(default=False, null=True)
+    en_passant_field = models.JSONField(null=True)
 
     class Meta:
         abstract = True

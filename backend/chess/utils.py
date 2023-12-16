@@ -244,7 +244,16 @@ def validate_move_request(move_data, game, room_id):
         piece_to_capture = piece.capture_piece(new_position)
         _ = remove_piece(piece_to_capture, game)
 
+    if piece.piece_type == 'pawn':
+        if piece.color == 'white' and (new_position[1] - piece.position[1] == 2):
+            game.white_pawn_en_passant_val = True
+            game.white_pawn_en_passant_field = new_position[1] - 1
+        elif piece.color == 'black' and (piece.position[1] - new_position[1] == 2):
+            game.black_pawn_en_passant_val = True
+            game.black_pawn_en_passant_field = new_position[1] + 1
+
     piece.position = new_position
+
     game_instance = ChessGame.objects.get(room_id=room_id)
 
     if game_instance.current_player == 'white':
