@@ -30,7 +30,7 @@ def create_board_in_db(white_board, black_board):
     black_serializer.save()
 
 
-def edit_board_in_db(white_board, black_board, game_id, socket_data=None):
+def edit_board_in_db(white_board, black_board, game_id, game=None, socket_data=None):
     """ Edits pieces info in already existing table """
     white_board_instance = WhitePieces.objects.get(game_id=game_id)
     black_board_instance = BlackPieces.objects.get(game_id=game_id)
@@ -38,7 +38,7 @@ def edit_board_in_db(white_board, black_board, game_id, socket_data=None):
     existing_white_keys = [field.name for field in WhitePieces._meta.get_fields()]
     existing_black_keys = [field.name for field in BlackPieces._meta.get_fields()]
 
-    keys_to_skip = ['game_id', 'castled', 'rook_1_moved', 'rook_2_moved', 'king_moved']
+    keys_to_skip = ['game_id', 'castled', 'rook_1_moved', 'rook_2_moved', 'king_moved', 'en_passant_field']
     for key in existing_white_keys:
         if key not in white_board and not key == 'id' and key not in keys_to_skip:
             setattr(white_board_instance, key, None)
@@ -72,6 +72,22 @@ def edit_board_in_db(white_board, black_board, game_id, socket_data=None):
             setattr(white_board_instance, 'king_moved', True)
         elif data_type == 'move' and piece == 'king' and color == 'black':
             setattr(black_board_instance, 'king_moved', True)
+
+        print('el pass!')
+        print(game.white_pawn_en_passant_val)
+        print(game.white_pawn_en_passant_field)
+        print(game.black_pawn_en_passant_val)
+        print(game.black_pawn_en_passant_field)
+
+        if game.white_pawn_en_passant_val:
+            setattr(white_board_instance, 'en_passant_field', game.white_pawn_en_passant_field)
+            setattr(black_board_instance, 'en_passant_field', None)
+        elif game.black_pawn_en_passant_val:
+            setattr(black_board_instance, 'en_passant_field', game.black_pawn_en_passant_field)
+            setattr(white_board_instance, 'en_passant_field', None)
+        else:
+            setattr(black_board_instance, 'en_passant_field', None)
+            setattr(white_board_instance, 'en_passant_field', None)
 
     white_board_instance.save()
     black_board_instance.save()
@@ -244,13 +260,18 @@ def validate_move_request(move_data, game, room_id):
         piece_to_capture = piece.capture_piece(new_position)
         _ = remove_piece(piece_to_capture, game)
 
+    game.white_pawn_en_passant_val = False
+    game.white_pawn_en_passant_field = ''
+    game.black_pawn_en_passant_val = False
+    game.black_pawn_en_passant_field = ''
+
     if piece.piece_type == 'pawn':
         if piece.color == 'white' and (new_position[1] - piece.position[1] == 2):
             game.white_pawn_en_passant_val = True
-            game.white_pawn_en_passant_field = new_position[1] - 1
+            game.white_pawn_en_passant_field = (new_position[0], new_position[1] - 1)
         elif piece.color == 'black' and (piece.position[1] - new_position[1] == 2):
             game.black_pawn_en_passant_val = True
-            game.black_pawn_en_passant_field = new_position[1] + 1
+            game.black_pawn_en_passant_field = (new_position[0], new_position[1] + 1)
 
     piece.position = new_position
 
@@ -270,7 +291,7 @@ def read_model_fields(model):
     pieces_data = {}
     castle_data = {}
     for field in model._meta.get_fields():
-        if field.concrete and not field.is_relation and not field.name == 'id':
+        if field.concrete and not field.is_relation and not field.name == 'id' and not field.name == 'en_passant_field':
             field_name = field.name
             field_value = getattr(model, field_name)
             deserialized_data = {}

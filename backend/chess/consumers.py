@@ -44,13 +44,12 @@ class GameDataHandler:
 
                 if color == 'white':
                     self.white_board[name] = piece_info
-
                 elif color == 'black':
                     self.black_board[name] = piece_info
 
         if WhitePieces.objects.filter(game_id=game_id).exists() and BlackPieces.objects.filter(
                 game_id=game_id).exists():
-            edit_board_in_db(self.white_board, self.black_board, game_id, socket_data)
+            edit_board_in_db(self.white_board, self.black_board, game_id, game, socket_data)
         else:
             create_board_in_db(self.white_board, self.black_board)
 
