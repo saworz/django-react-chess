@@ -73,12 +73,6 @@ def edit_board_in_db(white_board, black_board, game_id, game=None, socket_data=N
         elif data_type == 'move' and piece == 'king' and color == 'black':
             setattr(black_board_instance, 'king_moved', True)
 
-        print('el pass!')
-        print(game.white_pawn_en_passant_val)
-        print(game.white_pawn_en_passant_field)
-        print(game.black_pawn_en_passant_val)
-        print(game.black_pawn_en_passant_field)
-
         if game.white_pawn_en_passant_val:
             setattr(white_board_instance, 'en_passant_field', game.white_pawn_en_passant_field)
             setattr(black_board_instance, 'en_passant_field', None)
