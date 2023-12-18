@@ -2,7 +2,7 @@ from channels.generic.websocket import WebsocketConsumer
 from .models import ChessGame, WhitePieces, BlackPieces
 from .chess_logic import GameLoader
 from .utils import (edit_board_in_db, create_board_in_db, read_model_fields, validate_move_request, prepare_data,
-                    get_valid_moves)
+                    get_valid_moves, add_en_passant_field)
 from asgiref.sync import async_to_sync
 import json
 import time
@@ -104,11 +104,13 @@ class GameDataHandler:
         white_board = WhitePieces.objects.get(game_id=game_id)
         black_board = BlackPieces.objects.get(game_id=game_id)
 
-        white_pieces_data, white_castle_data = read_model_fields(white_board)
-        black_pieces_data, black_castle_data = read_model_fields(black_board)
+        white_pieces_data, white_castle_data, white_en_passant_field = read_model_fields(white_board)
+        black_pieces_data, black_castle_data, black_en_passant_field = read_model_fields(black_board)
 
         game = self.get_possible_moves(white_pieces_data, black_pieces_data)
         game = self.set_castle_data(game, white_castle_data, black_castle_data)
+        game.white_pawn_en_passant_field = white_en_passant_field
+        game.black_pawn_en_passant_field = black_en_passant_field
         return game
 
 
@@ -144,6 +146,7 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
             updated_game.init_moves()
             updated_game.check_king_safety()
             self.save_board_state_to_db(updated_game, data_json)
+            add_en_passant_field(updated_game)
             get_valid_moves(updated_game)
             self.save_illegal_moves_to_db(updated_game)
             self.trigger_send_board_state(updated_game, "move")

@@ -245,7 +245,15 @@ def validate_move_request(move_data, game, room_id):
     possible_positions = unpack_positions(piece.possible_moves)
     possible_captures = piece.capturing_moves
 
-    if new_position not in possible_positions + possible_captures:
+    en_passant_fields = []
+
+    if game.white_pawn_en_passant_field:
+        en_passant_fields.append(position_to_tuple(game.white_pawn_en_passant_field))
+
+    if game.black_pawn_en_passant_field:
+        en_passant_fields.append(position_to_tuple(game.black_pawn_en_passant_field))
+
+    if new_position not in (possible_positions + possible_captures + en_passant_fields):
         error_message = "Incorrect request"
         error = {'message': error_message}
         return error
@@ -284,10 +292,13 @@ def read_model_fields(model):
     """ Saves model data as dict """
     pieces_data = {}
     castle_data = {}
+    en_passant_field = None
+
     for field in model._meta.get_fields():
+        field_name = field.name
+        field_value = getattr(model, field_name)
+
         if field.concrete and not field.is_relation and not field.name == 'id' and not field.name == 'en_passant_field':
-            field_name = field.name
-            field_value = getattr(model, field_name)
             deserialized_data = {}
 
             if field_value and not isinstance(field_value, bool):
@@ -303,12 +314,46 @@ def read_model_fields(model):
             if isinstance(field_value, bool):
                 castle_data[field_name] = field_value
 
-    return pieces_data, castle_data
+        elif field.concrete and not field.is_relation and field.name == 'en_passant_field':
+            en_passant_field = field_value
+
+    return pieces_data, castle_data, en_passant_field
+
+
+def add_en_passant_field(game):
+    """ Checks if pawn can do en passant move """
+    if game.white_pawn_en_passant_field:
+        for _, piece in game.black_pieces.items():
+            if (piece.piece_type == 'pawn' and
+                ((piece.position[0] == game.white_pawn_en_passant_field[0] + 1) or (piece.position[0] == game.white_pawn_en_passant_field[0] - 1)) and
+                    (piece.position[1] == game.white_pawn_en_passant_field[1] + 1)):
+                piece.capturing_moves.append(game.white_pawn_en_passant_field)
+    elif game.black_pawn_en_passant_field:
+        for _, piece in game.white_pieces.items():
+            if (piece.piece_type == 'pawn' and
+                ((piece.position[0] == game.black_pawn_en_passant_field[0] + 1) or (piece.position[0] == game.black_pawn_en_passant_field[0] - 1)) and
+                    (piece.position[1] == game.black_pawn_en_passant_field[1] - 1)):
+                piece.capturing_moves.append(game.black_pawn_en_passant_field)
 
 
 def remove_piece(piece_to_remove, game):
     """ Removes captures piece """
     new_pieces_set = {}
+    print("REMOVING PIECE")
+
+    if not piece_to_remove:
+        temp_game = copy.deepcopy(game)
+        if game.white_pawn_en_passant_field:
+            piece_to_remove = copy.deepcopy(game.white_pieces['pawn_1'])
+            piece_to_remove.position = game.white_pawn_en_passant_field
+            temp_game.white_pieces['pawn_passant'] = piece_to_remove
+
+        elif game.black_pawn_en_passant_field:
+            piece_to_remove = copy.deepcopy(game.black_pieces['pawn_1'])
+            piece_to_remove.position = game.black_pawn_en_passant_field
+            temp_game.black_pieces['pawn_passant'] = piece_to_remove
+
+        return 'pawn_passant'
 
     if piece_to_remove.color == 'black':
         for key, value in game.black_pieces.items():
@@ -326,6 +371,7 @@ def remove_piece(piece_to_remove, game):
                 new_pieces_set[key] = value
         game.white_pieces = new_pieces_set
 
+    print(game.white_pieces)
     return piece_name
 
 
