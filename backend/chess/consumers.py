@@ -20,7 +20,7 @@ class GameDataHandler:
         game.init_moves()
         return game
 
-    def save_board_state_to_db(self, game):
+    def save_board_state_to_db(self, game, socket_data=None):
         """ Saves board state to database """
         sides = {
             "white": game.white_pieces,
@@ -50,7 +50,7 @@ class GameDataHandler:
 
         if WhitePieces.objects.filter(game_id=game_id).exists() and BlackPieces.objects.filter(
                 game_id=game_id).exists():
-            edit_board_in_db(self.white_board, self.black_board, game_id, current_player)
+            edit_board_in_db(self.white_board, self.black_board, game_id, socket_data)
         else:
             create_board_in_db(self.white_board, self.black_board)
 
@@ -88,16 +88,28 @@ class GameDataHandler:
         game.init_moves()
         return game
 
+    def set_castle_data(self, game, white_castle_data, black_castle_data):
+        game.white_rook_1_moved = white_castle_data['rook_1_moved']
+        game.white_rook_2_moved = white_castle_data['rook_2_moved']
+        game.white_king_moved = white_castle_data['king_moved']
+        game.black_rook_1_moved = black_castle_data['rook_1_moved']
+        game.black_rook_2_moved = black_castle_data['rook_2_moved']
+        game.black_king_moved = black_castle_data['king_moved']
+        game.white_castled = white_castle_data['castled']
+        game.black_castled = black_castle_data['castled']
+        return game
+
     def read_board_from_db(self):
         """ Reads pieces info from database """
         game_id = ChessGame.objects.get(room_id=self.room_id).pk
         white_board = WhitePieces.objects.get(game_id=game_id)
         black_board = BlackPieces.objects.get(game_id=game_id)
 
-        white_pieces_data = read_model_fields(white_board)
-        black_pieces_data = read_model_fields(black_board)
+        white_pieces_data, white_castle_data = read_model_fields(white_board)
+        black_pieces_data, black_castle_data = read_model_fields(black_board)
 
         game = self.get_possible_moves(white_pieces_data, black_pieces_data)
+        game = self.set_castle_data(game, white_castle_data, black_castle_data)
         return game
 
 
@@ -132,7 +144,7 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
 
             updated_game.init_moves()
             updated_game.check_king_safety()
-            self.save_board_state_to_db(updated_game)
+            self.save_board_state_to_db(updated_game, data_json)
             get_valid_moves(updated_game)
             self.save_illegal_moves_to_db(updated_game)
             self.trigger_send_board_state(updated_game, "move")
@@ -177,7 +189,12 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
         print(f"White check: {game.white_check}\n"
               f"Black check: {game.black_check}\n"
               f"White check mate: {game.white_checkmate}\n"
-              f"Black check mate: {game.black_checkmate}")
+              f"Black check mate: {game.black_checkmate}\n")
+
+        print(f"White short castle legal: {game.white_short_castle_legal}\n"
+              f"White long castle legal: {game.white_long_castle_legal}\n"
+              f"black short castle legal: {game.black_short_castle_legal}\n"
+              f"black long castle legal: {game.black_long_castle_legal}")
 
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
@@ -191,6 +208,11 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
                 'white_checkmated': game.white_checkmate,
                 'black_checked': game.black_check,
                 'black_checkmated': game.black_checkmate,
+
+                'white_short_castle_legal': game.white_short_castle_legal,
+                'white_long_castle_legal': game.white_long_castle_legal,
+                'black_short_castle_legal': game.black_short_castle_legal,
+                'black_long_castle_legal': game.black_short_castle_legal,
                 'send_type': send_type,
             }
         )
@@ -208,12 +230,19 @@ class ChessConsumer(WebsocketConsumer, GameDataHandler):
         self.send(text_data=json.dumps({
             'type': event['send_type'],
             'current_player': event['current_player'],
+
             'white_pieces': event['white_pieces'],
             'black_pieces': event['black_pieces'],
+
             'white_checked': event['white_checked'],
             'white_checkmated': event['white_checkmated'],
             'black_checked': event['black_checked'],
-            'black_checkmated': event['black_checkmated']
+            'black_checkmated': event['black_checkmated'],
+
+            'white_short_castle_legal': event['white_short_castle_legal'],
+            'white_long_castle_legal': event['white_long_castle_legal'],
+            'black_short_castle_legal': event['black_short_castle_legal'],
+            'black_long_castle_legal': event['black_long_castle_legal'],
         }))
 
     def send_error(self, event):

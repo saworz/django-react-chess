@@ -20,6 +20,11 @@ class PiecesSetup(models.Model):
     queen = models.JSONField(null=True)
     king = models.JSONField(null=True)
 
+    castled = models.BooleanField(default=False, null=True)
+    rook_1_moved = models.BooleanField(default=False, null=True)
+    rook_2_moved = models.BooleanField(default=False, null=True)
+    king_moved = models.BooleanField(default=False, null=True)
+
     class Meta:
         abstract = True
 

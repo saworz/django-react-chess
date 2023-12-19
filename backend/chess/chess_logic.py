@@ -15,6 +15,19 @@ class GameLoader:
         self.black_check = False
         self.black_checkmate = False
 
+        self.white_rook_1_moved = False
+        self.white_rook_2_moved = False
+        self.white_king_moved = False
+        self.black_rook_1_moved = False
+        self.black_rook_2_moved = False
+        self.black_king_moved = False
+        self.white_castled = False
+        self.black_castled = False
+        self.white_short_castle_legal = False
+        self.white_long_castle_legal = False
+        self.black_short_castle_legal = False
+        self.black_long_castle_legal = False
+
     def get_board_state(self):
         whites_state = {}
         blacks_state = {}
@@ -26,21 +39,18 @@ class GameLoader:
 
         return {"board_state": {"white": whites_state, "black": blacks_state}}
 
+
     def init_moves(self):
         black_board = self.get_board_state().get('board_state').get('black')
         white_board = self.get_board_state().get('board_state').get('white')
 
-        for name, piece in black_board.items():
-            piece.reload_position()
-            piece.move_validator(white_board, black_board)
-            # if self.black_check:
-            #     piece.king_defensive_moves(white_board, black_board)
-
         for name, piece in white_board.items():
             piece.reload_position()
             piece.move_validator(white_board, black_board)
-            # if self.white_check:
-            #     piece.king_defensive_moves(white_board, black_board)
+
+        for name, piece in black_board.items():
+            piece.reload_position()
+            piece.move_validator(white_board, black_board)
 
     def piece_object_loop(self, data, attribute):
         class_mapping = {
@@ -92,7 +102,7 @@ class GameLoader:
         }
 
         for piece, value in data:
-            if not piece == "id":
+            if not piece == "id" and not isinstance(value, bool):
                 piece_type = value["piece_type"]
                 piece_position = value["position"]
                 piece_color = value["color"]

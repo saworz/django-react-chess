@@ -30,7 +30,7 @@ def create_board_in_db(white_board, black_board):
     black_serializer.save()
 
 
-def edit_board_in_db(white_board, black_board, game_id, current_player=None):
+def edit_board_in_db(white_board, black_board, game_id, socket_data=None):
     """ Edits pieces info in already existing table """
     white_board_instance = WhitePieces.objects.get(game_id=game_id)
     black_board_instance = BlackPieces.objects.get(game_id=game_id)
@@ -38,12 +38,13 @@ def edit_board_in_db(white_board, black_board, game_id, current_player=None):
     existing_white_keys = [field.name for field in WhitePieces._meta.get_fields()]
     existing_black_keys = [field.name for field in BlackPieces._meta.get_fields()]
 
+    keys_to_skip = ['game_id', 'castled', 'rook_1_moved', 'rook_2_moved', 'king_moved']
     for key in existing_white_keys:
-        if key not in white_board and not key == 'id' and not key == 'game_id':
+        if key not in white_board and not key == 'id' and key not in keys_to_skip:
             setattr(white_board_instance, key, None)
 
     for key in existing_black_keys:
-        if key not in black_board and not key == 'id' and not key == 'game_id':
+        if key not in black_board and not key == 'id' and key not in keys_to_skip:
             setattr(black_board_instance, key, None)
 
     for key, value in white_board.items():
@@ -53,6 +54,24 @@ def edit_board_in_db(white_board, black_board, game_id, current_player=None):
     for key, value in black_board.items():
         if not key == 'game_id':
             setattr(black_board_instance, key, value)
+
+    if socket_data:
+        data_type = socket_data['data_type']
+        piece = socket_data['piece']
+        color = socket_data['color']
+
+        if data_type == 'move' and piece == 'rook_1' and color == 'white':
+            setattr(white_board_instance, 'rook_1_moved', True)
+        elif data_type == 'move' and piece == 'rook_2' and color == 'white':
+            setattr(white_board_instance, 'rook_2_moved', True)
+        elif data_type == 'move' and piece == 'rook_1' and color == 'black':
+            setattr(black_board_instance, 'rook_1_moved', True)
+        elif data_type == 'move' and piece == 'rook_2' and color == 'black':
+            setattr(black_board_instance, 'rook_2_moved', True)
+        elif data_type == 'move' and piece == 'king' and color == 'white':
+            setattr(white_board_instance, 'king_moved', True)
+        elif data_type == 'move' and piece == 'king' and color == 'black':
+            setattr(black_board_instance, 'king_moved', True)
 
     white_board_instance.save()
     black_board_instance.save()
@@ -127,25 +146,82 @@ def check_move(temporary_game_state, name, piece):
     piece.capturing_moves = capturing_moves_copy
 
 
+def are_castle_fields_free(required_fields, taken_fields):
+    for field in required_fields:
+        if field in taken_fields:
+            return False
+    return True
+
+
+def are_castle_fields_not_attacked(required_fields, enemy_pieces_moves):
+    for field in required_fields:
+        if field in enemy_pieces_moves:
+            return False
+    return True
+
+
+def is_castle_legal(game, taken_fields, white_moves, black_moves):
+    game.white_short_castle_legal = False
+    game.black_short_castle_legal = False
+    game.white_long_castle_legal = False
+    game.black_long_castle_legal = False
+
+    if not game.white_check and not game.white_king_moved:
+        # white short castle
+        required_free_fields = [(6, 1), (7, 1)]
+        if (not game.white_rook_2_moved and are_castle_fields_free(required_free_fields, taken_fields) and
+                are_castle_fields_not_attacked(required_free_fields, black_moves)):
+            game.white_short_castle_legal = True
+        # white long castle
+        required_free_fields = [(2, 1), (3, 1), (4, 1)]
+        if (not game.white_rook_1_moved and are_castle_fields_free(required_free_fields, taken_fields) and
+                are_castle_fields_not_attacked(required_free_fields, black_moves)):
+            game.white_long_castle_legal = True
+    if not game.black_check and not game.black_king_moved:
+        # black short castle
+        required_free_fields = [(6, 8), (7, 8)]
+        if (not game.black_rook_2_moved and are_castle_fields_free(required_free_fields, taken_fields) and
+                are_castle_fields_not_attacked(required_free_fields, white_moves)):
+            game.black_short_castle_legal = True
+        # black long castle
+        required_free_fields = [(2, 8), (3, 8), (4, 8)]
+        if (not game.black_rook_1_moved and are_castle_fields_free(required_free_fields, taken_fields) and
+                are_castle_fields_not_attacked(required_free_fields, white_moves)):
+            game.black_long_castle_legal = True
+
+
 def get_valid_moves(game):
     """ Gets valid and illegal moves for each piece on board """
     temporary_game_state = copy.deepcopy(game)
     temporary_game_state.init_moves()
     amount_of_possible_moves = 0
+    taken_fields = []
+    white_possible_moves = []
+    black_possible_moves = []
+
     for name, piece in game.white_pieces.items():
         check_move(temporary_game_state, name, piece)
         amount_of_possible_moves += (len(piece.valid_moves) + len(piece.capturing_moves))
+        taken_fields.append(piece.position)
+        for move in unpack_positions(piece.possible_moves):
+            white_possible_moves.append(move)
 
     if amount_of_possible_moves == 0:
         game.white_checkmate = True
 
     amount_of_possible_moves = 0
+
     for name, piece in game.black_pieces.items():
         check_move(temporary_game_state, name, piece)
         amount_of_possible_moves += (len(piece.valid_moves) + len(piece.capturing_moves))
+        taken_fields.append(piece.position)
+        for move in unpack_positions(piece.possible_moves):
+            black_possible_moves.append(move)
 
     if amount_of_possible_moves == 0:
         game.black_checkmate = True
+
+    is_castle_legal(game, taken_fields, white_possible_moves, black_possible_moves)
 
 
 def validate_move_request(move_data, game, room_id):
@@ -182,14 +258,15 @@ def validate_move_request(move_data, game, room_id):
 
 def read_model_fields(model):
     """ Saves model data as dict """
-    read_data = {}
+    pieces_data = {}
+    castle_data = {}
     for field in model._meta.get_fields():
         if field.concrete and not field.is_relation and not field.name == 'id':
             field_name = field.name
             field_value = getattr(model, field_name)
             deserialized_data = {}
 
-            if field_value:
+            if field_value and not isinstance(field_value, bool):
                 for key, value in field_value.items():
                     if isinstance(value, list):
                         data = deserialize_lists(value)
@@ -197,8 +274,12 @@ def read_model_fields(model):
                         data = value
                     deserialized_data[key] = data
 
-                read_data[field_name] = deserialized_data
-    return read_data
+                pieces_data[field_name] = deserialized_data
+
+            if isinstance(field_value, bool):
+                castle_data[field_name] = field_value
+
+    return pieces_data, castle_data
 
 
 def remove_piece(piece_to_remove, game):
