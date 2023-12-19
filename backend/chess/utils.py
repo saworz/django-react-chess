@@ -262,6 +262,27 @@ def validate_move_request(move_data, game, room_id):
         piece_to_capture = piece.capture_piece(new_position)
         _ = remove_piece(piece_to_capture, game)
 
+    if new_position in en_passant_fields:
+        if piece.color == "white":
+            for name, figure in game.black_pieces.items():
+                black_en_pas = position_to_tuple(game.black_pawn_en_passant_field)
+                real_position = (black_en_pas[0], black_en_pas[1] - 1)
+
+                if figure.piece_type == "pawn" and figure.position == real_position:
+                    piece_to_capture = figure
+
+        elif piece.color == 'black':
+            for name, figure in game.white_pieces.items():
+                white_en_pas = position_to_tuple(game.white_pawn_en_passant_field)
+                real_position = (white_en_pas[0], white_en_pas[1] + 1)
+
+                if figure.piece_type == "pawn" and figure.position == real_position:
+                    piece_to_capture = figure
+
+        print("IM HERE")
+        print(piece_to_capture)
+        _ = remove_piece(piece_to_capture, game)
+        print(_)
     game.white_pawn_en_passant_val = False
     game.white_pawn_en_passant_field = ''
     game.black_pawn_en_passant_val = False
@@ -339,7 +360,6 @@ def add_en_passant_field(game):
 def remove_piece(piece_to_remove, game):
     """ Removes captures piece """
     new_pieces_set = {}
-    print("REMOVING PIECE")
 
     if not piece_to_remove:
         temp_game = copy.deepcopy(game)
