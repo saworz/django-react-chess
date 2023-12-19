@@ -28,6 +28,11 @@ class GameLoader:
         self.black_short_castle_legal = False
         self.black_long_castle_legal = False
 
+        self.white_pawn_en_passant_val = False
+        self.white_pawn_en_passant_field = ''
+        self.black_pawn_en_passant_val = False
+        self.black_pawn_en_passant_field = ''
+
     def get_board_state(self):
         whites_state = {}
         blacks_state = {}
