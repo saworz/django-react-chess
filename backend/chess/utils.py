@@ -218,6 +218,7 @@ def get_valid_moves(game):
 
     if amount_of_possible_moves == 0:
         game.white_checkmate = True
+        game.white_check = False
 
     amount_of_possible_moves = 0
 
@@ -230,6 +231,7 @@ def get_valid_moves(game):
 
     if amount_of_possible_moves == 0:
         game.black_checkmate = True
+        game.black_check = False
 
     is_castle_legal(game, taken_fields, white_possible_moves, black_possible_moves)
 
