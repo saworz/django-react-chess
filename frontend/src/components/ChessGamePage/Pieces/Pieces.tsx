@@ -10,11 +10,13 @@ import {
   updateBoard,
   updatePosition,
 } from "../../../features/chess/chessSlice";
+import { Status } from "../../../constants";
 
 const Pieces = ({ webSocket }: Types.IProps) => {
   const dispatch: AppDispatch = useDispatch();
   const { chess } = useSelector((state: RootState) => state.chess);
   const { candidateMoves } = chess;
+  const isGameEnded = chess.gameStatus === Status.ongoing ? false : true;
 
   useEffect(() => {
     dispatch(updateBoard(Functions.placeOnTheBoard(chess.piecesPosition)));
@@ -77,7 +79,11 @@ const Pieces = ({ webSocket }: Types.IProps) => {
   };
 
   return (
-    <Styles.Pieces ref={ref} onDrop={onDrop} onDragOver={onDragOver}>
+    <Styles.Pieces
+      ref={ref}
+      onDrop={!isGameEnded ? onDrop : null}
+      onDragOver={onDragOver}
+    >
       {chess.chessBoard.map((r, rank) =>
         r.map((f, file) =>
           chess.chessBoard[rank][file] ? (

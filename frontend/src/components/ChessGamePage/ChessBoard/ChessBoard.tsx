@@ -5,14 +5,33 @@ import * as Styles from "./ChessBoard.styles";
 import * as Types from "./ChessBoard.types";
 import { getKingPosition } from "../../../arbiter/getMoves";
 import { Box, useColorModeValue } from "@chakra-ui/react";
-import { useSelector } from "react-redux";
-import { RootState } from "../../../app/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../../app/store";
 import SoundPlayer from "../SoundPlayer";
+import GameEndsPopup from "../GameEndsPopup";
+import { endGameByWin } from "../../../features/chess/chessSlice";
+import { openPopup } from "../../../features/popup/popupSlice";
+import { useEffect } from "react";
 
 const ChessBoard = ({ webSocket }: Types.IProps) => {
   const { chess } = useSelector((state: RootState) => state.chess);
+  const { popup } = useSelector((state: RootState) => state.popup);
+
+  const dispatch: AppDispatch = useDispatch();
   const { candidateMoves, chessBoard } = chess;
+  const checkedPlayer = chess.current_player[0];
   let soundComponent = null;
+
+  useEffect(() => {
+    if (chess.black_checkmated || chess.white_checkmated) {
+      soundComponent = (
+        <SoundPlayer src="/sounds/game-end.mp3" format="mp3" autoplay={false} />
+      );
+      //TODO - FIX
+      dispatch(endGameByWin(checkedPlayer));
+      dispatch(openPopup());
+    }
+  }, [chess]);
 
   const ranks = Array(8)
     .fill("")
@@ -90,6 +109,7 @@ const ChessBoard = ({ webSocket }: Types.IProps) => {
             )}
           </Styles.Tiles>
           <Pieces webSocket={webSocket} />
+          {popup.isOpen && <GameEndsPopup />}
           <Files files={files} />
         </Styles.BoardContainer>
       </Box>

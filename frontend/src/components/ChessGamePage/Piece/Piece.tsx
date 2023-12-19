@@ -7,17 +7,18 @@ import {
   setSelectedPiece,
 } from "../../../features/chess/chessSlice";
 import * as SharedTypes from "../../../shared/types";
+import { Status } from "../../../constants";
 
 const Piece = ({ file, piece, rank }: Types.IProps) => {
   const { chess } = useSelector((state: RootState) => state.chess);
   const dispatch: AppDispatch = useDispatch();
   const { current_player, copyPiecesPosition } = chess;
+  const isGameEnded = chess.gameStatus === Status.ongoing ? false : true;
   let selectedPiece: SharedTypes.IBlackPiece | SharedTypes.IWhitePiece | null =
     null;
 
   const onDragStart = (e: Types.DragEvent) => {
     const pieceColor = piece[0];
-
     const target = e.target as HTMLDivElement;
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", `${piece},${rank},${file}`);
@@ -58,9 +59,9 @@ const Piece = ({ file, piece, rank }: Types.IProps) => {
       $piece={piece}
       $file={file}
       $rank={rank}
-      draggable={true}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
+      draggable={!isGameEnded}
+      onDragStart={!isGameEnded ? onDragStart : null}
+      onDragEnd={!isGameEnded ? onDragEnd : null}
       className={`${piece} position: ${file}${rank}`}
     />
   );

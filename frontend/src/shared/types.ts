@@ -40,11 +40,18 @@ export interface IChessState {
     black_checkmated: boolean;
     white_checked: boolean;
     white_checkmated: boolean;
+    gameStatus: string;
   };
   isError: boolean;
   isSuccess: boolean;
   isLoading: boolean;
   message: string;
+}
+
+export interface IPopupState {
+  popup: {
+    isOpen: boolean;
+  };
 }
 
 export interface IPiece {
