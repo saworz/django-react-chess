@@ -1,6 +1,5 @@
 from .chess_pieces import PiecePawn, PieceRook, PieceBishop, PieceKnight, PieceKing, PieceQueen
-from .models import WhitePieces, BlackPieces, ChessGame
-from .utils import unpack_positions
+from .models import ChessGame
 
 
 class GameLoader:

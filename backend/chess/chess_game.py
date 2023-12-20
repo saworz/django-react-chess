@@ -1,11 +1,10 @@
 import copy
-
-from .models import ChessGame, WhitePieces, BlackPieces
 from .chess_logic import GameLoader
-from .utils import position_to_tuple, unpack_positions, remove_piece
+from .utils import position_to_tuple, unpack_positions
 
 
 class GameHandler:
+    """ Handles game events (moving, capturing, promoting etc.) and stores game data """
     def __init__(self, room_id):
         self.room_id = room_id
         self.game = None
@@ -17,6 +16,7 @@ class GameHandler:
         self.game.init_moves()
 
     def set_castle_data(self, white_castle_data, black_castle_data):
+        """ Sets data for castling """
         self.game.white_rook_1_moved = white_castle_data['rook_1_moved']
         self.game.white_rook_2_moved = white_castle_data['rook_2_moved']
         self.game.white_king_moved = white_castle_data['king_moved']
@@ -40,6 +40,7 @@ class GameHandler:
         self.game.black_pawn_en_passant_field = db_game_state['black_en_passant_field']
 
     def check_en_passant_field(self, piece):
+        """ Checks whether en_passant_field is legal """
         if piece.color == "white":
             for name, figure in self.game.black_pieces.items():
                 black_en_pas = position_to_tuple(self.game.black_pawn_en_passant_field)
@@ -56,9 +57,10 @@ class GameHandler:
                 if figure.piece_type == "pawn" and figure.position == real_position:
                     piece_to_capture = figure
 
-        _ = remove_piece(piece_to_capture, self.game)
+        _ = self.remove_piece(piece_to_capture, self.game)
 
     def get_en_passant_field(self):
+        """ Gets field for possible en_passant move """
         en_passant_field = []
 
         if self.game.white_pawn_en_passant_field:
@@ -68,13 +70,8 @@ class GameHandler:
 
         return en_passant_field
 
-    def reset_en_passant_fields(self):
-        self.game.white_pawn_en_passant_val = False
-        self.game.white_pawn_en_passant_field = ''
-        self.game.black_pawn_en_passant_val = False
-        self.game.black_pawn_en_passant_field = ''
-
     def set_en_passant_field(self, piece, new_position):
+        """ Sets en passant field coords """
         if piece.color == 'white' and (new_position[1] - piece.position[1] == 2):
             self.game.white_pawn_en_passant_val = True
             self.game.white_pawn_en_passant_field = (new_position[0], new_position[1] - 1)
@@ -103,12 +100,10 @@ class GameHandler:
 
         if new_position in possible_captures:
             piece_to_capture = piece.capture_piece(new_position)
-            _ = remove_piece(piece_to_capture, self.game)
+            _ = self.remove_piece(piece_to_capture, self.game)
 
         if new_position == en_passant_field:
             self.check_en_passant_field(piece)
-
-        self.reset_en_passant_fields()
 
         if piece.piece_type == 'pawn':
             self.set_en_passant_field(piece, new_position)
@@ -132,6 +127,42 @@ class GameHandler:
                         (piece.position[1] == self.game.black_pawn_en_passant_field[1] - 1)):
                     piece.capturing_moves.append(self.game.black_pawn_en_passant_field)
 
+    def remove_piece(self, piece_to_remove, game):
+        """ Removes piece from the board """
+        new_pieces_set = {}
+
+        if not piece_to_remove:
+            temp_game = copy.deepcopy(game)
+            if game.white_pawn_en_passant_field:
+                piece_to_remove = copy.deepcopy(game.white_pieces['pawn_1'])
+                piece_to_remove.position = game.white_pawn_en_passant_field
+                temp_game.white_pieces['pawn_passant'] = piece_to_remove
+
+            elif game.black_pawn_en_passant_field:
+                piece_to_remove = copy.deepcopy(game.black_pieces['pawn_1'])
+                piece_to_remove.position = game.black_pawn_en_passant_field
+                temp_game.black_pieces['pawn_passant'] = piece_to_remove
+
+            return 'pawn_passant'
+
+        if piece_to_remove.color == 'black':
+            for key, value in game.black_pieces.items():
+                if value.position == piece_to_remove.position:
+                    piece_name = key
+                else:
+                    new_pieces_set[key] = value
+            game.black_pieces = new_pieces_set
+
+        elif piece_to_remove.color == 'white':
+            for key, value in game.white_pieces.items():
+                if value.position == piece_to_remove.position:
+                    piece_name = key
+                else:
+                    new_pieces_set[key] = value
+            game.white_pieces = new_pieces_set
+
+        return piece_name
+
     def is_capture_illegal(self, temporary_game_state, name, piece, move):
         """ Checks if capturing is illegal """
         illegal_capture = False
@@ -143,7 +174,7 @@ class GameHandler:
             temp_piece = temporary_game_state.black_pieces[name]
 
         piece_to_capture = temp_piece.capture_piece(move)
-        piece_name = remove_piece(piece_to_capture, temporary_game_state)
+        piece_name = self.remove_piece(piece_to_capture, temporary_game_state)
         temp_piece.position = move
 
         if not piece_name == 'king':
@@ -182,7 +213,6 @@ class GameHandler:
 
     def check_move(self, temporary_game_state, name, piece):
         """ Checks if move is illegal """
-
         for move in unpack_positions(piece.possible_moves):
             if self.is_move_illegal(temporary_game_state, name, piece, move):
                 piece.illegal_moves.append(move)
@@ -199,6 +229,7 @@ class GameHandler:
         piece.capturing_moves = capturing_moves_copy
 
     def get_possible_moves(self, temporary_game_state, color):
+        """ Gets possible moves for each piece in the game """
         possible_moves = []
         taken_fields = []
         number_of_moves = 0
@@ -236,11 +267,7 @@ class GameHandler:
         self.is_castle_legal(taken_fields, white_possible_moves, black_possible_moves)
 
     def is_castle_legal(self, taken_fields, white_moves, black_moves):
-        self.game.white_short_castle_legal = False
-        self.game.black_short_castle_legal = False
-        self.game.white_long_castle_legal = False
-        self.game.black_long_castle_legal = False
-
+        """ Checks whether castling is legal """
         if not self.game.white_check and not self.game.white_king_moved:
             self.check_white_short_castle(taken_fields, black_moves)
             self.check_white_long_castle(taken_fields, black_moves)
@@ -255,42 +282,49 @@ class GameHandler:
         print(self.game.black_short_castle_legal, self.game.black_long_castle_legal)
 
     def check_white_short_castle(self, taken_fields, enemy_moves):
+        """ Checks short castle for white player """
         required_free_fields = [(6, 1), (7, 1)]
         if (not self.game.white_rook_2_moved and self.are_castle_fields_free(required_free_fields, taken_fields) and
                 self.are_castle_fields_not_attacked(required_free_fields, enemy_moves)):
             self.game.white_short_castle_legal = True
 
     def check_white_long_castle(self, taken_fields, enemy_moves):
+        """ Checks long castle for white player """
         required_free_fields = [(2, 1), (3, 1), (4, 1)]
         if (not self.game.white_rook_1_moved and self.are_castle_fields_free(required_free_fields, taken_fields) and
                 self.are_castle_fields_not_attacked(required_free_fields, enemy_moves)):
             self.game.white_long_castle_legal = True
 
     def check_black_short_castle(self, taken_fields, enemy_moves):
+        """ Checks short castle for black player """
         required_free_fields = [(6, 8), (7, 8)]
         if (not self.game.black_rook_2_moved and self.are_castle_fields_free(required_free_fields, taken_fields) and
                 self.are_castle_fields_not_attacked(required_free_fields, enemy_moves)):
             self.game.black_short_castle_legal = True
 
     def check_black_long_castle(self, taken_fields, enemy_moves):
+        """ Checks long castle for black player """
         required_free_fields = [(2, 8), (3, 8), (4, 8)]
         if (not self.game.black_rook_1_moved and self.are_castle_fields_free(required_free_fields, taken_fields) and
                 self.are_castle_fields_not_attacked(required_free_fields, enemy_moves)):
             self.game.black_long_castle_legal = True
 
     def are_castle_fields_free(self, required_fields, taken_fields):
+        """ Verifies if all fields between rook and king are free """
         for field in required_fields:
             if field in taken_fields:
                 return False
         return True
 
     def are_castle_fields_not_attacked(self, required_fields, enemy_pieces_moves):
+        """ Verifies if all fields between rook and king are not attacked """
         for field in required_fields:
             if field in enemy_pieces_moves:
                 return False
         return True
 
     def recalculate_moves(self):
+        """ Executes methods required to calculate new possible moves for each piece """
         self.game.init_moves()
         self.game.check_kings_safety()
         self.add_en_passant_field()

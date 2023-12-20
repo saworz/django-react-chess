@@ -1,16 +1,10 @@
-from .chess_game import GameHandler
-from channels.generic.websocket import WebsocketConsumer
 from .models import ChessGame, WhitePieces, BlackPieces
-from .chess_logic import GameLoader
 from .serializers import BlackBoardSerializer, WhiteBoardSerializer
-from .utils import (deserialize_lists, prepare_data,
-                    )
-from asgiref.sync import async_to_sync
-import json
+from .utils import deserialize_lists
 
 
 class DatabaseHandler:
-
+    """ Handles connection with database and saving/reading game state """
     def __init__(self, room_id):
         self.room_id = room_id
         self.game_instance = ChessGame.objects.get(room_id=self.room_id)
@@ -52,33 +46,33 @@ class DatabaseHandler:
         else:
             self.create_board_in_db(self.white_board, self.black_board)
 
-
     def get_piece_info(self, piece, db_data):
+        """ Unpacks data about piece from database """
         piece_info = db_data
         piece_info['illegal_moves'] = piece.illegal_moves
         piece_info['valid_moves'] = piece.valid_moves
         return piece_info
 
-    def save_illegal_moves_to_db(self, game):
-        white_pieces_dict = {field_name: value for field_name, value in
-                             self.white_board.items() if field_name != "game_id"}
-        black_pieces_dict = {field_name: value for field_name, value in
-                             self.black_board.items() if field_name != "game_id"}
-
-        new_white_board_data = {}
-        new_black_board_data = {}
-
-        for (db_field, db_data), (piece_name, piece) in zip(white_pieces_dict.items(), game.white_pieces.items()):
-            new_white_board_data[db_field] = self.get_piece_info(piece, db_data)
-
-        for (db_field, db_data), (piece_name, piece) in zip(black_pieces_dict.items(), game.black_pieces.items()):
-            new_black_board_data[db_field] = self.get_piece_info(piece, db_data)
-
-        game_id = ChessGame.objects.get(room_id=self.room_id).pk
-        new_white_board_data['game_id'] = game_id
-        new_black_board_data['game_id'] = game_id
-
-        self.edit_board_in_db(new_white_board_data, new_black_board_data, game_id)
+    # def save_illegal_moves_to_db(self, game):
+    #     white_pieces_dict = {field_name: value for field_name, value in
+    #                          self.white_board.items() if field_name != "game_id"}
+    #     black_pieces_dict = {field_name: value for field_name, value in
+    #                          self.black_board.items() if field_name != "game_id"}
+    #
+    #     new_white_board_data = {}
+    #     new_black_board_data = {}
+    #
+    #     for (db_field, db_data), (piece_name, piece) in zip(white_pieces_dict.items(), game.white_pieces.items()):
+    #         new_white_board_data[db_field] = self.get_piece_info(piece, db_data)
+    #
+    #     for (db_field, db_data), (piece_name, piece) in zip(black_pieces_dict.items(), game.black_pieces.items()):
+    #         new_black_board_data[db_field] = self.get_piece_info(piece, db_data)
+    #
+    #     game_id = ChessGame.objects.get(room_id=self.room_id).pk
+    #     new_white_board_data['game_id'] = game_id
+    #     new_black_board_data['game_id'] = game_id
+    #
+    #     self.edit_board_in_db(new_white_board_data, new_black_board_data, game_id)
 
     def read_board_from_db(self):
         """ Reads pieces info from database """
@@ -196,6 +190,7 @@ class DatabaseHandler:
         return pieces_data, castle_data, en_passant_field
 
     def update_player_turn(self):
+        """ Change active player """
         if self.game_instance.current_player == 'white':
             self.game_instance.current_player = 'black'
         else:

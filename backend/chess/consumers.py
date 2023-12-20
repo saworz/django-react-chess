@@ -1,12 +1,10 @@
 from channels.generic.websocket import WebsocketConsumer
-from .models import ChessGame, WhitePieces, BlackPieces
-from .chess_logic import GameLoader
+from .models import ChessGame
 from .chess_game import GameHandler
 from .chess_db import DatabaseHandler
 from .utils import (prepare_data)
 from asgiref.sync import async_to_sync
 import json
-import time
 
 
 class ChessConsumer(WebsocketConsumer):
@@ -42,16 +40,14 @@ class ChessConsumer(WebsocketConsumer):
             database.update_player_turn()
             game.recalculate_moves()
             database.save_board_state_to_db(game, data_json)
-            # game.add_en_passant_field()
-            # game.get_valid_moves()
             # self.save_illegal_moves_to_db(updated_game)
-            self.trigger_send_board_state(game.game, "move")
+            self.trigger_send_board_state(game, "move")
         elif data_json['data_type'] == 'init_board':
             game.initialize_board()
             database.save_board_state_to_db(game)
             game.get_valid_moves()
             # self.save_illegal_moves_to_db(initialized_game)
-            self.trigger_send_board_state(game.game, "init")
+            self.trigger_send_board_state(game, "init")
 
         elif data_json['data_type'] == 'chat_message':
             self.trigger_send_message(data_json['message'])
@@ -78,8 +74,9 @@ class ChessConsumer(WebsocketConsumer):
             }
         )
 
-    def trigger_send_board_state(self, game, send_type):
+    def trigger_send_board_state(self, game_instance, send_type):
         """ Triggers send_board_state with chess pieces data """
+        game = game_instance.game
         white_pieces_data = prepare_data(game.white_pieces.items())
         black_pieces_data = prepare_data(game.black_pieces.items())
         current_player = ChessGame.objects.get(room_id=self.room_id).current_player

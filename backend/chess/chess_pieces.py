@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from .utils import unpack_positions
 
 
 class Piece(ABC):
+    """ Parent class for all chess pieces """
     def __init__(self, base_position, position, color):
         self.piece_type = ''
         self.position = position
@@ -55,11 +55,6 @@ class Piece(ABC):
             self.set_friendly_board(black_board)
             self.set_enemy_board(white_board)
             self.pieces_blocking()
-
-    # def king_defensive_moves(self, white_board, black_board):
-    #     """ Validates possible moves when king is checked """
-    #
-    #     pass
 
     def boundaries_validator(self):
         """ Validates if possible move is within the board """
@@ -128,6 +123,7 @@ class Piece(ABC):
 
 
 class RookMoves(Piece):
+    """ Parent class for Rook so moves can be inherited by Queen """
     def movement(self):
         """ Move scheme
          Used also for queen"""
@@ -142,6 +138,7 @@ class RookMoves(Piece):
 
 
 class BishopMoves(Piece):
+    """ Parent class for Bishop so moves can be inherited by Queen """
     def movement(self):
         """ Move scheme
          Used also for queen"""
@@ -156,6 +153,7 @@ class BishopMoves(Piece):
 
 
 class PiecePawn(Piece):
+    """ Represents Pawn piece """
     def __init__(self, base_position, position, color):
         super().__init__(base_position, position, color)
         self.weight = 1
@@ -173,6 +171,7 @@ class PiecePawn(Piece):
 
 
 class PieceRook(RookMoves):
+    """ Represents Rook piece """
     def __init__(self, base_position, position, color):
         super().__init__(base_position, position, color)
         self.weight = 5
@@ -180,6 +179,7 @@ class PieceRook(RookMoves):
 
 
 class PieceBishop(BishopMoves):
+    """ Represents Bishop piece """
     def __init__(self, base_position,  position, color):
         super().__init__(base_position, position, color)
         self.weight = 3
@@ -187,6 +187,7 @@ class PieceBishop(BishopMoves):
 
 
 class PieceKnight(Piece):
+    """ Represents Knight piece """
     def __init__(self, base_position,  position, color):
         super().__init__(base_position, position, color)
         self.weight = 3
@@ -204,6 +205,7 @@ class PieceKnight(Piece):
 
 
 class PieceQueen(Piece):
+    """ Represents Queen piece """
     def __init__(self,base_position,  position, color):
         super().__init__(base_position, position, color)
         self.weight = 9
@@ -219,6 +221,7 @@ class PieceQueen(Piece):
 
 
 class PieceKing(Piece):
+    """ Represents King piece """
     def __init__(self,base_position,  position, color):
         super().__init__(base_position, position, color)
         self.weight = 0
