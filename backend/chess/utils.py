@@ -130,59 +130,6 @@ def is_castle_legal(game, taken_fields, white_moves, black_moves):
                 are_castle_fields_not_attacked(required_free_fields, white_moves)):
             game.black_long_castle_legal = True
 
-
-def get_valid_moves(game):
-    """ Gets valid and illegal moves for each piece on board """
-    temporary_game_state = copy.deepcopy(game)
-    temporary_game_state.init_moves()
-    amount_of_possible_moves = 0
-    taken_fields = []
-    white_possible_moves = []
-    black_possible_moves = []
-
-    for name, piece in game.white_pieces.items():
-        check_move(temporary_game_state, name, piece)
-        amount_of_possible_moves += (len(piece.valid_moves) + len(piece.capturing_moves))
-        taken_fields.append(piece.position)
-        for move in unpack_positions(piece.possible_moves):
-            white_possible_moves.append(move)
-
-    if amount_of_possible_moves == 0:
-        game.white_checkmate = True
-        game.white_check = False
-
-    amount_of_possible_moves = 0
-
-    for name, piece in game.black_pieces.items():
-        check_move(temporary_game_state, name, piece)
-        amount_of_possible_moves += (len(piece.valid_moves) + len(piece.capturing_moves))
-        taken_fields.append(piece.position)
-        for move in unpack_positions(piece.possible_moves):
-            black_possible_moves.append(move)
-
-    if amount_of_possible_moves == 0:
-        game.black_checkmate = True
-        game.black_check = False
-
-    is_castle_legal(game, taken_fields, white_possible_moves, black_possible_moves)
-
-
-def add_en_passant_field(game):
-    """ Checks if pawn can do en passant move """
-    if game.white_pawn_en_passant_field:
-        for _, piece in game.black_pieces.items():
-            if (piece.piece_type == 'pawn' and
-                ((piece.position[0] == game.white_pawn_en_passant_field[0] + 1) or (piece.position[0] == game.white_pawn_en_passant_field[0] - 1)) and
-                    (piece.position[1] == game.white_pawn_en_passant_field[1] + 1)):
-                piece.capturing_moves.append(game.white_pawn_en_passant_field)
-    elif game.black_pawn_en_passant_field:
-        for _, piece in game.white_pieces.items():
-            if (piece.piece_type == 'pawn' and
-                ((piece.position[0] == game.black_pawn_en_passant_field[0] + 1) or (piece.position[0] == game.black_pawn_en_passant_field[0] - 1)) and
-                    (piece.position[1] == game.black_pawn_en_passant_field[1] - 1)):
-                piece.capturing_moves.append(game.black_pawn_en_passant_field)
-
-
 def remove_piece(piece_to_remove, game):
     """ Removes captures piece """
     new_pieces_set = {}

@@ -3,8 +3,7 @@ from .models import ChessGame, WhitePieces, BlackPieces
 from .chess_logic import GameLoader
 from .chess_game import GameHandler
 from .chess_db import DatabaseHandler
-from .utils import (prepare_data,
-                    get_valid_moves, add_en_passant_field)
+from .utils import (prepare_data)
 from asgiref.sync import async_to_sync
 import json
 import time
@@ -42,15 +41,15 @@ class ChessConsumer(WebsocketConsumer):
 
             database.update_player_turn()
             game.recalculate_moves()
-            database.save_board_state_to_db(game.game, data_json)
-            # add_en_passant_field(updated_game)
-            get_valid_moves(game.game)
+            database.save_board_state_to_db(game, data_json)
+            # game.add_en_passant_field()
+            # game.get_valid_moves()
             # self.save_illegal_moves_to_db(updated_game)
             self.trigger_send_board_state(game.game, "move")
         elif data_json['data_type'] == 'init_board':
             game.initialize_board()
-            database.save_board_state_to_db(game.game)
-            get_valid_moves(game.game)
+            database.save_board_state_to_db(game)
+            game.get_valid_moves()
             # self.save_illegal_moves_to_db(initialized_game)
             self.trigger_send_board_state(game.game, "init")
 

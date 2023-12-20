@@ -4,7 +4,7 @@ from .models import ChessGame, WhitePieces, BlackPieces
 from .chess_logic import GameLoader
 from .serializers import BlackBoardSerializer, WhiteBoardSerializer
 from .utils import (deserialize_lists, prepare_data,
-                    get_valid_moves, add_en_passant_field)
+                    )
 from asgiref.sync import async_to_sync
 import json
 
@@ -19,8 +19,10 @@ class DatabaseHandler:
         self.white_board = {}
         self.black_board = {}
 
-    def save_board_state_to_db(self, game, socket_data=None):
+    def save_board_state_to_db(self, game_instance, socket_data=None):
         """ Saves board state to database """
+        game = game_instance.game
+
         sides = {
             "white": game.white_pieces,
             "black": game.black_pieces

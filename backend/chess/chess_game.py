@@ -1,6 +1,8 @@
+import copy
+
 from .models import ChessGame, WhitePieces, BlackPieces
 from .chess_logic import GameLoader
-from .utils import position_to_tuple, unpack_positions, remove_piece
+from .utils import position_to_tuple, unpack_positions, remove_piece, is_castle_legal, check_move
 
 
 class GameHandler:
@@ -113,6 +115,62 @@ class GameHandler:
 
         piece.position = new_position
 
+    def add_en_passant_field(self):
+        """ Checks if pawn can do en passant move """
+        if self.game.white_pawn_en_passant_field:
+            for _, piece in self.game.black_pieces.items():
+                if (piece.piece_type == 'pawn' and
+                        ((piece.position[0] == self.game.white_pawn_en_passant_field[0] + 1) or (
+                                piece.position[0] == self.game.white_pawn_en_passant_field[0] - 1)) and
+                        (piece.position[1] == self.game.white_pawn_en_passant_field[1] + 1)):
+                    piece.capturing_moves.append(self.game.white_pawn_en_passant_field)
+        elif self.game.black_pawn_en_passant_field:
+            for _, piece in self.game.white_pieces.items():
+                if (piece.piece_type == 'pawn' and
+                        ((piece.position[0] == self.game.black_pawn_en_passant_field[0] + 1) or (
+                                piece.position[0] == self.game.black_pawn_en_passant_field[0] - 1)) and
+                        (piece.position[1] == self.game.black_pawn_en_passant_field[1] - 1)):
+                    piece.capturing_moves.append(self.game.black_pawn_en_passant_field)
+
+    def get_possible_moves(self, temporary_game_state, color):
+        possible_moves = []
+        taken_fields = []
+        number_of_moves = 0
+
+        if color == 'white':
+            pieces = self.game.white_pieces.items()
+        elif color == 'black':
+            pieces = self.game.black_pieces.items()
+
+        for name, piece in pieces:
+            check_move(temporary_game_state, name, piece)
+            number_of_moves += (len(piece.valid_moves) + len(piece.capturing_moves))
+            taken_fields.append(piece.position)
+            for move in unpack_positions(piece.possible_moves):
+                possible_moves.append(move)
+
+        if number_of_moves == 0 and color == 'white':
+            self.game.white_checkmate = True
+            self.game.white_check = False
+        elif number_of_moves == 0 and color == 'black':
+            self.game.black_checkmate = True
+            self.game.black_check = False
+
+        return possible_moves, taken_fields
+
+    def get_valid_moves(self):
+        """ Gets valid and illegal moves for each piece on board """
+        temporary_game_state = copy.deepcopy(self.game)
+        temporary_game_state.init_moves()
+
+        white_possible_moves, white_taken_fields = self.get_possible_moves(temporary_game_state, 'white')
+        black_possible_moves, black_taken_fields = self.get_possible_moves(temporary_game_state, 'black')
+
+        taken_fields = white_taken_fields + black_taken_fields
+        is_castle_legal(self.game, taken_fields, white_possible_moves, black_possible_moves)
+
     def recalculate_moves(self):
         self.game.init_moves()
         self.game.check_kings_safety()
+        self.add_en_passant_field()
+        self.get_valid_moves()
