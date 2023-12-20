@@ -3,7 +3,7 @@ from .models import ChessGame, WhitePieces, BlackPieces
 from .chess_logic import GameLoader
 from .chess_game import GameHandler
 from .chess_db import DatabaseHandler
-from .utils import (validate_move_request, prepare_data,
+from .utils import (prepare_data,
                     get_valid_moves, add_en_passant_field)
 from asgiref.sync import async_to_sync
 import json
@@ -27,23 +27,20 @@ class ChessConsumer(WebsocketConsumer):
 
     def receive(self, text_data):
         """ Handles data sent in websocket """
-        game_handler = GameHandler(room_id=self.room_id)
+        game = GameHandler(room_id=self.room_id)
         database = DatabaseHandler(room_id=self.room_id)
 
         data_json = json.loads(text_data)
 
         if data_json['data_type'] == 'move':
             db_game_state = database.read_board_from_db()
-            read_game = game_handler.init_board_from_db(db_game_state)
+            game.init_board_from_db(db_game_state)
+            error = game.validate_move_request(data_json)
 
-            response = validate_move_request(data_json, read_game, self.room_id)
+            if error:
+                self.trigger_send_error(error)
 
-            if isinstance(response, GameLoader):
-                updated_game = response
-            else:
-                updated_game = read_game
-                self.trigger_send_error(response)
-
+            updated_game = game.game
             updated_game.init_moves()
             # updated_game.check_king_safety()
             database.save_board_state_to_db(updated_game, data_json)
@@ -52,11 +49,11 @@ class ChessConsumer(WebsocketConsumer):
             # self.save_illegal_moves_to_db(updated_game)
             self.trigger_send_board_state(updated_game, "move")
         elif data_json['data_type'] == 'init_board':
-            initialized_game = game_handler.initialize_board()
-            database.save_board_state_to_db(initialized_game)
-            get_valid_moves(initialized_game)
+            game.initialize_board()
+            database.save_board_state_to_db(game.game)
+            get_valid_moves(game.game)
             # self.save_illegal_moves_to_db(initialized_game)
-            self.trigger_send_board_state(initialized_game, "init")
+            self.trigger_send_board_state(game.game, "init")
 
         elif data_json['data_type'] == 'chat_message':
             self.trigger_send_message(data_json['message'])

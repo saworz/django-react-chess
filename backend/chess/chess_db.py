@@ -3,7 +3,7 @@ from channels.generic.websocket import WebsocketConsumer
 from .models import ChessGame, WhitePieces, BlackPieces
 from .chess_logic import GameLoader
 from .serializers import BlackBoardSerializer, WhiteBoardSerializer
-from .utils import (deserialize_lists, validate_move_request, prepare_data,
+from .utils import (deserialize_lists, prepare_data,
                     get_valid_moves, add_en_passant_field)
 from asgiref.sync import async_to_sync
 import json
