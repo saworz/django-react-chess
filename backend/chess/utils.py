@@ -1,6 +1,6 @@
 import copy
 
-from .serializers import BlackBoardSerializer, WhiteBoardSerializer
+
 from .models import ChessGame, WhitePieces, BlackPieces
 
 
@@ -16,75 +16,6 @@ def deserialize_lists(lst):
         elif isinstance(item, list):
             result.append([tuple(subitem) for subitem in item])
     return result
-
-
-def create_board_in_db(white_board, black_board):
-    """ Creates tables for new game """
-    white_serializer = WhiteBoardSerializer(data=white_board)
-    black_serializer = BlackBoardSerializer(data=black_board)
-
-    white_serializer.is_valid(raise_exception=True)
-    black_serializer.is_valid(raise_exception=True)
-
-    white_serializer.save()
-    black_serializer.save()
-
-
-def edit_board_in_db(white_board, black_board, game_id, game=None, socket_data=None):
-    """ Edits pieces info in already existing table """
-    white_board_instance = WhitePieces.objects.get(game_id=game_id)
-    black_board_instance = BlackPieces.objects.get(game_id=game_id)
-
-    existing_white_keys = [field.name for field in WhitePieces._meta.get_fields()]
-    existing_black_keys = [field.name for field in BlackPieces._meta.get_fields()]
-
-    keys_to_skip = ['game_id', 'castled', 'rook_1_moved', 'rook_2_moved', 'king_moved', 'en_passant_field']
-    for key in existing_white_keys:
-        if key not in white_board and not key == 'id' and key not in keys_to_skip:
-            setattr(white_board_instance, key, None)
-
-    for key in existing_black_keys:
-        if key not in black_board and not key == 'id' and key not in keys_to_skip:
-            setattr(black_board_instance, key, None)
-
-    for key, value in white_board.items():
-        if not key == 'game_id':
-            setattr(white_board_instance, key, value)
-
-    for key, value in black_board.items():
-        if not key == 'game_id':
-            setattr(black_board_instance, key, value)
-
-    if socket_data:
-        data_type = socket_data['data_type']
-        piece = socket_data['piece']
-        color = socket_data['color']
-
-        if data_type == 'move' and piece == 'rook_1' and color == 'white':
-            setattr(white_board_instance, 'rook_1_moved', True)
-        elif data_type == 'move' and piece == 'rook_2' and color == 'white':
-            setattr(white_board_instance, 'rook_2_moved', True)
-        elif data_type == 'move' and piece == 'rook_1' and color == 'black':
-            setattr(black_board_instance, 'rook_1_moved', True)
-        elif data_type == 'move' and piece == 'rook_2' and color == 'black':
-            setattr(black_board_instance, 'rook_2_moved', True)
-        elif data_type == 'move' and piece == 'king' and color == 'white':
-            setattr(white_board_instance, 'king_moved', True)
-        elif data_type == 'move' and piece == 'king' and color == 'black':
-            setattr(black_board_instance, 'king_moved', True)
-
-        if game.white_pawn_en_passant_val:
-            setattr(white_board_instance, 'en_passant_field', game.white_pawn_en_passant_field)
-            setattr(black_board_instance, 'en_passant_field', None)
-        elif game.black_pawn_en_passant_val:
-            setattr(black_board_instance, 'en_passant_field', game.black_pawn_en_passant_field)
-            setattr(white_board_instance, 'en_passant_field', None)
-        else:
-            setattr(black_board_instance, 'en_passant_field', None)
-            setattr(white_board_instance, 'en_passant_field', None)
-
-    white_board_instance.save()
-    black_board_instance.save()
 
 
 def is_move_illegal(temporary_game_state, name, piece, move):
@@ -281,10 +212,8 @@ def validate_move_request(move_data, game, room_id):
                 if figure.piece_type == "pawn" and figure.position == real_position:
                     piece_to_capture = figure
 
-        print("IM HERE")
-        print(piece_to_capture)
         _ = remove_piece(piece_to_capture, game)
-        print(_)
+
     game.white_pawn_en_passant_val = False
     game.white_pawn_en_passant_field = ''
     game.black_pawn_en_passant_val = False
@@ -309,38 +238,6 @@ def validate_move_request(move_data, game, room_id):
     game_instance.save()
 
     return game
-
-
-def read_model_fields(model):
-    """ Saves model data as dict """
-    pieces_data = {}
-    castle_data = {}
-    en_passant_field = None
-
-    for field in model._meta.get_fields():
-        field_name = field.name
-        field_value = getattr(model, field_name)
-
-        if field.concrete and not field.is_relation and not field.name == 'id' and not field.name == 'en_passant_field':
-            deserialized_data = {}
-
-            if field_value and not isinstance(field_value, bool):
-                for key, value in field_value.items():
-                    if isinstance(value, list):
-                        data = deserialize_lists(value)
-                    else:
-                        data = value
-                    deserialized_data[key] = data
-
-                pieces_data[field_name] = deserialized_data
-
-            if isinstance(field_value, bool):
-                castle_data[field_name] = field_value
-
-        elif field.concrete and not field.is_relation and field.name == 'en_passant_field':
-            en_passant_field = field_value
-
-    return pieces_data, castle_data, en_passant_field
 
 
 def add_en_passant_field(game):
