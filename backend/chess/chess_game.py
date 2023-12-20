@@ -113,10 +113,6 @@ class GameHandler:
 
         piece.position = new_position
 
-        game_instance = ChessGame.objects.get(room_id=self.room_id)
-
-        if game_instance.current_player == 'white':
-            game_instance.current_player = 'black'
-        else:
-            game_instance.current_player = 'white'
-        game_instance.save()
+    def recalculate_moves(self):
+        self.game.init_moves()
+        self.game.check_kings_safety()

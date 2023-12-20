@@ -13,6 +13,9 @@ class DatabaseHandler:
 
     def __init__(self, room_id):
         self.room_id = room_id
+        self.game_instance = ChessGame.objects.get(room_id=self.room_id)
+        self.game_id = self.game_instance.pk
+        self.current_player = self.game_instance.current_player
         self.white_board = {}
         self.black_board = {}
 
@@ -23,10 +26,8 @@ class DatabaseHandler:
             "black": game.black_pieces
         }
 
-        game_id = ChessGame.objects.get(room_id=self.room_id).pk
-        current_player = ChessGame.objects.get(room_id=self.room_id).current_player
-        self.white_board = {"game_id": game_id}
-        self.black_board = {"game_id": game_id}
+        self.white_board = {"game_id": self.game_id}
+        self.black_board = {"game_id": self.game_id}
 
         for color, board in sides.items():
             for name, piece in board.items():
@@ -43,13 +44,12 @@ class DatabaseHandler:
                 elif color == 'black':
                     self.black_board[name] = piece_info
 
-        if WhitePieces.objects.filter(game_id=game_id).exists() and BlackPieces.objects.filter(
-                game_id=game_id).exists():
-            self.edit_board_in_db(self.white_board, self.black_board, game_id, game, socket_data)
+        if WhitePieces.objects.filter(game_id=self.game_id).exists() and BlackPieces.objects.filter(
+                game_id=self.game_id).exists():
+            self.edit_board_in_db(self.white_board, self.black_board, self.game_id, game, socket_data)
         else:
             self.create_board_in_db(self.white_board, self.black_board)
 
-        return current_player
 
     def get_piece_info(self, piece, db_data):
         piece_info = db_data
@@ -192,3 +192,10 @@ class DatabaseHandler:
                 en_passant_field = field_value
 
         return pieces_data, castle_data, en_passant_field
+
+    def update_player_turn(self):
+        if self.game_instance.current_player == 'white':
+            self.game_instance.current_player = 'black'
+        else:
+            self.game_instance.current_player = 'white'
+        self.game_instance.save()

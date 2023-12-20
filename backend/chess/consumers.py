@@ -40,14 +40,13 @@ class ChessConsumer(WebsocketConsumer):
             if error:
                 self.trigger_send_error(error)
 
-            updated_game = game.game
-            updated_game.init_moves()
-            # updated_game.check_king_safety()
-            database.save_board_state_to_db(updated_game, data_json)
+            database.update_player_turn()
+            game.recalculate_moves()
+            database.save_board_state_to_db(game.game, data_json)
             # add_en_passant_field(updated_game)
-            get_valid_moves(updated_game)
+            get_valid_moves(game.game)
             # self.save_illegal_moves_to_db(updated_game)
-            self.trigger_send_board_state(updated_game, "move")
+            self.trigger_send_board_state(game.game, "move")
         elif data_json['data_type'] == 'init_board':
             game.initialize_board()
             database.save_board_state_to_db(game.game)

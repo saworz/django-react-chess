@@ -166,7 +166,7 @@ class GameLoader:
 
         self.create_pieces_objects(white_pieces_initial_data, black_pieces_initial_data)
 
-    def check_king_safety(self):
+    def check_kings_safety(self):
         white_king_position = self.white_pieces['king'].position
         black_king_position = self.black_pieces['king'].position
         self.black_check = False

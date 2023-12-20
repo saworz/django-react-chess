@@ -30,7 +30,7 @@ def is_move_illegal(temporary_game_state, name, piece, move):
     base_position = temp_piece.position
     temp_piece.position = move
     temporary_game_state.init_moves()
-    temporary_game_state.check_king_safety()
+    temporary_game_state.check_kings_safety()
 
     if ((piece.color == 'white' and temporary_game_state.white_check) or
             (piece.color == 'black' and temporary_game_state.black_check)):
@@ -57,7 +57,7 @@ def is_capture_illegal(temporary_game_state, name, piece, move):
 
     if not piece_name == 'king':
         temporary_game_state.init_moves()
-        temporary_game_state.check_king_safety()
+        temporary_game_state.check_kings_safety()
     else:
         illegal_capture = True
 
