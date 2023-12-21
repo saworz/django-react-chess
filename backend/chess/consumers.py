@@ -8,6 +8,11 @@ import json
 
 
 class ChessConsumer(WebsocketConsumer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.game_handler = None
+        self.database = None
+
     def connect(self):
         """ Handles websocket connection """
         self.room_id = self.scope['url_route']['kwargs']['room_id']
@@ -25,26 +30,26 @@ class ChessConsumer(WebsocketConsumer):
     def receive(self, text_data):
         """ Handles data sent in websocket """
         data_json = json.loads(text_data)
-        game = GameHandler(room_id=self.room_id, socket_data=data_json)
-        database = DatabaseHandler(room_id=self.room_id, socket_data=data_json, game=game)
+        self.game_handler = GameHandler(room_id=self.room_id, socket_data=data_json)
+        self.database = DatabaseHandler(room_id=self.room_id, socket_data=data_json, game=self.game_handler)
 
         if data_json['data_type'] == 'move':
-            db_game_state = database.read_board_from_db()
-            game.init_board_from_db(db_game_state)
-            error = game.validate_move_request()
+            db_game_state = self.database.read_board_from_db()
+            self.game_handler.init_board_from_db(db_game_state)
+            error = self.game_handler.validate_move_request()
 
             if error:
                 self.trigger_send_error(error)
 
-            database.update_player_turn()
-            game.recalculate_moves()
-            database.save_board_state_to_db()
-            self.trigger_send_board_state(game, "move")
+            self.database.update_player_turn()
+            self.game_handler.recalculate_moves()
+            self.database.save_board_state_to_db()
+            self.trigger_send_board_state("move")
         elif data_json['data_type'] == 'init_board':
-            game.initialize_board()
-            database.save_board_state_to_db()
-            game.get_valid_moves()
-            self.trigger_send_board_state(game, "init")
+            self.game_handler.initialize_board()
+            self.database.save_board_state_to_db()
+            self.game_handler.get_valid_moves()
+            self.trigger_send_board_state("init")
 
         elif data_json['data_type'] == 'chat_message':
             self.trigger_send_message(data_json['message'])
@@ -71,9 +76,9 @@ class ChessConsumer(WebsocketConsumer):
             }
         )
 
-    def trigger_send_board_state(self, game_instance, send_type):
+    def trigger_send_board_state(self, send_type):
         """ Triggers send_board_state with chess pieces data """
-        game = game_instance.game
+        game = self.game_handler.game
         white_pieces_data = prepare_data(game.white_pieces.items())
         black_pieces_data = prepare_data(game.black_pieces.items())
         current_player = ChessGame.objects.get(room_id=self.room_id).current_player

@@ -277,11 +277,6 @@ class GameHandler:
             self.check_black_short_castle(taken_fields, white_moves)
             self.check_black_long_castle(taken_fields, white_moves)
 
-        print("CHECKING WHITE CASTLE:")
-        print(self.game.white_short_castle_legal, self.game.white_long_castle_legal)
-        print("CHECKING BLACK CASTLE:")
-        print(self.game.black_short_castle_legal, self.game.black_long_castle_legal)
-
     def check_white_short_castle(self, taken_fields, enemy_moves):
         """ Checks short castle for white player """
         required_free_fields = [(6, 1), (7, 1)]
