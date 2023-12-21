@@ -26,7 +26,7 @@ class ChessConsumer(WebsocketConsumer):
         """ Handles data sent in websocket """
         data_json = json.loads(text_data)
         game = GameHandler(room_id=self.room_id, socket_data=data_json)
-        database = DatabaseHandler(room_id=self.room_id)
+        database = DatabaseHandler(room_id=self.room_id, socket_data=data_json, game=game)
 
         if data_json['data_type'] == 'move':
             db_game_state = database.read_board_from_db()
@@ -38,11 +38,11 @@ class ChessConsumer(WebsocketConsumer):
 
             database.update_player_turn()
             game.recalculate_moves()
-            database.save_board_state_to_db(game, data_json)
+            database.save_board_state_to_db()
             self.trigger_send_board_state(game, "move")
         elif data_json['data_type'] == 'init_board':
             game.initialize_board()
-            database.save_board_state_to_db(game)
+            database.save_board_state_to_db()
             game.get_valid_moves()
             self.trigger_send_board_state(game, "init")
 
