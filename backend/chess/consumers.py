@@ -24,15 +24,14 @@ class ChessConsumer(WebsocketConsumer):
 
     def receive(self, text_data):
         """ Handles data sent in websocket """
-        game = GameHandler(room_id=self.room_id)
-        database = DatabaseHandler(room_id=self.room_id)
-
         data_json = json.loads(text_data)
+        game = GameHandler(room_id=self.room_id, socket_data=data_json)
+        database = DatabaseHandler(room_id=self.room_id)
 
         if data_json['data_type'] == 'move':
             db_game_state = database.read_board_from_db()
             game.init_board_from_db(db_game_state)
-            error = game.validate_move_request(data_json)
+            error = game.validate_move_request()
 
             if error:
                 self.trigger_send_error(error)
@@ -40,13 +39,11 @@ class ChessConsumer(WebsocketConsumer):
             database.update_player_turn()
             game.recalculate_moves()
             database.save_board_state_to_db(game, data_json)
-            # self.save_illegal_moves_to_db(updated_game)
             self.trigger_send_board_state(game, "move")
         elif data_json['data_type'] == 'init_board':
             game.initialize_board()
             database.save_board_state_to_db(game)
             game.get_valid_moves()
-            # self.save_illegal_moves_to_db(initialized_game)
             self.trigger_send_board_state(game, "init")
 
         elif data_json['data_type'] == 'chat_message':
@@ -80,11 +77,6 @@ class ChessConsumer(WebsocketConsumer):
         white_pieces_data = prepare_data(game.white_pieces.items())
         black_pieces_data = prepare_data(game.black_pieces.items())
         current_player = ChessGame.objects.get(room_id=self.room_id).current_player
-
-        print("WHITE CHECK / CHECKMATE")
-        print(game.white_check, game.white_checkmate)
-        print("BLACK CHECK / CHECKMATE")
-        print(game.black_check, game.black_checkmate)
 
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,

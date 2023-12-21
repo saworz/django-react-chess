@@ -178,3 +178,6 @@ class GameLoader:
         for name, piece in self.black_pieces.items():
             if white_king_position in piece.capturing_moves:
                 self.white_check = True
+
+    def promote_pawn(self):
+        pass

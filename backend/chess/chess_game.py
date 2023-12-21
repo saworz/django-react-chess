@@ -5,8 +5,9 @@ from .utils import position_to_tuple, unpack_positions
 
 class GameHandler:
     """ Handles game events (moving, capturing, promoting etc.) and stores game data """
-    def __init__(self, room_id):
+    def __init__(self, room_id, socket_data):
         self.room_id = room_id
+        self.socket_data = socket_data
         self.game = None
 
     def initialize_board(self):
@@ -79,15 +80,15 @@ class GameHandler:
             self.game.black_pawn_en_passant_val = True
             self.game.black_pawn_en_passant_field = (new_position[0], new_position[1] + 1)
 
-    def validate_move_request(self, move_data):
+    def validate_move_request(self):
         """ Checks whether the move request is valid """
 
-        if move_data['color'] == 'white':
-            piece = self.game.white_pieces[move_data['piece']]
-        elif move_data['color'] == 'black':
-            piece = self.game.black_pieces[move_data['piece']]
+        if self.socket_data['color'] == 'white':
+            piece = self.game.white_pieces[self.socket_data['piece']]
+        elif self.socket_data['color'] == 'black':
+            piece = self.game.black_pieces[self.socket_data['piece']]
 
-        new_position = position_to_tuple(move_data['new_position'])
+        new_position = position_to_tuple(self.socket_data['new_position'])
         possible_positions = unpack_positions(piece.possible_moves)
         possible_captures = piece.capturing_moves
 
@@ -326,6 +327,7 @@ class GameHandler:
     def recalculate_moves(self):
         """ Executes methods required to calculate new possible moves for each piece """
         self.game.init_moves()
+        self.game.promote_pawn()
         self.game.check_kings_safety()
         self.add_en_passant_field()
         self.get_valid_moves()
