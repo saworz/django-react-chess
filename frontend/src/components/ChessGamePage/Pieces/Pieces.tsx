@@ -32,6 +32,8 @@ const Pieces = ({ webSocket }: Types.IProps) => {
     return { x, y };
   };
 
+  const handlePromotion = () => {};
+
   const onDrop = (e: Types.DragEvent) => {
     const newPosition = Functions.copyPosition(chess.chessBoard);
     const { x, y } = calculateCoords(e); //New
@@ -42,7 +44,13 @@ const Pieces = ({ webSocket }: Types.IProps) => {
 
     let updatedPiecesPosition = { ...chess.piecesPosition };
 
+    let promoteTo: string | null = null;
+
     if (candidateMoves.find((pos) => pos[0] === x && pos[1] === y)) {
+      if ((piece === "wpawn" && x === 7) || (piece === "bpawn" && x === 0)) {
+        promoteTo = "queen";
+      }
+      console.log("PROMOTION", promoteTo);
       newPosition[Number(rank)][Number(file)] = "";
       newPosition[x][y] = piece;
       webSocket.send(
@@ -51,6 +59,7 @@ const Pieces = ({ webSocket }: Types.IProps) => {
           color: chess.selectedPiece?.color,
           piece: chess.selectedPiece?.id,
           new_position: `${y + 1}${x + 1}`,
+          promote_to: promoteTo,
         })
       );
 

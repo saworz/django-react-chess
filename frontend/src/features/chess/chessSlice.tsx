@@ -23,6 +23,7 @@ const initialState: SharedTypes.IChessState = {
     white_checked: false,
     white_checkmated: false,
     gameStatus: Status.ongoing,
+    promotionSquare: null,
   },
   isError: false,
   isSuccess: false,

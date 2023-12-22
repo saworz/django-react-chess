@@ -41,6 +41,7 @@ export interface IChessState {
     white_checked: boolean;
     white_checkmated: boolean;
     gameStatus: string;
+    promotionSquare: null | string;
   };
   isError: boolean;
   isSuccess: boolean;
