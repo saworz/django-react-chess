@@ -83,6 +83,8 @@ class ChessConsumer(WebsocketConsumer):
         black_pieces_data = prepare_data(game.black_pieces.items())
         current_player = ChessGame.objects.get(room_id=self.room_id).current_player
 
+        print(game.white_pawn_en_passant_val, game.white_pawn_en_passant_field, game.white_pawn_en_passant_to_capture)
+        print(game.black_pawn_en_passant_val, game.black_pawn_en_passant_field, game.black_pawn_en_passant_to_capture)
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
@@ -100,6 +102,14 @@ class ChessConsumer(WebsocketConsumer):
                 'white_long_castle_legal': game.white_long_castle_legal,
                 'black_short_castle_legal': game.black_short_castle_legal,
                 'black_long_castle_legal': game.black_short_castle_legal,
+
+                'white_en_passant_valid': game.white_pawn_en_passant_val,
+                'white_en_passant_field': game.white_pawn_en_passant_field,
+                'white_en_passant_pawn_to_capture': game.white_pawn_en_passant_to_capture,
+                'black_en_passant_valid': game.black_pawn_en_passant_val,
+                'black_en_passant_field': game.black_pawn_en_passant_field,
+                'black_en_passant_pawn_to_capture': game.black_pawn_en_passant_to_capture,
+
                 'send_type': send_type,
             }
         )
@@ -130,6 +140,14 @@ class ChessConsumer(WebsocketConsumer):
             'white_long_castle_legal': event['white_long_castle_legal'],
             'black_short_castle_legal': event['black_short_castle_legal'],
             'black_long_castle_legal': event['black_long_castle_legal'],
+
+            'white_en_passant_valid': event['white_en_passant_valid'],
+            'white_en_passant_field': event['white_en_passant_field'],
+            'white_en_passant_pawn_to_capture': event['white_en_passant_pawn_to_capture'],
+            'black_en_passant_valid': event['black_en_passant_valid'],
+            'black_en_passant_field': event['black_en_passant_field'],
+            'black_en_passant_pawn_to_capture': event['black_en_passant_pawn_to_capture'],
+
         }))
 
     def send_error(self, event):

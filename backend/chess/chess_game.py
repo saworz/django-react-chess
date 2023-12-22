@@ -76,9 +76,18 @@ class GameHandler:
         if piece.color == 'white' and (new_position[1] - piece.position[1] == 2):
             self.game.white_pawn_en_passant_val = True
             self.game.white_pawn_en_passant_field = (new_position[0], new_position[1] - 1)
+
+            for piece_name, piece_data in self.game.white_pieces.items():
+                if piece_data == piece:
+                    self.game.white_pawn_en_passant_to_capture = piece_name
+
         elif piece.color == 'black' and (piece.position[1] - new_position[1] == 2):
             self.game.black_pawn_en_passant_val = True
             self.game.black_pawn_en_passant_field = (new_position[0], new_position[1] + 1)
+
+            for piece_name, piece_data in self.game.black_pieces.items():
+                if piece_data == piece:
+                    self.game.black_pawn_en_passant_to_capture = piece_name
 
     def validate_move_request(self):
         """ Checks whether the move request is valid """

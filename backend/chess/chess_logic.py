@@ -29,8 +29,10 @@ class GameLoader:
 
         self.white_pawn_en_passant_val = False
         self.white_pawn_en_passant_field = ''
+        self.white_pawn_en_passant_to_capture = None
         self.black_pawn_en_passant_val = False
         self.black_pawn_en_passant_field = ''
+        self.black_pawn_en_passant_to_capture = None
 
     def get_board_state(self):
         whites_state = {}
