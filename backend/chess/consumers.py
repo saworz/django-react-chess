@@ -83,8 +83,6 @@ class ChessConsumer(WebsocketConsumer):
         black_pieces_data = prepare_data(game.black_pieces.items())
         current_player = ChessGame.objects.get(room_id=self.room_id).current_player
 
-        print(game.white_pawn_en_passant_val, game.white_pawn_en_passant_field, game.white_pawn_en_passant_to_capture)
-        print(game.black_pawn_en_passant_val, game.black_pawn_en_passant_field, game.black_pawn_en_passant_to_capture)
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {

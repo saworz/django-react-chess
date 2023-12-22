@@ -5,6 +5,7 @@ from .utils import position_to_tuple, unpack_positions
 
 class GameHandler:
     """ Handles game events (moving, capturing, promoting etc.) and stores game data """
+
     def __init__(self, room_id, socket_data):
         self.room_id = room_id
         self.socket_data = socket_data
@@ -12,7 +13,7 @@ class GameHandler:
 
     def initialize_board(self):
         """ Initializes positions for a new game """
-        self.game = GameLoader(room_id=self.room_id)
+        self.game = GameLoader(room_id=self.room_id, socket_data=self.socket_data)
         self.game.create_board()
         self.game.init_moves()
 
@@ -29,7 +30,7 @@ class GameHandler:
 
     def init_board_from_db(self, db_game_state):
         """ Gets list of possible_moves for each piece """
-        self.game = GameLoader(room_id=self.room_id)
+        self.game = GameLoader(room_id=self.room_id, socket_data=self.socket_data)
         self.game.create_pieces_objects(db_game_state['white_pieces'], db_game_state['black_pieces'])
         self.game.init_moves()
 
@@ -330,8 +331,8 @@ class GameHandler:
 
     def recalculate_moves(self):
         """ Executes methods required to calculate new possible moves for each piece """
-        self.game.init_moves()
         self.game.promote_pawn()
+        self.game.init_moves()
         self.game.check_kings_safety()
         self.add_en_passant_field()
         self.get_valid_moves()
