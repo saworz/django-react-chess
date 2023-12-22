@@ -1,7 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
-import * as SharedStyles from "../../shared/types";
+import { Status } from "../../constants";
+import * as SharedTypes from "../../shared/types";
 
-const initialState: SharedStyles.IChessState = {
+const initialState: SharedTypes.IChessState = {
   chess: {
     gameRoomId: "",
     isGameStarted: false,
@@ -21,6 +22,8 @@ const initialState: SharedStyles.IChessState = {
     black_checkmated: false,
     white_checked: false,
     white_checkmated: false,
+    gameStatus: Status.ongoing,
+    promotionSquare: null,
   },
   isError: false,
   isSuccess: false,
@@ -59,6 +62,7 @@ export const chessSlice = createSlice({
       state.chess.white_checkmated = action.payload.white_checkmated;
       state.chess.current_player = action.payload.current_player;
       state.chess.candidateMoves = [];
+      state.chess.gameStatus = Status.ongoing;
     },
     setGameRoomId: (state, action) => {
       state.chess.gameRoomId = action.payload;
@@ -89,6 +93,10 @@ export const chessSlice = createSlice({
     updatePosition: (state, action) => {
       state.chess.piecesPosition = action.payload;
     },
+    endGameByWin: (state, action) => {
+      state.chess.gameStatus =
+        action.payload === "w" ? Status.black : Status.white;
+    },
   },
   //State - pendning, fullfiled, rejected
   extraReducers() {},
@@ -106,5 +114,6 @@ export const {
   setSelectedPiece,
   createChessGame,
   updatePosition,
+  endGameByWin,
 } = chessSlice.actions;
 export default chessSlice.reducer;
