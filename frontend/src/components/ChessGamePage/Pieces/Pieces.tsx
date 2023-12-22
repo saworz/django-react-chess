@@ -11,11 +11,18 @@ import {
   updatePosition,
 } from "../../../features/chess/chessSlice";
 import { Status } from "../../../constants";
+import * as SharedTypes from "../../../shared/types";
 
 const Pieces = ({ webSocket }: Types.IProps) => {
   const dispatch: AppDispatch = useDispatch();
   const { chess } = useSelector((state: RootState) => state.chess);
-  const { candidateMoves } = chess;
+  const {
+    candidateMoves,
+    white_en_passant_field,
+    white_en_passant_pawn_to_capture,
+    black_en_passant_field,
+    black_en_passant_pawn_to_capture,
+  } = chess;
   const isGameEnded = chess.gameStatus === Status.ongoing ? false : true;
 
   useEffect(() => {
@@ -32,7 +39,30 @@ const Pieces = ({ webSocket }: Types.IProps) => {
     return { x, y };
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handlePromotion = () => {};
+
+  const enPassantMove = (
+    piece: string,
+    piecesPosition: {
+      black_pieces: SharedTypes.IBlackPiece[];
+      white_pieces: SharedTypes.IWhitePiece[];
+    }
+  ) => {
+    const pawnKnocked = piece[0] === "w" ? "b" : "w";
+    const x =
+      pawnKnocked === "b"
+        ? black_en_passant_field[1] - 1
+        : white_en_passant_field[1] + 1;
+
+    const y =
+      pawnKnocked === "b"
+        ? black_en_passant_field[0]
+        : white_en_passant_field[0];
+    Functions.raisePawn(piecesPosition, pawnKnocked, x, y);
+    // -> y
+    // -^ x
+  };
 
   const onDrop = (e: Types.DragEvent) => {
     const newPosition = Functions.copyPosition(chess.chessBoard);
@@ -47,10 +77,27 @@ const Pieces = ({ webSocket }: Types.IProps) => {
     let promoteTo: string | null = null;
 
     if (candidateMoves.find((pos) => pos[0] === x && pos[1] === y)) {
+      //PROMOTION
       if ((piece === "wpawn" && x === 7) || (piece === "bpawn" && x === 0)) {
         promoteTo = "queen";
       }
-      console.log("PROMOTION", promoteTo);
+
+      //En Passant
+      if (
+        black_en_passant_pawn_to_capture !== null &&
+        x === black_en_passant_field[1] - 1 &&
+        y === black_en_passant_field[0] - 1
+      ) {
+        enPassantMove(piece, updatedPiecesPosition);
+      }
+      if (
+        white_en_passant_pawn_to_capture !== null &&
+        x === white_en_passant_field[1] - 1 &&
+        y === white_en_passant_field[0] - 1
+      ) {
+        enPassantMove(piece, updatedPiecesPosition);
+      }
+      ///
       newPosition[Number(rank)][Number(file)] = "";
       newPosition[x][y] = piece;
       webSocket.send(
@@ -70,6 +117,7 @@ const Pieces = ({ webSocket }: Types.IProps) => {
         y + 1
       );
 
+      //Remove knocked pawn
       if (placedPawn) {
         Functions.raisePawn(
           updatedPiecesPosition,
