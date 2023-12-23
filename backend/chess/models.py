@@ -37,7 +37,10 @@ class ChessGame(models.Model):
     player_black = models.ForeignKey(User,
                                      related_name='black_player',
                                      on_delete=models.CASCADE)
-
+    white_score = models.IntegerField(default=0)
+    black_score = models.IntegerField(default=0)
+    white_captures = models.JSONField(null=True)
+    black_captures = models.JSONField(null=True)
     current_player = models.CharField(max_length=5, default="white")
     room_id = models.CharField(max_length=5)
 

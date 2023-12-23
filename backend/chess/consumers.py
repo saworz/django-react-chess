@@ -108,6 +108,11 @@ class ChessConsumer(WebsocketConsumer):
                 'black_en_passant_field': game.black_pawn_en_passant_field,
                 'black_en_passant_pawn_to_capture': game.black_pawn_en_passant_to_capture,
 
+                'white_score': game.white_score,
+                'white_captured_pieces': game.white_captured_pieces,
+                'black_score': game.black_score,
+                'black_captured_pieces': game.black_captured_pieces,
+
                 'send_type': send_type,
             }
         )
@@ -145,6 +150,11 @@ class ChessConsumer(WebsocketConsumer):
             'black_en_passant_valid': event['black_en_passant_valid'],
             'black_en_passant_field': event['black_en_passant_field'],
             'black_en_passant_pawn_to_capture': event['black_en_passant_pawn_to_capture'],
+
+            'white_score': event['white_score'],
+            'white_captured_pieces': event['white_captured_pieces'],
+            'black_score': event['black_score'],
+            'black_captured_pieces': event['black_captured_pieces'],
 
         }))
 

@@ -93,13 +93,56 @@ class DatabaseHandler:
         existing_black_keys = [field.name for field in BlackPieces._meta.get_fields()]
 
         keys_to_skip = ['game_id', 'castled', 'rook_1_moved', 'rook_2_moved', 'king_moved', 'en_passant_field']
+        white_null_keys = []
+        black_null_keys = []
+
+        pieces_mapping = {
+            "pawn_1": "pawn",
+            "pawn_2": "pawn",
+            "pawn_3": "pawn",
+            "pawn_4": "pawn",
+            "pawn_5": "pawn",
+            "pawn_6": "pawn",
+            "pawn_7": "pawn",
+            "pawn_8": "pawn",
+            "rook_1": "rook",
+            "rook_2": "rook",
+            "bishop_1": "bishop",
+            "bishop_2": "bishop",
+            "knight_1": "knight",
+            "knight_2": "knight",
+            "queen": "queen",
+        }
+
+        score_mapping = {
+            "pawn": 1,
+            "bishop": 3,
+            "knight": 3,
+            "rook": 5,
+            "queen": 9,
+        }
+
         for key in existing_white_keys:
             if key not in white_board and not key == 'id' and key not in keys_to_skip:
                 setattr(white_board_instance, key, None)
+                white_null_keys.append(key)
 
         for key in existing_black_keys:
             if key not in black_board and not key == 'id' and key not in keys_to_skip:
                 setattr(black_board_instance, key, None)
+                black_null_keys.append(key)
+
+        for key in white_null_keys:
+            piece_type = pieces_mapping[key]
+            piece_value = score_mapping[piece_type]
+            self.game.black_score += piece_value
+            self.game.black_captured_pieces.append(piece_type)
+
+        for key in black_null_keys:
+            piece_type = pieces_mapping[key]
+            piece_value = score_mapping[piece_type]
+            self.game.white_score += piece_value
+            self.game.white_captured_pieces.append(piece_type)
 
         for key, value in white_board.items():
             if not key == 'game_id':

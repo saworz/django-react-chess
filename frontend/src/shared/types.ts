@@ -38,8 +38,12 @@ export interface IChessState {
     selectedPiece: IBlackPiece | IWhitePiece | null;
     black_checked: boolean;
     black_checkmated: boolean;
+    black_en_passant_field: number[];
+    black_en_passant_pawn_to_capture: string | null;
     white_checked: boolean;
     white_checkmated: boolean;
+    white_en_passant_field: number[];
+    white_en_passant_pawn_to_capture: string | null;
     gameStatus: string;
     promotionSquare: null | string;
   };
