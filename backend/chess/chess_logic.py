@@ -218,4 +218,3 @@ class GameLoader:
                 self.white_pieces[name] = self.get_promoted_piece(color)
             elif color == 'black':
                 self.black_pieces[name] = self.get_promoted_piece(color)
-

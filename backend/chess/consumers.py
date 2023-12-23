@@ -99,7 +99,7 @@ class ChessConsumer(WebsocketConsumer):
                 'white_short_castle_legal': game.white_short_castle_legal,
                 'white_long_castle_legal': game.white_long_castle_legal,
                 'black_short_castle_legal': game.black_short_castle_legal,
-                'black_long_castle_legal': game.black_short_castle_legal,
+                'black_long_castle_legal': game.black_long_castle_legal,
 
                 'white_en_passant_valid': game.white_pawn_en_passant_val,
                 'white_en_passant_field': game.white_pawn_en_passant_field,
