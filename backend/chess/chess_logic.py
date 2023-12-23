@@ -37,6 +37,11 @@ class GameLoader:
         self.black_pawn_en_passant_field = ''
         self.black_pawn_en_passant_to_capture = None
 
+        self.white_score = 0
+        self.white_captured_pieces = []
+        self.black_score = 0
+        self.black_captured_pieces = []
+
         self.class_mapping = {
             "pawn": PiecePawn,
             "rook": PieceRook,
