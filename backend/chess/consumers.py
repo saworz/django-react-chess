@@ -45,6 +45,14 @@ class ChessConsumer(WebsocketConsumer):
             self.game_handler.recalculate_moves()
             self.database.save_board_state_to_db()
             self.trigger_send_board_state("move")
+        elif data_json['data_type'] == 'castle':
+            db_game_state = self.database.read_board_from_db()
+            self.game_handler.init_board_from_db(db_game_state)
+            self.game_handler.do_castle()
+            self.database.update_player_turn()
+            self.game_handler.recalculate_moves()
+            self.database.save_board_state_to_db()
+            self.trigger_send_board_state("move")
         elif data_json['data_type'] == 'init_board':
             self.game_handler.initialize_board()
             self.database.save_board_state_to_db()

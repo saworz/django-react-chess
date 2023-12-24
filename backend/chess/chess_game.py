@@ -329,6 +329,20 @@ class GameHandler:
                 return False
         return True
 
+    def do_castle(self):
+        if self.socket_data['castle_type'] == 'white_short':
+            self.game.white_pieces['rook_1'].position = (6, 1)
+            self.game.white_pieces['king'].position = (7, 1)
+        elif self.socket_data['castle_type'] == 'white_long':
+            self.game.white_pieces['rook_2'].position = (3, 1)
+            self.game.white_pieces['king'].position = (2, 1)
+        elif self.socket_data['castle_type'] == 'black_short':
+            self.game.black_pieces['rook_1'].position = (6, 8)
+            self.game.black_pieces['king'].position = (7, 8)
+        elif self.socket_data['castle_type'] == 'black_long':
+            self.game.black_pieces['rook_1'].position = (3, 8)
+            self.game.black_pieces['king'].position = (2, 8)
+
     def recalculate_moves(self):
         """ Executes methods required to calculate new possible moves for each piece """
         self.game.promote_pawn()
