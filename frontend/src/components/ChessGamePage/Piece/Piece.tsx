@@ -8,17 +8,30 @@ import {
 } from "../../../features/chess/chessSlice";
 import * as SharedTypes from "../../../shared/types";
 import { Status } from "../../../constants";
+import Functions from "../../../utils/Functions";
 
 const Piece = ({ file, piece, rank }: Types.IProps) => {
   const { chess } = useSelector((state: RootState) => state.chess);
   const dispatch: AppDispatch = useDispatch();
-  const { current_player, copyPiecesPosition } = chess;
+  const {
+    current_player,
+    copyPiecesPosition,
+    black_long_castle_legal,
+    black_short_castle_legal,
+    white_long_castle_legal,
+    white_short_castle_legal,
+  } = chess;
   const isGameEnded = chess.gameStatus === Status.ongoing ? false : true;
+  const isBlackCastleLegal =
+    black_long_castle_legal || black_short_castle_legal;
+  const isWhiteCastleLegal =
+    white_long_castle_legal || white_short_castle_legal;
   let selectedPiece: SharedTypes.IBlackPiece | SharedTypes.IWhitePiece | null =
     null;
 
   const onDragStart = (e: Types.DragEvent) => {
     const pieceColor = piece[0];
+
     const target = e.target as HTMLDivElement;
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", `${piece},${rank},${file}`);
@@ -41,10 +54,25 @@ const Piece = ({ file, piece, rank }: Types.IProps) => {
     }
 
     if (current_player[0] === piece[0]) {
-      const candidateMoves = [
+      let candidateMoves = [
         ...selectedPiece?.valid_moves,
         ...selectedPiece?.capturing_moves,
       ].map((pos) => [pos[1] - 1, pos[0] - 1]);
+      if (
+        (isBlackCastleLegal || isWhiteCastleLegal) &&
+        (piece === "wking" || piece === "bking")
+      ) {
+        candidateMoves = [
+          ...candidateMoves,
+          ...Functions.getCastlingMoves(
+            black_long_castle_legal,
+            black_short_castle_legal,
+            white_long_castle_legal,
+            white_short_castle_legal,
+            piece
+          ),
+        ];
+      }
       dispatch(generateCandidateMoves(candidateMoves));
     }
   };

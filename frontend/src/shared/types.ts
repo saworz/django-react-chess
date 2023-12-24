@@ -40,10 +40,14 @@ export interface IChessState {
     black_checkmated: boolean;
     black_en_passant_field: number[];
     black_en_passant_pawn_to_capture: string | null;
+    black_long_castle_legal: boolean;
+    black_short_castle_legal: boolean;
     white_checked: boolean;
     white_checkmated: boolean;
     white_en_passant_field: number[];
     white_en_passant_pawn_to_capture: string | null;
+    white_long_castle_legal: boolean;
+    white_short_castle_legal: boolean;
     gameStatus: string;
     promotionSquare: null | string;
   };

@@ -22,10 +22,14 @@ const initialState: SharedTypes.IChessState = {
     black_checkmated: false,
     black_en_passant_field: [],
     black_en_passant_pawn_to_capture: null,
+    black_long_castle_legal: false,
+    black_short_castle_legal: false,
     white_checked: false,
     white_checkmated: false,
     white_en_passant_field: [],
     white_en_passant_pawn_to_capture: null,
+    white_long_castle_legal: false,
+    white_short_castle_legal: false,
     gameStatus: Status.ongoing,
     promotionSquare: null,
   },
@@ -50,12 +54,20 @@ export const chessSlice = createSlice({
         action.payload.black_en_passant_field;
       state.chess.black_en_passant_pawn_to_capture =
         action.payload.black_en_passant_pawn_to_capture;
+      state.chess.black_long_castle_legal =
+        action.payload.black_long_castle_legal;
+      state.chess.black_short_castle_legal =
+        action.payload.black_short_castle_legal;
       state.chess.white_checked = action.payload.white_checked;
       state.chess.white_checkmated = action.payload.white_checkmated;
       state.chess.white_en_passant_field =
         action.payload.white_en_passant_field;
       state.chess.white_en_passant_pawn_to_capture =
         action.payload.white_en_passant_pawn_to_capture;
+      state.chess.white_long_castle_legal =
+        action.payload.white_long_castle_legal;
+      state.chess.white_short_castle_legal =
+        action.payload.white_short_castle_legal;
       state.chess.current_player = action.payload.current_player;
       state.chess.copyPiecesPosition.black_pieces = action.payload.black_pieces;
       state.chess.copyPiecesPosition.white_pieces = action.payload.white_pieces;

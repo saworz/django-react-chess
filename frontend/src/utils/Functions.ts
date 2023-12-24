@@ -76,13 +76,14 @@ const updatePiecePostion = (
     black_pieces: SharedTypes.IBlackPiece[];
     white_pieces: SharedTypes.IWhitePiece[];
   },
-  selectedPiece: SharedTypes.IBlackPiece | SharedTypes.IWhitePiece,
+  selectedPieceId: string,
+  selectedPieceColor: string,
   newX: number,
   newY: number
 ) => {
-  if (selectedPiece.color === "white") {
+  if (selectedPieceColor === "white") {
     const whitePieceIndex = piecesPosition.white_pieces.findIndex(
-      (piece) => piece.id === selectedPiece.id
+      (piece) => piece.id === selectedPieceId
     );
     if (whitePieceIndex !== -1) {
       const updatedWhitePiece = {
@@ -101,7 +102,7 @@ const updatePiecePostion = (
     }
   } else {
     const blackPieceIndex = piecesPosition.black_pieces.findIndex(
-      (piece) => piece.id === selectedPiece.id
+      (piece) => piece.id === selectedPieceId
     );
     if (blackPieceIndex !== -1) {
       const updatedBlackPiece = {
@@ -151,6 +152,34 @@ const raisePawn = (
   return piecesPosition;
 };
 
+const getCastlingMoves = (
+  black_long_castle_legal: boolean,
+  black_short_castle_legal: boolean,
+  white_long_castle_legal: boolean,
+  white_short_castle_legal: boolean,
+  piece: string
+) => {
+  const pieceColor = piece[0];
+  let castlingMoves: number[][] = [];
+  if (pieceColor === "w") {
+    if (white_long_castle_legal) {
+      castlingMoves.push([0, 2]);
+    }
+    if (white_short_castle_legal) {
+      castlingMoves.push([0, 6]);
+    }
+  } else {
+    if (black_long_castle_legal) {
+      castlingMoves.push([7, 2]);
+    }
+    if (black_short_castle_legal) {
+      castlingMoves.push([7, 6]);
+    }
+  }
+  console.log("castling");
+  return castlingMoves;
+};
+
 const Functions = {
   updatePiecePostion,
   prepareChessGame,
@@ -160,6 +189,7 @@ const Functions = {
   fillPositionsPieces,
   copyPosition,
   raisePawn,
+  getCastlingMoves,
 };
 
 export default Functions;
