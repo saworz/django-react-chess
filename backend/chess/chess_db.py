@@ -1,3 +1,5 @@
+import json
+
 from .models import ChessGame, WhitePieces, BlackPieces
 from .serializers import BlackBoardSerializer, WhiteBoardSerializer
 from .utils import deserialize_lists
@@ -49,14 +51,14 @@ class DatabaseHandler:
         else:
             self.create_board_in_db(self.white_board, self.black_board)
 
-    def get_piece_info(self, piece, db_data):
+    def get_piece_info(self, piece: object, db_data: dict[str, str]) -> dict[str, str]:
         """ Unpacks data about piece from database """
         piece_info = db_data
         piece_info['illegal_moves'] = piece.illegal_moves
         piece_info['valid_moves'] = piece.valid_moves
         return piece_info
 
-    def read_board_from_db(self):
+    def read_board_from_db(self) -> dict[str, str]:
         """ Reads pieces info from database """
         game_id = ChessGame.objects.get(room_id=self.room_id).pk
         white_board = WhitePieces.objects.get(game_id=game_id)
@@ -183,7 +185,7 @@ class DatabaseHandler:
         white_board_instance.save()
         black_board_instance.save()
 
-    def read_model_fields(self, model):
+    def read_model_fields(self, model: object) -> tuple[dict, dict, str]:
         """ Saves model data as dict """
         pieces_data = {}
         castle_data = {}

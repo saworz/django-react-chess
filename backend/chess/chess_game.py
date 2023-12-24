@@ -61,7 +61,7 @@ class GameHandler:
 
         _ = self.remove_piece(piece_to_capture, self.game)
 
-    def get_en_passant_field(self):
+    def get_en_passant_field(self) -> list[tuple]:
         """ Gets field for possible en_passant move """
         en_passant_field = []
 
@@ -138,7 +138,7 @@ class GameHandler:
                         (piece.position[1] == self.game.black_pawn_en_passant_field[1] - 1)):
                     piece.capturing_moves.append(self.game.black_pawn_en_passant_field)
 
-    def remove_piece(self, piece_to_remove, game):
+    def remove_piece(self, piece_to_remove, game) -> str:
         """ Removes piece from the board """
         new_pieces_set = {}
 
@@ -174,7 +174,7 @@ class GameHandler:
 
         return piece_name
 
-    def is_capture_illegal(self, temporary_game_state, name, piece, move):
+    def is_capture_illegal(self, temporary_game_state, name, piece, move) -> bool:
         """ Checks if capturing is illegal """
         illegal_capture = False
         temporary_game_state.init_moves()
@@ -315,14 +315,14 @@ class GameHandler:
                 self.are_castle_fields_not_attacked(required_free_fields, enemy_moves)):
             self.game.black_long_castle_legal = True
 
-    def are_castle_fields_free(self, required_fields, taken_fields):
+    def are_castle_fields_free(self, required_fields, taken_fields) -> bool:
         """ Verifies if all fields between rook and king are free """
         for field in required_fields:
             if field in taken_fields:
                 return False
         return True
 
-    def are_castle_fields_not_attacked(self, required_fields, enemy_pieces_moves):
+    def are_castle_fields_not_attacked(self, required_fields, enemy_pieces_moves) -> bool:
         """ Verifies if all fields between rook and king are not attacked """
         for field in required_fields:
             if field in enemy_pieces_moves:
