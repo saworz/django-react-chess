@@ -9,7 +9,9 @@ import {
   clearCandidates,
   updateBoard,
   updatePosition,
+  updatePromotionSquare,
 } from "../../../features/chess/chessSlice";
+import { openPopup } from "../../../features/popup/popupSlice";
 import { Status } from "../../../constants";
 import * as SharedTypes from "../../../shared/types";
 
@@ -91,17 +93,14 @@ const Pieces = ({ webSocket }: Types.IProps) => {
 
     const placedPawnColor = chess.chessBoard[x][y][0];
     const placedPawn = chess.chessBoard[x][y];
+    const selectedPieceColor = chess.selectedPiece?.color;
+    const selectedPieceId = chess.selectedPiece?.id;
 
     let updatedPiecesPosition = { ...chess.piecesPosition };
 
     let promoteTo: string | null = null;
 
     if (candidateMoves.find((pos) => pos[0] === x && pos[1] === y)) {
-      //PROMOTION
-      if ((piece === "wpawn" && x === 7) || (piece === "bpawn" && x === 0)) {
-        promoteTo = "queen";
-      }
-
       //En Passant
       if (
         black_en_passant_pawn_to_capture !== null &&
@@ -156,7 +155,25 @@ const Pieces = ({ webSocket }: Types.IProps) => {
             );
           }
         }
-      } else {
+      }
+      //PROMOTION
+      else if (
+        (piece === "wpawn" && x === 7) ||
+        (piece === "bpawn" && x === 0)
+      ) {
+        dispatch(
+          updatePromotionSquare({
+            x,
+            y,
+            rank,
+            file,
+            selectedPieceColor,
+            selectedPieceId,
+          })
+        );
+        dispatch(openPopup());
+      } ///Other moves
+      else {
         webSocket.send(
           JSON.stringify({
             data_type: "move",

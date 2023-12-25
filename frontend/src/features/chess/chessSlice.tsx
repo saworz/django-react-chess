@@ -24,12 +24,16 @@ const initialState: SharedTypes.IChessState = {
     black_en_passant_pawn_to_capture: null,
     black_long_castle_legal: false,
     black_short_castle_legal: false,
+    black_captured_pieces: [],
+    black_score: 0,
     white_checked: false,
     white_checkmated: false,
     white_en_passant_field: [],
     white_en_passant_pawn_to_capture: null,
     white_long_castle_legal: false,
     white_short_castle_legal: false,
+    white_captured_pieces: [],
+    white_score: 0,
     gameStatus: Status.ongoing,
     promotionSquare: null,
   },
@@ -58,6 +62,8 @@ export const chessSlice = createSlice({
         action.payload.black_long_castle_legal;
       state.chess.black_short_castle_legal =
         action.payload.black_short_castle_legal;
+      state.chess.black_captured_pieces = action.payload.black_captured_pieces;
+      state.chess.black_score = action.payload.black_score;
       state.chess.white_checked = action.payload.white_checked;
       state.chess.white_checkmated = action.payload.white_checkmated;
       state.chess.white_en_passant_field =
@@ -68,6 +74,8 @@ export const chessSlice = createSlice({
         action.payload.white_long_castle_legal;
       state.chess.white_short_castle_legal =
         action.payload.white_short_castle_legal;
+      state.chess.white_captured_pieces = action.payload.white_captured_pieces;
+      state.chess.white_score = action.payload.white_score;
       state.chess.current_player = action.payload.current_player;
       state.chess.copyPiecesPosition.black_pieces = action.payload.black_pieces;
       state.chess.copyPiecesPosition.white_pieces = action.payload.white_pieces;
@@ -121,6 +129,13 @@ export const chessSlice = createSlice({
       state.chess.gameStatus =
         action.payload === "w" ? Status.black : Status.white;
     },
+    updatePromotionSquare: (state, action) => {
+      state.chess.promotionSquare = action.payload;
+      state.chess.gameStatus = Status.promoting;
+    },
+    changeGameStatus: (state, action) => {
+      state.chess.gameStatus = action.payload;
+    },
   },
   //State - pendning, fullfiled, rejected
   extraReducers() {},
@@ -139,5 +154,7 @@ export const {
   createChessGame,
   updatePosition,
   endGameByWin,
+  updatePromotionSquare,
+  changeGameStatus,
 } = chessSlice.actions;
 export default chessSlice.reducer;

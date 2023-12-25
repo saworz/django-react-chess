@@ -176,8 +176,58 @@ const getCastlingMoves = (
       castlingMoves.push([7, 6]);
     }
   }
-  console.log("castling");
   return castlingMoves;
+};
+
+const promotePiece = (
+  piecesPosition: {
+    black_pieces: SharedTypes.IBlackPiece[];
+    white_pieces: SharedTypes.IWhitePiece[];
+  },
+  selectedPieceId: string,
+  selectedPieceColor: string,
+  newPiece: string
+) => {
+  if (selectedPieceColor === "white") {
+    const whitePieceIndex = piecesPosition.white_pieces.findIndex(
+      (piece) => piece.id === selectedPieceId
+    );
+    if (whitePieceIndex !== -1) {
+      const updatedWhitePiece = {
+        ...piecesPosition.white_pieces[whitePieceIndex],
+      };
+      updatedWhitePiece.piece_type = newPiece;
+
+      // Zaktualizuj tablicę białych figur w stanie gry
+      piecesPosition.white_pieces = [
+        ...piecesPosition.white_pieces.slice(0, whitePieceIndex),
+        updatedWhitePiece,
+        ...piecesPosition.white_pieces.slice(whitePieceIndex + 1),
+      ];
+
+      return piecesPosition;
+    }
+  } else {
+    const blackPieceIndex = piecesPosition.black_pieces.findIndex(
+      (piece) => piece.id === selectedPieceId
+    );
+    if (blackPieceIndex !== -1) {
+      const updatedBlackPiece = {
+        ...piecesPosition.black_pieces[blackPieceIndex],
+      };
+      updatedBlackPiece.piece_type = newPiece;
+
+      // Zaktualizuj tablicę czarnych figur w stanie gry
+      piecesPosition.black_pieces = [
+        ...piecesPosition.black_pieces.slice(0, blackPieceIndex),
+        updatedBlackPiece,
+        ...piecesPosition.black_pieces.slice(blackPieceIndex + 1),
+      ];
+
+      return piecesPosition;
+    }
+  }
+  return piecesPosition;
 };
 
 const Functions = {
@@ -190,6 +240,7 @@ const Functions = {
   copyPosition,
   raisePawn,
   getCastlingMoves,
+  promotePiece,
 };
 
 export default Functions;

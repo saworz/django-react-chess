@@ -42,14 +42,25 @@ export interface IChessState {
     black_en_passant_pawn_to_capture: string | null;
     black_long_castle_legal: boolean;
     black_short_castle_legal: boolean;
+    black_captured_pieces: number[];
+    black_score: number;
     white_checked: boolean;
     white_checkmated: boolean;
     white_en_passant_field: number[];
     white_en_passant_pawn_to_capture: string | null;
     white_long_castle_legal: boolean;
     white_short_castle_legal: boolean;
+    white_captured_pieces: number[];
+    white_score: number;
     gameStatus: string;
-    promotionSquare: null | string;
+    promotionSquare: {
+      x: number;
+      y: number;
+      rank: number;
+      file: number;
+      selectedPieceColor: string;
+      selectedPieceId: string;
+    } | null;
   };
   isError: boolean;
   isSuccess: boolean;
