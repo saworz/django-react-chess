@@ -11,7 +11,7 @@ import SoundPlayer from "../SoundPlayer";
 import GameEndsPopup from "../GameEndsPopup";
 import { endGameByWin } from "../../../features/chess/chessSlice";
 import { openPopup } from "../../../features/popup/popupSlice";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import PromotionPopup from "../PromotionPopup";
 
 const ChessBoard = ({ webSocket }: Types.IProps) => {
@@ -21,11 +21,12 @@ const ChessBoard = ({ webSocket }: Types.IProps) => {
   const dispatch: AppDispatch = useDispatch();
   const { candidateMoves, chessBoard } = chess;
   const checkedPlayer = chess.current_player[0];
-  const soundComponentRef = useRef<JSX.Element | null>(null);
+  let soundComponent = null;
 
   useEffect(() => {
     if (chess.black_checkmated || chess.white_checkmated) {
-      soundComponentRef.current = (
+      soundComponent = (
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         <SoundPlayer src="/sounds/game-end.mp3" format="mp3" autoplay={false} />
       );
       //TODO - FIX
@@ -45,7 +46,7 @@ const ChessBoard = ({ webSocket }: Types.IProps) => {
   const isChecked = (() => {
     const checkedPlayer = chess.current_player[0];
     if (chess.black_checked || chess.white_checked) {
-      soundComponentRef.current = (
+      soundComponent = (
         <SoundPlayer
           src="/sounds/move-check.mp3"
           format="mp3"
@@ -115,7 +116,7 @@ const ChessBoard = ({ webSocket }: Types.IProps) => {
           <Files files={files} />
         </Styles.BoardContainer>
       </Box>
-      {soundComponentRef.current}
+      {soundComponent}
     </>
   );
 };
