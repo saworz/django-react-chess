@@ -1,4 +1,4 @@
-def deserialize_lists(lst):
+def deserialize_lists(lst: list) -> list:
     """ Deserializes lists """
     result = []
     if len(lst) == 2 and not isinstance(lst[0], list):
@@ -12,7 +12,7 @@ def deserialize_lists(lst):
     return result
 
 
-def unpack_positions(moves):
+def unpack_positions(moves: list) -> list:
     """ Unpacks nested lists """
     moves_list = []
     for sublist in moves:
@@ -21,12 +21,12 @@ def unpack_positions(moves):
     return moves_list
 
 
-def position_to_tuple(position):
+def position_to_tuple(position: str) -> tuple:
     """ Rewrites position (e.g. 45 to (4, 5)) """
     return int(position[0]), int(position[1])
 
 
-def prepare_data(pieces):
+def prepare_data(pieces: dict) -> dict:
     """ Gets only specified data from pieces instances """
     prepared_data = {}
     for key, piece in pieces:

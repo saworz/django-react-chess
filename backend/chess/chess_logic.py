@@ -1,14 +1,17 @@
 from .chess_pieces import PiecePawn, PieceRook, PieceBishop, PieceKnight, PieceKing, PieceQueen
 from .models import ChessGame
+from .utils import position_to_tuple
 
 
 class GameLoader:
-    def __init__(self, room_id):
+    def __init__(self, room_id, socket_data):
         super().__init__()
         self.room_id = room_id
+        self.socket_data = socket_data
         self.game = ChessGame.objects.filter(room_id=self.room_id).first()
         self.white_pieces = {}
         self.black_pieces = {}
+
         self.white_check = False
         self.white_checkmate = False
         self.black_check = False
@@ -29,8 +32,25 @@ class GameLoader:
 
         self.white_pawn_en_passant_val = False
         self.white_pawn_en_passant_field = ''
+        self.white_pawn_en_passant_to_capture = None
         self.black_pawn_en_passant_val = False
         self.black_pawn_en_passant_field = ''
+        self.black_pawn_en_passant_to_capture = None
+
+        self.white_score = 0
+        self.white_captured_pieces = []
+        self.black_score = 0
+        self.black_captured_pieces = []
+
+        self.class_mapping = {
+            "pawn": PiecePawn,
+            "rook": PieceRook,
+            "bishop": PieceBishop,
+            "knight": PieceKnight,
+            "queen": PieceQueen,
+            "king": PieceKing
+
+        }
 
     def get_board_state(self):
         whites_state = {}
@@ -57,16 +77,6 @@ class GameLoader:
             piece.move_validator(white_board, black_board)
 
     def piece_object_loop(self, data, attribute):
-        class_mapping = {
-            "pawn": PiecePawn,
-            "rook": PieceRook,
-            "bishop": PieceBishop,
-            "knight": PieceKnight,
-            "queen": PieceQueen,
-            "king": PieceKing
-
-        }
-
         white_base_positions = {
             "pawn_1": (1, 2),
             "pawn_2": (2, 2),
@@ -110,7 +120,7 @@ class GameLoader:
                 piece_type = value["piece_type"]
                 piece_position = value["position"]
                 piece_color = value["color"]
-                piece_class = class_mapping[piece_type]
+                piece_class = self.class_mapping[piece_type]
 
                 if piece_color == 'white':
                     piece_base_position = white_base_positions[piece]
@@ -178,3 +188,38 @@ class GameLoader:
         for name, piece in self.black_pieces.items():
             if white_king_position in piece.capturing_moves:
                 self.white_check = True
+
+    def get_piece_to_promote(self):
+        """ Gets piece to promote and its name and color """
+        if self.socket_data['color'] == 'white':
+            for name, piece in self.white_pieces.items():
+                if name == self.socket_data['piece']:
+                    promote_name = name
+                    promote_piece = piece
+                    color = 'white'
+        elif self.socket_data['color'] == 'black':
+            for name, piece in self.black_pieces.items():
+                if name == self.socket_data['piece']:
+                    promote_name = name
+                    promote_piece = piece
+                    color = 'black'
+
+        return promote_name, promote_piece, color
+
+    def get_promoted_piece(self, color):
+        """ Creates piece object to promote pawn to """
+        piece_class = self.class_mapping[self.socket_data['promote_to']]
+        position = position_to_tuple(self.socket_data['new_position'])
+        new_piece = piece_class(position, position, color)
+        return new_piece
+
+    def promote_pawn(self):
+        """ Handles promoting pawn to new piece type """
+        if (self.socket_data['data_type'] == 'move' and self.socket_data['piece'][:4] == 'pawn'
+                and (self.socket_data['new_position'][1] == '1' or self.socket_data['new_position'][1] == '8')):
+            name, piece, color = self.get_piece_to_promote()
+
+            if color == 'white':
+                self.white_pieces[name] = self.get_promoted_piece(color)
+            elif color == 'black':
+                self.black_pieces[name] = self.get_promoted_piece(color)

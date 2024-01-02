@@ -47,3 +47,29 @@ code {
   left: 0;
   top: 0;
 }
+
+.checked:after {
+  content: "";
+  display: block;
+  position: relative;
+  width: var(--tile-size);
+  height: var(--tile-size);
+  background-color: var(--check);
+}
+
+.piece-promotion-wqueen,
+.piece-promotion-bqueen {
+  left: 0;
+}
+.piece-promotion-wrook,
+.piece-promotion-brook {
+  left: 25%;
+}
+.piece-promotion-bbishop,
+.piece-promotion-wbishop {
+  left: 50%;
+}
+.piece-promotion-wknight,
+.piece-promotion-bknight {
+  left: 75%;
+}

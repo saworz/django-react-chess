@@ -1,3 +1,5 @@
+import * as SharedTypes from "../shared/types";
+
 interface IGetMoves {
   position: string[][];
   piece: string;
@@ -179,4 +181,20 @@ export const getPawnCaptures = ({ position, piece, rank, file }: IGetMoves) => {
   }
 
   return moves;
+};
+
+export const getKingPosition = (
+  piecesPosition: {
+    black_pieces: SharedTypes.IBlackPiece[];
+    white_pieces: SharedTypes.IWhitePiece[];
+  },
+  playerColor: string
+) => {
+  if (playerColor === "w") {
+    return piecesPosition.white_pieces.filter((piece) => piece.id === "king")[0]
+      .position;
+  } else {
+    return piecesPosition.black_pieces.filter((piece) => piece.id === "king")[0]
+      .position;
+  }
 };

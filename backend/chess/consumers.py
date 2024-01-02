@@ -8,6 +8,11 @@ import json
 
 
 class ChessConsumer(WebsocketConsumer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.game_handler = None
+        self.database = None
+
     def connect(self):
         """ Handles websocket connection """
         self.room_id = self.scope['url_route']['kwargs']['room_id']
@@ -24,30 +29,35 @@ class ChessConsumer(WebsocketConsumer):
 
     def receive(self, text_data):
         """ Handles data sent in websocket """
-        game = GameHandler(room_id=self.room_id)
-        database = DatabaseHandler(room_id=self.room_id)
-
         data_json = json.loads(text_data)
+        self.game_handler = GameHandler(room_id=self.room_id, socket_data=data_json)
+        self.database = DatabaseHandler(room_id=self.room_id, socket_data=data_json, game=self.game_handler)
 
         if data_json['data_type'] == 'move':
-            db_game_state = database.read_board_from_db()
-            game.init_board_from_db(db_game_state)
-            error = game.validate_move_request(data_json)
+            db_game_state = self.database.read_board_from_db()
+            self.game_handler.init_board_from_db(db_game_state)
+            error = self.game_handler.validate_move_request()
 
             if error:
                 self.trigger_send_error(error)
 
-            database.update_player_turn()
-            game.recalculate_moves()
-            database.save_board_state_to_db(game, data_json)
-            # self.save_illegal_moves_to_db(updated_game)
-            self.trigger_send_board_state(game, "move")
+            self.database.update_player_turn()
+            self.game_handler.recalculate_moves()
+            self.database.save_board_state_to_db()
+            self.trigger_send_board_state("move")
+        elif data_json['data_type'] == 'castle':
+            db_game_state = self.database.read_board_from_db()
+            self.game_handler.init_board_from_db(db_game_state)
+            self.game_handler.do_castle()
+            self.database.update_player_turn()
+            self.game_handler.recalculate_moves()
+            self.database.save_board_state_to_db()
+            self.trigger_send_board_state("move")
         elif data_json['data_type'] == 'init_board':
-            game.initialize_board()
-            database.save_board_state_to_db(game)
-            game.get_valid_moves()
-            # self.save_illegal_moves_to_db(initialized_game)
-            self.trigger_send_board_state(game, "init")
+            self.game_handler.initialize_board()
+            self.database.save_board_state_to_db()
+            self.game_handler.get_valid_moves()
+            self.trigger_send_board_state("init")
 
         elif data_json['data_type'] == 'chat_message':
             self.trigger_send_message(data_json['message'])
@@ -74,17 +84,12 @@ class ChessConsumer(WebsocketConsumer):
             }
         )
 
-    def trigger_send_board_state(self, game_instance, send_type):
+    def trigger_send_board_state(self, send_type):
         """ Triggers send_board_state with chess pieces data """
-        game = game_instance.game
+        game = self.game_handler.game
         white_pieces_data = prepare_data(game.white_pieces.items())
         black_pieces_data = prepare_data(game.black_pieces.items())
         current_player = ChessGame.objects.get(room_id=self.room_id).current_player
-
-        print("WHITE CHECK / CHECKMATE")
-        print(game.white_check, game.white_checkmate)
-        print("BLACK CHECK / CHECKMATE")
-        print(game.black_check, game.black_checkmate)
 
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
@@ -102,7 +107,20 @@ class ChessConsumer(WebsocketConsumer):
                 'white_short_castle_legal': game.white_short_castle_legal,
                 'white_long_castle_legal': game.white_long_castle_legal,
                 'black_short_castle_legal': game.black_short_castle_legal,
-                'black_long_castle_legal': game.black_short_castle_legal,
+                'black_long_castle_legal': game.black_long_castle_legal,
+
+                'white_en_passant_valid': game.white_pawn_en_passant_val,
+                'white_en_passant_field': game.white_pawn_en_passant_field,
+                'white_en_passant_pawn_to_capture': game.white_pawn_en_passant_to_capture,
+                'black_en_passant_valid': game.black_pawn_en_passant_val,
+                'black_en_passant_field': game.black_pawn_en_passant_field,
+                'black_en_passant_pawn_to_capture': game.black_pawn_en_passant_to_capture,
+
+                'white_score': game.white_score,
+                'white_captured_pieces': game.white_captured_pieces,
+                'black_score': game.black_score,
+                'black_captured_pieces': game.black_captured_pieces,
+
                 'send_type': send_type,
             }
         )
@@ -133,6 +151,19 @@ class ChessConsumer(WebsocketConsumer):
             'white_long_castle_legal': event['white_long_castle_legal'],
             'black_short_castle_legal': event['black_short_castle_legal'],
             'black_long_castle_legal': event['black_long_castle_legal'],
+
+            'white_en_passant_valid': event['white_en_passant_valid'],
+            'white_en_passant_field': event['white_en_passant_field'],
+            'white_en_passant_pawn_to_capture': event['white_en_passant_pawn_to_capture'],
+            'black_en_passant_valid': event['black_en_passant_valid'],
+            'black_en_passant_field': event['black_en_passant_field'],
+            'black_en_passant_pawn_to_capture': event['black_en_passant_pawn_to_capture'],
+
+            'white_score': event['white_score'],
+            'white_captured_pieces': event['white_captured_pieces'],
+            'black_score': event['black_score'],
+            'black_captured_pieces': event['black_captured_pieces'],
+
         }))
 
     def send_error(self, event):

@@ -1,7 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
-import * as SharedStyles from "../../shared/types";
+import { Status } from "../../constants";
+import * as SharedTypes from "../../shared/types";
 
-const initialState: SharedStyles.IChessState = {
+const initialState: SharedTypes.IChessState = {
   chess: {
     gameRoomId: "",
     isGameStarted: false,
@@ -19,8 +20,22 @@ const initialState: SharedStyles.IChessState = {
     selectedPiece: null,
     black_checked: false,
     black_checkmated: false,
+    black_en_passant_field: [],
+    black_en_passant_pawn_to_capture: null,
+    black_long_castle_legal: false,
+    black_short_castle_legal: false,
+    black_captured_pieces: [],
+    black_score: 0,
     white_checked: false,
     white_checkmated: false,
+    white_en_passant_field: [],
+    white_en_passant_pawn_to_capture: null,
+    white_long_castle_legal: false,
+    white_short_castle_legal: false,
+    white_captured_pieces: [],
+    white_score: 0,
+    gameStatus: Status.ongoing,
+    promotionSquare: null,
   },
   isError: false,
   isSuccess: false,
@@ -39,8 +54,28 @@ export const chessSlice = createSlice({
     updateGame: (state, action) => {
       state.chess.black_checkmated = action.payload.black_checkmated;
       state.chess.black_checked = action.payload.black_checked;
+      state.chess.black_en_passant_field =
+        action.payload.black_en_passant_field;
+      state.chess.black_en_passant_pawn_to_capture =
+        action.payload.black_en_passant_pawn_to_capture;
+      state.chess.black_long_castle_legal =
+        action.payload.black_long_castle_legal;
+      state.chess.black_short_castle_legal =
+        action.payload.black_short_castle_legal;
+      state.chess.black_captured_pieces = action.payload.black_captured_pieces;
+      state.chess.black_score = action.payload.black_score;
       state.chess.white_checked = action.payload.white_checked;
       state.chess.white_checkmated = action.payload.white_checkmated;
+      state.chess.white_en_passant_field =
+        action.payload.white_en_passant_field;
+      state.chess.white_en_passant_pawn_to_capture =
+        action.payload.white_en_passant_pawn_to_capture;
+      state.chess.white_long_castle_legal =
+        action.payload.white_long_castle_legal;
+      state.chess.white_short_castle_legal =
+        action.payload.white_short_castle_legal;
+      state.chess.white_captured_pieces = action.payload.white_captured_pieces;
+      state.chess.white_score = action.payload.white_score;
       state.chess.current_player = action.payload.current_player;
       state.chess.copyPiecesPosition.black_pieces = action.payload.black_pieces;
       state.chess.copyPiecesPosition.white_pieces = action.payload.white_pieces;
@@ -59,6 +94,7 @@ export const chessSlice = createSlice({
       state.chess.white_checkmated = action.payload.white_checkmated;
       state.chess.current_player = action.payload.current_player;
       state.chess.candidateMoves = [];
+      state.chess.gameStatus = Status.ongoing;
     },
     setGameRoomId: (state, action) => {
       state.chess.gameRoomId = action.payload;
@@ -89,6 +125,17 @@ export const chessSlice = createSlice({
     updatePosition: (state, action) => {
       state.chess.piecesPosition = action.payload;
     },
+    endGameByWin: (state, action) => {
+      state.chess.gameStatus =
+        action.payload === "w" ? Status.black : Status.white;
+    },
+    updatePromotionSquare: (state, action) => {
+      state.chess.promotionSquare = action.payload;
+      state.chess.gameStatus = Status.promoting;
+    },
+    changeGameStatus: (state, action) => {
+      state.chess.gameStatus = action.payload;
+    },
   },
   //State - pendning, fullfiled, rejected
   extraReducers() {},
@@ -106,5 +153,8 @@ export const {
   setSelectedPiece,
   createChessGame,
   updatePosition,
+  endGameByWin,
+  updatePromotionSquare,
+  changeGameStatus,
 } = chessSlice.actions;
 export default chessSlice.reducer;

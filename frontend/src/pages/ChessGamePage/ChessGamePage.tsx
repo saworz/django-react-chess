@@ -85,8 +85,22 @@ const ChessGamePage = () => {
           updateGame({
             black_checkmated: dataFromServer.black_checkmated,
             black_checked: dataFromServer.black_checked,
+            black_en_passant_field: dataFromServer.black_en_passant_field,
+            black_en_passant_pawn_to_capture:
+              dataFromServer.black_en_passant_pawn_to_capture,
+            black_long_castle_legal: dataFromServer.black_long_castle_legal,
+            black_short_castle_legal: dataFromServer.black_short_castle_legal,
+            black_captured_pieces: dataFromServer.black_captured_pieces,
+            black_score: dataFromServer.black_score,
             white_checked: dataFromServer.white_checked,
             white_checkmated: dataFromServer.white_checkmated,
+            white_en_passant_field: dataFromServer.white_en_passant_field,
+            white_en_passant_pawn_to_capture:
+              dataFromServer.white_en_passant_pawn_to_capture,
+            white_long_castle_legal: dataFromServer.white_long_castle_legal,
+            white_short_castle_legal: dataFromServer.white_short_castle_legal,
+            white_captured_pieces: dataFromServer.white_captured_pieces,
+            white_score: dataFromServer.white_score,
             current_player: dataFromServer.current_player,
             black_pieces: Functions.mapPiecesToArray(
               dataFromServer.black_pieces
