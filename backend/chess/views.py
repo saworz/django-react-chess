@@ -110,10 +110,11 @@ class RemoveUserFromQueue(UpdateAPIView):
     queryset = PlayersQueue.objects.all()
     serializer_class = PlayersQueueSerializer
 
-    def is_in_queue(self, queue):
-        queue_list = [int(num) for num in queue.split(',')]
-        if self.request.user.pk in queue_list:
-            return True
+    def is_in_queue(self, queue_instance):
+        if queue_instance.users_in_queue:
+            queue_list = [int(num) for num in queue_instance.users_in_queue.split(',')]
+            if self.request.user.pk in queue_list:
+                return True
         return False
 
     def remove_from_queue(self, queue):
@@ -125,7 +126,7 @@ class RemoveUserFromQueue(UpdateAPIView):
         pk = self.request.user.pk
         instance = self.queryset.first()
 
-        if not self.is_in_queue(instance.users_in_queue):
+        if not self.is_in_queue(instance):
             return JsonResponse({"message": "User is not in queue"}, status=status.HTTP_400_BAD_REQUEST)
 
         instance.users_in_queue = self.remove_from_queue(instance.users_in_queue)
