@@ -78,10 +78,11 @@ class AddUserToQueue(UpdateAPIView):
     queryset = PlayersQueue.objects.all()
     serializer_class = PlayersQueueSerializer
 
-    def is_in_queue(self, queue):
-        queue_list = [int(num) for num in queue.split(',')]
-        if self.request.user.pk in queue_list:
-            return True
+    def is_in_queue(self, queue_instance):
+        if queue_instance.users_in_queue:
+            queue_list = [int(num) for num in queue_instance.users_in_queue.split(',')]
+            if self.request.user.pk in queue_list:
+                return True
         return False
 
     def update(self, request, *args, **kwargs):
@@ -97,9 +98,36 @@ class AddUserToQueue(UpdateAPIView):
         else:
             update_value = ',' + str(pk)
 
-        if not self.is_in_queue(instance.users_in_queue):
+        if not self.is_in_queue(instance):
             instance.users_in_queue += update_value
             instance.save()
         else:
             return JsonResponse({"message": "User already in queue"}, status=status.HTTP_400_BAD_REQUEST)
         return JsonResponse({"message": "User added to queue"}, status=status.HTTP_200_OK)
+
+
+class RemoveUserFromQueue(UpdateAPIView):
+    queryset = PlayersQueue.objects.all()
+    serializer_class = PlayersQueueSerializer
+
+    def is_in_queue(self, queue):
+        queue_list = [int(num) for num in queue.split(',')]
+        if self.request.user.pk in queue_list:
+            return True
+        return False
+
+    def remove_from_queue(self, queue):
+        queue_list = [int(num) for num in queue.split(',')]
+        queue_list.remove(self.request.user.pk)
+        return ','.join(map(str, queue_list))
+
+    def update(self, request, *args, **kwargs):
+        pk = self.request.user.pk
+        instance = self.queryset.first()
+
+        if not self.is_in_queue(instance.users_in_queue):
+            return JsonResponse({"message": "User is not in queue"}, status=status.HTTP_400_BAD_REQUEST)
+
+        instance.users_in_queue = self.remove_from_queue(instance.users_in_queue)
+        instance.save()
+        return JsonResponse({"message": "User removed from queue"}, status=status.HTTP_200_OK)
