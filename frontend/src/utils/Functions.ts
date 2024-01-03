@@ -1,19 +1,4 @@
-import HttpService from "./HttpService";
 import * as SharedTypes from "../shared/types";
-
-const prepareChessGame = (gameId: string) => {
-  let gameRoomId: string = "";
-  let isGameStarted: boolean = false;
-  HttpService.createChessGame(Number(gameId)).then((response) => {
-    if (response?.status === 201) {
-      gameRoomId = response.data.room_id;
-      isGameStarted = true;
-    } else {
-      //setIsGameStarted(true); TODO
-    }
-  });
-  return { gameRoomId, isGameStarted };
-};
 
 const computeGameId = (loggedUserId: number, enemyId: string) => {
   if (loggedUserId > Number(enemyId)) {
@@ -232,7 +217,6 @@ const promotePiece = (
 
 const Functions = {
   updatePiecePostion,
-  prepareChessGame,
   placeOnTheBoard,
   computeGameId,
   mapPiecesToArray,

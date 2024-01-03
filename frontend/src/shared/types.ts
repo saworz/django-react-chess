@@ -161,3 +161,7 @@ export interface ICreateChessGameResponse {
   player_white: number;
   player_black: number;
 }
+
+export interface ICreateChessGameRequest {
+  userId: string;
+}
