@@ -2,14 +2,14 @@ import json
 import random
 
 from django.shortcuts import render
-from rest_framework.generics import CreateAPIView, RetrieveAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.views import APIView
-from .serializers import ChessGameSerializer, MakeMoveSerializer, BlackBoardSerializer, WhiteBoardSerializer
+from .serializers import ChessGameSerializer, PlayersQueueSerializer, MakeMoveSerializer, BlackBoardSerializer, WhiteBoardSerializer
 from rest_framework.response import Response
 from django.http import JsonResponse
 from rest_framework import status
 from django.contrib.auth.models import User
-from .models import ChessGame, WhitePieces, BlackPieces
+from .models import ChessGame, WhitePieces, BlackPieces, PlayersQueue
 from rest_framework.exceptions import NotFound
 from django.shortcuts import get_object_or_404
 from django.core import serializers
@@ -72,3 +72,34 @@ class RetrieveGameIdView(RetrieveAPIView):
         if obj is None:
             raise NotFound({"message": "Game with room_id {} does not exist.".format(room_id)})
         return obj
+
+
+class AddUserToQueue(UpdateAPIView):
+    queryset = PlayersQueue.objects.all()
+    serializer_class = PlayersQueueSerializer
+
+    def is_in_queue(self, queue):
+        queue_list = [int(num) for num in queue.split(',')]
+        if self.request.user.pk in queue_list:
+            return True
+        return False
+
+    def update(self, request, *args, **kwargs):
+        pk = self.request.user.pk
+
+        if self.queryset.count() == 0:
+            instance = PlayersQueue.objects.create()
+        else:
+            instance = self.queryset.first()
+
+        if not instance.users_in_queue:
+            update_value = str(pk)
+        else:
+            update_value = ',' + str(pk)
+
+        if not self.is_in_queue(instance.users_in_queue):
+            instance.users_in_queue += update_value
+            instance.save()
+        else:
+            return JsonResponse({"message": "User already in queue"}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({"message": "User added to queue"}, status=status.HTTP_200_OK)

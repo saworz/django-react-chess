@@ -12,6 +12,7 @@ import GameEndsPopup from "../GameEndsPopup";
 import { endGameByWin } from "../../../features/chess/chessSlice";
 import { openPopup } from "../../../features/popup/popupSlice";
 import { useEffect } from "react";
+import PromotionPopup from "../PromotionPopup";
 
 const ChessBoard = ({ webSocket }: Types.IProps) => {
   const { chess } = useSelector((state: RootState) => state.chess);
@@ -25,13 +26,14 @@ const ChessBoard = ({ webSocket }: Types.IProps) => {
   useEffect(() => {
     if (chess.black_checkmated || chess.white_checkmated) {
       soundComponent = (
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         <SoundPlayer src="/sounds/game-end.mp3" format="mp3" autoplay={false} />
       );
       //TODO - FIX
       dispatch(endGameByWin(checkedPlayer));
       dispatch(openPopup());
     }
-  }, [chess]);
+  }, [checkedPlayer, chess, dispatch]);
 
   const ranks = Array(8)
     .fill("")
@@ -110,6 +112,7 @@ const ChessBoard = ({ webSocket }: Types.IProps) => {
           </Styles.Tiles>
           <Pieces webSocket={webSocket} />
           {popup.isOpen && <GameEndsPopup />}
+          {popup.isOpen && <PromotionPopup webSocket={webSocket} />}
           <Files files={files} />
         </Styles.BoardContainer>
       </Box>
