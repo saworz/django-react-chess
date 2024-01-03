@@ -10,6 +10,11 @@ mysql/
 #media
 backend/media/profile_pics/
 
+# Not tracking for development
+.env.dev
+
+package-lock.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -51,3 +51,7 @@ class WhitePieces(PiecesSetup):
 
 class BlackPieces(PiecesSetup):
     game_id = models.ForeignKey(ChessGame, on_delete=models.CASCADE)
+
+
+class PlayersQueue(models.Model):
+    users_in_queue = models.JSONField(null=True)

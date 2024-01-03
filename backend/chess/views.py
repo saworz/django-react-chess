@@ -4,7 +4,7 @@ import random
 from django.shortcuts import render
 from rest_framework.generics import CreateAPIView, RetrieveAPIView
 from rest_framework.views import APIView
-from .serializers import ChessGameSerializer, MakeMoveSerializer, BlackBoardSerializer, WhiteBoardSerializer
+from .serializers import ChessGameSerializer, PlayersQueueSerializer, MakeMoveSerializer, BlackBoardSerializer, WhiteBoardSerializer
 from rest_framework.response import Response
 from django.http import JsonResponse
 from rest_framework import status
@@ -72,3 +72,14 @@ class RetrieveGameIdView(RetrieveAPIView):
         if obj is None:
             raise NotFound({"message": "Game with room_id {} does not exist.".format(room_id)})
         return obj
+
+
+class AddUserToQueue(APIView):
+    serializer_class = PlayersQueueSerializer
+
+    def post(self, request, *args, **kwargs):
+        pk = self.request.user
+        print(pk)
+
+
+        return JsonResponse({"message": "default"}, status=status.HTTP_400_BAD_REQUEST)
