@@ -1,4 +1,6 @@
-from channels.generic.websocket import WebsocketConsumer
+import asyncio
+
+from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
 from .models import ChessGame
 from .chess_game import GameHandler
 from .chess_db import DatabaseHandler
@@ -180,3 +182,16 @@ class ChessConsumer(WebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
+
+
+class QueueConsumer(AsyncWebsocketConsumer):
+    async def look_for_matchup(self):
+        while True:
+            await asyncio.sleep(5)
+            print(f'looking for matchup for user with id: {self.user_pk}')
+
+    async def connect(self):
+        self.user_pk = self.scope['url_route']['kwargs']['user_pk']
+        await self.accept()
+
+        asyncio.ensure_future(self.look_for_matchup())
