@@ -54,4 +54,4 @@ class BlackPieces(PiecesSetup):
 
 
 class PlayersQueue(models.Model):
-    users_in_queue = models.JSONField(null=True)
+    users_in_queue = models.TextField(default='', blank=True)
