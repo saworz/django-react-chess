@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ChessGame, WhitePieces, BlackPieces
+from .models import ChessGame, WhitePieces, BlackPieces, PlayersQueue
 
 
 class ChessGameSerializer(serializers.ModelSerializer):
@@ -25,3 +25,9 @@ class MakeMoveSerializer(serializers.Serializer):
     color = serializers.CharField(max_length=5)
     piece = serializers.CharField(max_length=8)
     new_position = serializers.CharField(max_length=2)
+
+
+class PlayersQueueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlayersQueue
+        fields = "__all__"

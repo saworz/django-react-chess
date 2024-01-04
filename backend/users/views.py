@@ -58,6 +58,7 @@ class RegisterView(APIView):
         return errors_dict
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(APIView):
     serializer_class = UserLoginSerializer
 
@@ -94,6 +95,7 @@ class LoginView(APIView):
         return JsonResponse({"message": "Missing username or password"}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class LogoutView(APIView):
     """
     Request body:
