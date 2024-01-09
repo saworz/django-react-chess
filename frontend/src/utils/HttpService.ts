@@ -156,6 +156,41 @@ const getChatRoomId = async (userId: number) => {
   }
 };
 
+const addUserToQueue = async () => {
+  const config = {
+    withCredentials: true,
+    headers: {
+      "X-CSRFToken": TokenService.getCsrfToken(),
+      "Content-Type": "application/json",
+    },
+  };
+  const response = await axios.patch(
+    API_URL + `chess/search/add_to_queue`,
+    null,
+    config
+  );
+  return response;
+};
+
+const removeUserFromQueue = async () => {
+  try {
+    const response = await axios.patch(
+      API_URL + `chess/search/remove_from_queue`,
+      {
+        withCredentials: true,
+        headers: {
+          "X-CSRFToken": TokenService.getCsrfToken(),
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response;
+  } catch (error: any) {
+    const message = error.response.data.message;
+    console.log(message);
+  }
+};
+
 const getChessGameId = async (userId: number) => {
   const config = {
     withCredentials: true,
@@ -192,6 +227,8 @@ const HttpService = {
   getChatRoomId,
   getPreviousMessages,
   getChessGameId,
+  addUserToQueue,
+  removeUserFromQueue,
 };
 
 export default HttpService;

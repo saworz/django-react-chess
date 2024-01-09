@@ -86,6 +86,8 @@ const Navigation = () => {
             </HStack>
           </Box>
           <HStack as={"nav"} spacing={4} display={{ base: "none", md: "flex" }}>
+            <NavLink to="/play">PLAY</NavLink>
+            <Text>|</Text>
             {Links.map((link) => (
               <NavLink to={link.destination} key={link.name}>
                 {link.name}
