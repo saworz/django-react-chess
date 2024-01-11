@@ -164,31 +164,22 @@ const addUserToQueue = async () => {
       "Content-Type": "application/json",
     },
   };
-  const response = await axios.patch(
-    API_URL + `chess/search/add_to_queue`,
-    null,
-    config
-  );
-  return response;
+  return await axios.patch(API_URL + `chess/search/add_to_queue`, null, config);
 };
 
 const removeUserFromQueue = async () => {
-  try {
-    const response = await axios.patch(
-      API_URL + `chess/search/remove_from_queue`,
-      {
-        withCredentials: true,
-        headers: {
-          "X-CSRFToken": TokenService.getCsrfToken(),
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response;
-  } catch (error: any) {
-    const message = error.response.data.message;
-    console.log(message);
-  }
+  const config = {
+    withCredentials: true,
+    headers: {
+      "X-CSRFToken": TokenService.getCsrfToken(),
+      "Content-Type": "application/json",
+    },
+  };
+  return await axios.patch(
+    API_URL + `chess/search/remove_from_queue`,
+    null,
+    config
+  );
 };
 
 const getChessGameId = async (userId: number) => {
