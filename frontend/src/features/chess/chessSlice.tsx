@@ -6,6 +6,7 @@ import * as SharedTypes from "../../shared/types";
 
 const initialState: SharedTypes.IChessState = {
   chess: {
+    gameDetails: null,
     gameRoomId: "",
     isGameStarted: false,
     chessBoard: [],
@@ -50,6 +51,28 @@ export const postCreateChessGame = createAsyncThunk(
   async (data: string, thunkAPI) => {
     try {
       return await chessService.postCreateChessGame(data);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message =
+          (error.response &&
+            error.response.data &&
+            error.response.data.message) ||
+          error.message ||
+          error.toString();
+        return thunkAPI.rejectWithValue(message);
+      } else {
+        console.log("unexpected error: ", error);
+        return "An unexpected error occurred";
+      }
+    }
+  }
+);
+
+export const getGameRoomDetails = createAsyncThunk(
+  "/chess/getGameRoomDetails",
+  async (data: string, thunkAPI) => {
+    try {
+      return await chessService.getGameRoomDetails(data);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const message =
@@ -172,6 +195,21 @@ export const chessSlice = createSlice({
         state.chess.current_player = "white";
       })
       .addCase(postCreateChessGame.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = false;
+        state.isError = true;
+        state.message = action.payload as string;
+      })
+      .addCase(getGameRoomDetails.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getGameRoomDetails.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.isError = false;
+        state.chess.gameDetails = action.payload;
+      })
+      .addCase(getGameRoomDetails.rejected, (state, action) => {
         state.isLoading = false;
         state.isSuccess = false;
         state.isError = true;

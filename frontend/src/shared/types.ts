@@ -22,6 +22,7 @@ export interface IFriendSystemState {
 
 export interface IChessState {
   chess: {
+    gameDetails: IChessGameDetails | null;
     gameRoomId: string;
     isGameStarted: boolean;
     chessBoard: string[][];
@@ -66,6 +67,18 @@ export interface IChessState {
   isSuccess: boolean;
   isLoading: boolean;
   message: string;
+}
+
+export interface IChessGameDetails {
+  id: number;
+  white_score: number;
+  black_score: number;
+  white_captures: string[] | null;
+  black_captures: string[] | null;
+  current_player: string;
+  room_id: string;
+  player_white: number;
+  player_black: number;
 }
 
 export interface IPopupState {

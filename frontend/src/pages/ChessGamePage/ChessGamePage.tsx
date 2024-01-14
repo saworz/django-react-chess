@@ -1,9 +1,10 @@
-import { Flex, Grid, GridItem, Text } from "@chakra-ui/react";
+import { Flex, Grid, GridItem } from "@chakra-ui/react";
 import {
   updateGame,
   createChessGame,
   initGame,
   postCreateChessGame,
+  getGameRoomDetails,
 } from "../../features/chess/chessSlice";
 import ChessBoard from "../../components/ChessGamePage/ChessBoard";
 import { useParams } from "react-router-dom";
@@ -16,6 +17,7 @@ import HttpService from "../../utils/HttpService";
 import ChessGameChat from "../../components/ChessGamePage/ChessGameChat";
 import LoadingScreen from "../../components/ChessGamePage/LoadingScreen";
 import GameDetailsWindow from "../../components/ChessGamePage/GameDetailsWindow";
+import PlayerDetails from "../../components/ChessGamePage/PlayerDetails";
 import * as SharedTypes from "../../shared/types";
 
 const ChessGamePage = () => {
@@ -30,9 +32,33 @@ const ChessGamePage = () => {
   const [enemyDetails, setEnemyDetails] =
     useState<SharedTypes.ISuggestionFriendData>();
   const isGameReady =
-    chess.gameRoomId && webSocket && chess.piecesPosition && isUserFound
+    chess.gameRoomId &&
+    webSocket &&
+    chess.piecesPosition &&
+    isUserFound &&
+    chess.gameDetails
       ? true
       : false;
+
+  const getWhitePlayer = () => {
+    const whitePlayerId = chess.gameDetails!.player_white!;
+
+    if (user!.id === whitePlayerId) {
+      return user;
+    } else {
+      return enemyDetails;
+    }
+  };
+
+  const getBlackPlayer = () => {
+    const blackPlayerId = chess.gameDetails!.player_black!;
+
+    if (user!.id === blackPlayerId) {
+      return user;
+    } else {
+      return enemyDetails;
+    }
+  };
 
   useEffect(() => {
     HttpService.getUserDetails(Number(gameId)).then((response) => {
@@ -43,6 +69,8 @@ const ChessGamePage = () => {
         setIsUserFound(false);
       }
     });
+
+    dispatch(getGameRoomDetails(gameId!));
 
     const connectWebSocket = () => {
       const clientWebSocket = new W3CWebSocket(
@@ -169,15 +197,24 @@ const ChessGamePage = () => {
       flex={1}
       direction="column"
     >
-      <Text fontSize={"4rem"} fontWeight="black">
-        Chess Game
-      </Text>
       <Grid templateColumns={{ base: "1fr", "3lg": "1fr 1fr" }}>
         <GridItem>
+          {isGameReady && (
+            <PlayerDetails
+              image={getBlackPlayer()?.image!}
+              username={getBlackPlayer()?.username!}
+            />
+          )}
           {isGameReady && <ChessBoard webSocket={webSocket!} />}
+          {isGameReady && (
+            <PlayerDetails
+              image={getWhitePlayer()?.image!}
+              username={getWhitePlayer()?.username!}
+            />
+          )}
         </GridItem>
         <GridItem marginLeft={2} marginTop={{ base: 2, "3lg": 0 }}>
-          <Grid templateRows={"5fr 2fr"} gap={3}>
+          <Grid templateRows={"5fr 2fr"} gap={3} marginTop="71px">
             <GridItem>
               <GameDetailsWindow />
             </GridItem>

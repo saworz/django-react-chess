@@ -4,6 +4,7 @@ import { w3cwebsocket as W3CWebSocket } from "websocket";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../app/store";
+import { toast } from "react-toastify";
 import * as Types from "./SearchInfo.types";
 
 const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
@@ -20,6 +21,16 @@ const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
 
     clientWebSocket.onopen = () => {
       console.log("WebSocket Queue - connected");
+      toast.info(`Looking for the game...`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
     };
 
     clientWebSocket.onerror = () => {};
@@ -48,6 +59,16 @@ const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
         if (response?.status === 200) {
           setIsSearchingGame(false);
           webSocket?.close();
+          toast.info(`No longer searching for the game...`, {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
         }
       })
       .catch((error) => {

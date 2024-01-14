@@ -84,6 +84,7 @@ const ChessBoard = ({ webSocket }: Types.IProps) => {
         p={1}
         pr={6}
         pt={6}
+        mt={3}
         h="-webkit-fit-content"
         w="-webkit-fit-content"
       >
