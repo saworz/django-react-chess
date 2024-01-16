@@ -59,8 +59,6 @@ const ChessGamePage = () => {
           }
         }
       }
-      console.log(piecesCaptured);
-
       return {
         piecesCaptured,
         points: whitePoints > blackPoints ? whitePoints - blackPoints : null,
@@ -74,7 +72,6 @@ const ChessGamePage = () => {
           }
         }
       }
-      console.log(piecesCaptured);
       return {
         piecesCaptured,
         points: blackPoints > whitePoints ? blackPoints - whitePoints : null,
