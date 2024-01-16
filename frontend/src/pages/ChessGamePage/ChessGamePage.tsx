@@ -36,27 +36,49 @@ const ChessGamePage = () => {
     webSocket &&
     chess.piecesPosition &&
     isUserFound &&
-    chess.gameDetails
+    chess.gameDetails &&
+    enemyDetails &&
+    user!.id
       ? true
       : false;
+  const whitePlayerId = chess.gameDetails!.player_white!;
+  const blackPlayerId = chess.gameDetails!.player_black!;
 
-  const getWhitePlayer = () => {
-    const whitePlayerId = chess.gameDetails!.player_white!;
+  const getPlayerPoints = (
+    playerColor: string
+  ): { piecesCaptured: string[]; points: number | null } => {
+    const whitePoints = chess.gameDetails.white_score;
+    const blackPoints = chess.gameDetails.black_score;
 
-    if (user!.id === whitePlayerId) {
-      return user;
+    if (playerColor === "white") {
+      let piecesCaptured = [...chess.gameDetails.white_captures];
+      if (piecesCaptured.length > 0) {
+        for (let i = 0; i < piecesCaptured.length; i++) {
+          if (typeof piecesCaptured[i] === "string") {
+            piecesCaptured[i] = "b" + piecesCaptured[i];
+          }
+        }
+      }
+      console.log(piecesCaptured);
+
+      return {
+        piecesCaptured,
+        points: whitePoints > blackPoints ? whitePoints - blackPoints : null,
+      };
     } else {
-      return enemyDetails;
-    }
-  };
-
-  const getBlackPlayer = () => {
-    const blackPlayerId = chess.gameDetails!.player_black!;
-
-    if (user!.id === blackPlayerId) {
-      return user;
-    } else {
-      return enemyDetails;
+      let piecesCaptured = [...chess.gameDetails.black_captures];
+      if (piecesCaptured.length > 0) {
+        for (let i = 0; i < piecesCaptured.length; i++) {
+          if (typeof piecesCaptured[i] === "string") {
+            piecesCaptured[i] = "w" + piecesCaptured[i];
+          }
+        }
+      }
+      console.log(piecesCaptured);
+      return {
+        piecesCaptured,
+        points: blackPoints > whitePoints ? blackPoints - whitePoints : null,
+      };
     }
   };
 
@@ -201,20 +223,34 @@ const ChessGamePage = () => {
         <GridItem>
           {isGameReady && (
             <PlayerDetails
-              image={getBlackPlayer()?.image!}
-              username={getBlackPlayer()?.username!}
+              image={
+                blackPlayerId === user!.id ? user!.image : enemyDetails!.image
+              }
+              username={
+                blackPlayerId === user!.id
+                  ? user!.username
+                  : enemyDetails!.username
+              }
+              playerDetails={getPlayerPoints("black")}
             />
           )}
           {isGameReady && <ChessBoard webSocket={webSocket!} />}
           {isGameReady && (
             <PlayerDetails
-              image={getWhitePlayer()?.image!}
-              username={getWhitePlayer()?.username!}
+              image={
+                whitePlayerId === user!.id ? user!.image : enemyDetails!.image
+              }
+              username={
+                whitePlayerId === user!.id
+                  ? user!.username
+                  : enemyDetails!.username
+              }
+              playerDetails={getPlayerPoints("white")}
             />
           )}
         </GridItem>
         <GridItem marginLeft={2} marginTop={{ base: 2, "3lg": 0 }}>
-          <Grid templateRows={"5fr 2fr"} gap={3} marginTop="71px">
+          <Grid templateRows={"5fr 2fr"} gap={2} marginTop="64px">
             <GridItem>
               <GameDetailsWindow />
             </GridItem>

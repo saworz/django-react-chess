@@ -82,9 +82,9 @@ const ChessBoard = ({ webSocket }: Types.IProps) => {
         bg={useColorModeValue("white", "gray.700")}
         boxShadow={"lg"}
         p={1}
-        pr={6}
-        pt={6}
-        mt={3}
+        pr={5}
+        pt={5}
+        mt={2}
         h="-webkit-fit-content"
         w="-webkit-fit-content"
       >

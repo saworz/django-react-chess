@@ -6,7 +6,17 @@ import * as SharedTypes from "../../shared/types";
 
 const initialState: SharedTypes.IChessState = {
   chess: {
-    gameDetails: null,
+    gameDetails: {
+      id: -1,
+      white_score: -1,
+      black_score: -1,
+      white_captures: [],
+      black_captures: [],
+      current_player: "",
+      room_id: "",
+      player_white: -1,
+      player_black: -1,
+    },
     gameRoomId: "",
     isGameStarted: false,
     chessBoard: [],
@@ -27,7 +37,6 @@ const initialState: SharedTypes.IChessState = {
     black_en_passant_pawn_to_capture: null,
     black_long_castle_legal: false,
     black_short_castle_legal: false,
-    black_captured_pieces: [],
     black_score: 0,
     white_checked: false,
     white_checkmated: false,
@@ -35,7 +44,6 @@ const initialState: SharedTypes.IChessState = {
     white_en_passant_pawn_to_capture: null,
     white_long_castle_legal: false,
     white_short_castle_legal: false,
-    white_captured_pieces: [],
     white_score: 0,
     gameStatus: Status.ongoing,
     promotionSquare: null,
@@ -109,7 +117,8 @@ export const chessSlice = createSlice({
         action.payload.black_long_castle_legal;
       state.chess.black_short_castle_legal =
         action.payload.black_short_castle_legal;
-      state.chess.black_captured_pieces = action.payload.black_captured_pieces;
+      state.chess.gameDetails.black_captures =
+        action.payload.black_captured_pieces;
       state.chess.black_score = action.payload.black_score;
       state.chess.white_checked = action.payload.white_checked;
       state.chess.white_checkmated = action.payload.white_checkmated;
@@ -121,9 +130,12 @@ export const chessSlice = createSlice({
         action.payload.white_long_castle_legal;
       state.chess.white_short_castle_legal =
         action.payload.white_short_castle_legal;
-      state.chess.white_captured_pieces = action.payload.white_captured_pieces;
+      state.chess.gameDetails.white_captures =
+        action.payload.white_captured_pieces;
       state.chess.white_score = action.payload.white_score;
       state.chess.current_player = action.payload.current_player;
+      state.chess.gameDetails!.black_score = action.payload.black_score;
+      state.chess.gameDetails!.white_score = action.payload.white_score;
       state.chess.copyPiecesPosition.black_pieces = action.payload.black_pieces;
       state.chess.copyPiecesPosition.white_pieces = action.payload.white_pieces;
     },
@@ -204,10 +216,22 @@ export const chessSlice = createSlice({
         state.isLoading = true;
       })
       .addCase(getGameRoomDetails.fulfilled, (state, action) => {
+        const whiteCaptures = action.payload.white_captures;
+        const blackCaptures = action.payload.black_captures;
         state.isLoading = false;
         state.isSuccess = true;
         state.isError = false;
-        state.chess.gameDetails = action.payload;
+        state.chess.gameDetails.id = action.payload.id;
+        state.chess.gameDetails.white_score = action.payload.white_score;
+        state.chess.gameDetails.black_score = action.payload.black_score;
+        state.chess.gameDetails.white_captures =
+          whiteCaptures === null ? [] : whiteCaptures;
+        state.chess.gameDetails.black_captures =
+          blackCaptures === null ? [] : blackCaptures;
+        state.chess.gameDetails.current_player = action.payload.current_player;
+        state.chess.gameDetails.room_id = action.payload.room_id;
+        state.chess.gameDetails.player_white = action.payload.player_white;
+        state.chess.gameDetails.player_black = action.payload.player_black;
       })
       .addCase(getGameRoomDetails.rejected, (state, action) => {
         state.isLoading = false;
