@@ -189,49 +189,81 @@ class QueueConsumer(AsyncWebsocketConsumer):
         super().__init__(args, kwargs)
         self.websocket_is_open = False
         self.user_pk = None
+        self.player_1 = None
+        self.player_2 = None
+        self.queue_instance = None
 
-    def is_in_queue(self, queue_instance):
-        if queue_instance.users_in_queue:
-            queue_list = [int(num) for num in queue_instance.users_in_queue.split(',')]
-            if self.user_pk in queue_list:
+    def is_in_queue(self):
+        if self.queue_instance.users_in_queue:
+            queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
+            if int(self.user_pk) in queue_list:
                 return True
         return False
 
-    @database_sync_to_async
-    def update_instance(self):
-
-        if PlayersQueue.objects.all().count() == 0:
-            instance = PlayersQueue.objects.create()
-        else:
-            instance = PlayersQueue.objects.all.first()
-
-        if not instance.users_in_queue:
+    async def update_instance(self):
+        if not self.queue_instance.users_in_queue:
             update_value = str(self.user_pk)
         else:
             update_value = ',' + str(self.user_pk)
 
-        if not self.is_in_queue(instance):
-            instance.users_in_queue += update_value
-            instance.save()
+        if not self.is_in_queue():
+            self.queue_instance.users_in_queue += update_value
+            sync_to_async(self.queue_instance.save)()
 
+    # async def found_players_pair(self):
+    #     queue_instance = PlayersQueue.objects.all().first()
+    #     if not queue_instance.users_in_queue:
+    #         return
+    #
+    #     queue_list = [int(num) for num in queue_instance.users_in_queue.split(',')]
+    #     print(queue_list)
 
     async def look_for_matchup(self):
         while True:
             print(f'looking for matchup for user with id: {self.user_pk}')
-            print(self.websocket_is_open)
-            await asyncio.sleep(5)
+            await asyncio.sleep(2)
 
-            if not self.websocket_is_open:
-                break
+            # print(await self.found_players_pair(), self.player_1, self.player_2)
+            # # if not self.websocket_is_open:
+            break
+        print("Disconnecting by def")
+        await self.close()
+
+    @sync_to_async
+    def setup_queue_instance(self):
+        if PlayersQueue.objects.all().count() == 0:
+            self.queue_instance = PlayersQueue.objects.create()
+        else:
+            self.queue_instance = PlayersQueue.objects.all().first()
 
     async def connect(self):
         self.user_pk = self.scope['url_route']['kwargs']['user_pk']
         self.websocket_is_open = True
 
-        self.update_instance()
         await self.accept()
+        await self.setup_queue_instance()
+        await self.update_instance()
+        print(self.queue_instance.users_in_queue)
+        await self.look_for_matchup()
 
-        asyncio.ensure_future(self.look_for_matchup())
+    async def trigger_send_enemy_data(self):
+        """ Triggers send_board_state with chess pieces data """
+
+        async_to_sync(self.channel_layer.group_send)(
+            {
+                'type': 'send_enemy_data',
+                'player_1': self.player_1,
+                'player_2': self.player_2
+            }
+        )
+
+    async def send_enemy_data(self, event):
+        """ Sends chat message """
+        await self.send(text_data=json.dumps({
+            'type': 'enemy_data',
+            'player_1': event['player_1'],
+            'player_2': event['player_2']
+        }))
 
     async def disconnect(self, code):
         """ Removes user from disconnected websocket """
