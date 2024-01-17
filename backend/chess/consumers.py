@@ -1,11 +1,15 @@
 import asyncio
 
+from channels.exceptions import StopConsumer
 from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
-from .models import ChessGame
+from .models import ChessGame, PlayersQueue
 from .chess_game import GameHandler
 from .chess_db import DatabaseHandler
 from .utils import (prepare_data)
-from asgiref.sync import async_to_sync
+from asgiref.sync import async_to_sync, sync_to_async
+from channels.db import database_sync_to_async
+from channels.consumer import SyncConsumer
+from channels.layers import get_channel_layer
 import json
 
 
@@ -23,7 +27,6 @@ class ChessConsumer(WebsocketConsumer):
 
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
-            self.channel_name
         )
 
         if ChessGame.objects.filter(room_id=self.room_id).exists():
@@ -184,14 +187,87 @@ class ChessConsumer(WebsocketConsumer):
         )
 
 
-class QueueConsumer(AsyncWebsocketConsumer):
-    async def look_for_matchup(self):
-        while True:
-            await asyncio.sleep(5)
-            print(f'looking for matchup for user with id: {self.user_pk}')
+class QueueConsumer(WebsocketConsumer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.user_pk = None
+        self.player_1 = None
+        self.player_2 = None
+        self.room_id = None
+        self.queue_instance = None
+        self.send_enemy_data_task = None
 
-    async def connect(self):
+    def is_in_queue(self):
+        if self.queue_instance.users_in_queue:
+            queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
+            if int(self.user_pk) in queue_list:
+                return True
+        return False
+
+    def update_instance(self):
+        self.setup_queue_instance()
+        if not self.queue_instance.users_in_queue:
+            update_value = str(self.user_pk)
+        else:
+            update_value = ',' + str(self.user_pk)
+
+        if not self.is_in_queue():
+            self.queue_instance.users_in_queue += update_value
+            self.queue_instance.save()
+
+    # def found_players_pair(self):
+    #     queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
+    #     print(queue_list)
+
+    def remove_from_queue(self):
+        self.setup_queue_instance()
+        queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
+        queue_list.remove(int(self.user_pk))
+
+        self.queue_instance.users_in_queue = ','.join(map(str, queue_list))
+        self.queue_instance.save()
+
+    def setup_queue_instance(self):
+        if PlayersQueue.objects.all().count() == 0:
+            self.queue_instance = PlayersQueue.objects.create()
+        else:
+            self.queue_instance = PlayersQueue.objects.all().first()
+
+    def connect(self):
         self.user_pk = self.scope['url_route']['kwargs']['user_pk']
-        await self.accept()
 
-        asyncio.ensure_future(self.look_for_matchup())
+        self.accept()
+        self.update_instance()
+
+    def receive(self, text_data):
+        """ Handles data sent in websocket """
+        data_json = json.loads(text_data)
+
+        if data_json['data_type'] == 'find_opponent':
+            self.trigger_send_enemy_data()
+
+    def trigger_send_enemy_data(self):
+        """ Triggers send_board_state with chess pieces data """
+
+        async_to_sync(self.channel_layer.group_send)(
+            {
+                'type': 'send_enemy_data',
+                'player_1': self.player_1,
+                'player_2': self.player_2,
+                'room_id': self.room_id,
+            }
+        )
+
+    def send_enemy_data(self, event):
+        """ Sends chat message """
+        self.send(text_data=json.dumps({
+            'type': 'enemy_data',
+            'player_1': event['player_1'],
+            'player_2': event['player_2'],
+            'room_id': event['room_id'],
+        }))
+
+    def disconnect(self, code):
+        if self.send_enemy_data_task:
+            self.send_enemy_data_task.cancel()
+        self.remove_from_queue()
