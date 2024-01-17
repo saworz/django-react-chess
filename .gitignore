@@ -10,9 +10,6 @@ mysql/
 #media
 backend/media/profile_pics/
 
-# Not tracking for development
-#.env.dev
-
 package-lock.json
 backend/db.sqlite3
 
