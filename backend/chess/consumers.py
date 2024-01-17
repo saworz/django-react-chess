@@ -187,7 +187,6 @@ class ChessConsumer(WebsocketConsumer):
 class QueueConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
-        self.websocket_is_open = False
         self.user_pk = None
         self.player_1 = None
         self.player_2 = None
@@ -210,23 +209,31 @@ class QueueConsumer(AsyncWebsocketConsumer):
             self.queue_instance.users_in_queue += update_value
             sync_to_async(self.queue_instance.save)()
 
-    # async def found_players_pair(self):
-    #     queue_instance = PlayersQueue.objects.all().first()
-    #     if not queue_instance.users_in_queue:
-    #         return
-    #
-    #     queue_list = [int(num) for num in queue_instance.users_in_queue.split(',')]
+    async def found_players_pair(self):
+        queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
+        print(queue_list)
+
+    # async def remove_from_queue(self):
+    #     queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
+    #     print(queue_list, self.user_pk)
+    #     queue_list.remove(int(self.user_pk))
     #     print(queue_list)
+    #     if len(queue_list) > 0:
+    #         self.queue_instance.users_in_queue = ','.join(map(str, queue_list))
+    #     else:
+    #         self.queue_instance.users_in_queue = ''
+    #     sync_to_async(self.queue_instance.save)()
 
     async def look_for_matchup(self):
         while True:
-            print(f'looking for matchup for user with id: {self.user_pk}')
+            if await self.found_players_pair():
+                print("GOT THEM!!!!")
+                print(self.player_1, self.player_2)
             await asyncio.sleep(2)
 
-            # print(await self.found_players_pair(), self.player_1, self.player_2)
-            # # if not self.websocket_is_open:
             break
         print("Disconnecting by def")
+        # await self.remove_from_queue()
         await self.close()
 
     @sync_to_async
@@ -238,12 +245,10 @@ class QueueConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         self.user_pk = self.scope['url_route']['kwargs']['user_pk']
-        self.websocket_is_open = True
 
         await self.accept()
         await self.setup_queue_instance()
         await self.update_instance()
-        print(self.queue_instance.users_in_queue)
         await self.look_for_matchup()
 
     async def trigger_send_enemy_data(self):
@@ -267,4 +272,4 @@ class QueueConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, code):
         """ Removes user from disconnected websocket """
-        self.websocket_is_open = False
+        # await self.remove_from_queue()
