@@ -10,6 +10,7 @@ const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
   const webSocketRef = useRef<W3CWebSocket | null>(null);
   const { user } = useSelector((state: RootState) => state.auth);
   const [webSocket, setWebSocket] = useState<W3CWebSocket>();
+  let intervalId: number | undefined | NodeJS.Timer;
 
   const connectWebSocket = () => {
     const clientWebSocket = new W3CWebSocket(
@@ -30,19 +31,30 @@ const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
         progress: undefined,
         theme: "dark",
       });
+      intervalId = setInterval(() => {
+        try {
+          clientWebSocket?.send(
+            JSON.stringify({
+              data_type: "find_opponent",
+            })
+          );
+          console.log("WebSocket Queue - Looking for opponent");
+        } catch (error) {
+          console.log("Socket error:", error);
+        }
+      }, 5000);
     };
 
     clientWebSocket.onerror = () => {};
 
     clientWebSocket.onclose = () => {
       console.log("WebSocket Queue - closed successfully");
+      clearInterval(intervalId);
     };
 
     clientWebSocket.onmessage = (message) => {
       const dataFromServer = JSON.parse(message.data.toString());
-      console.log("got reply! ");
-      if (dataFromServer.type === "error") {
-      }
+      console.log("odp", dataFromServer);
     };
     setWebSocket(clientWebSocket);
   };
@@ -51,6 +63,7 @@ const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
     connectWebSocket();
     return () => {
       webSocket?.close();
+      clearInterval(intervalId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
