@@ -1,5 +1,4 @@
 import { Box, Button, Spinner, Text } from "@chakra-ui/react";
-import HttpService from "../../../utils/HttpService";
 import { w3cwebsocket as W3CWebSocket } from "websocket";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
@@ -50,36 +49,25 @@ const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
 
   useEffect(() => {
     connectWebSocket();
+    return () => {
+      webSocket?.close();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleClick = () => {
-    HttpService.removeUserFromQueue()
-      .then((response) => {
-        if (response?.status === 200) {
-          setIsSearchingGame(false);
-          webSocket?.close();
-          toast.info(`No longer searching for the game...`, {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "dark",
-          });
-        }
-      })
-      .catch((error) => {
-        const response = error.response;
-        if (
-          response.data.message === "User is not in queue" &&
-          response.status === 400
-        ) {
-          setIsSearchingGame(false);
-        }
-      });
+    setIsSearchingGame(false);
+    webSocket?.close();
+    toast.info(`No longer searching for the game...`, {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "dark",
+    });
   };
 
   return (
