@@ -1,4 +1,5 @@
 import asyncio
+import random
 
 from channels.exceptions import StopConsumer
 from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
@@ -215,10 +216,6 @@ class QueueConsumer(WebsocketConsumer):
             self.queue_instance.users_in_queue += update_value
             self.queue_instance.save()
 
-    # def found_players_pair(self):
-    #     queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
-    #     print(queue_list)
-
     def remove_from_queue(self):
         self.setup_queue_instance()
         queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
@@ -238,16 +235,28 @@ class QueueConsumer(WebsocketConsumer):
 
         self.accept()
         self.update_instance()
+        self.find_players_pair()
+
+    def find_players_pair(self):
+        queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
+        enemy_players = queue_list.copy()
+        enemy_players.remove(int(self.user_pk))
+
+        if len(enemy_players) == 0:
+            return False
+
+        self.player_1 = int(self.user_pk)
+        self.player_2 = random.choice(enemy_players)
+
 
     def receive(self, text_data):
-        """ Handles data sent in websocket """
-        data_json = json.loads(text_data)
 
+        data_json = json.loads(text_data)
         if data_json['data_type'] == 'find_opponent':
+            self.find_players_pair()
             self.trigger_send_enemy_data()
 
     def trigger_send_enemy_data(self):
-        """ Triggers send_board_state with chess pieces data """
 
         async_to_sync(self.channel_layer.group_send)(
             {
