@@ -1,5 +1,6 @@
 import asyncio
 
+from channels.exceptions import StopConsumer
 from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
 from .models import ChessGame, PlayersQueue
 from .chess_game import GameHandler
@@ -184,7 +185,7 @@ class ChessConsumer(WebsocketConsumer):
         )
 
 
-class QueueConsumer(AsyncWebsocketConsumer):
+class QueueConsumer(WebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
         self.user_pk = None
@@ -199,7 +200,8 @@ class QueueConsumer(AsyncWebsocketConsumer):
                 return True
         return False
 
-    async def update_instance(self):
+    def update_instance(self):
+        self.setup_queue_instance()
         if not self.queue_instance.users_in_queue:
             update_value = str(self.user_pk)
         else:
@@ -207,51 +209,50 @@ class QueueConsumer(AsyncWebsocketConsumer):
 
         if not self.is_in_queue():
             self.queue_instance.users_in_queue += update_value
-            sync_to_async(self.queue_instance.save)()
+            self.queue_instance.save()
 
-    async def found_players_pair(self):
+    def found_players_pair(self):
         queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
         print(queue_list)
 
-    # async def remove_from_queue(self):
-    #     queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
-    #     print(queue_list, self.user_pk)
-    #     queue_list.remove(int(self.user_pk))
-    #     print(queue_list)
-    #     if len(queue_list) > 0:
-    #         self.queue_instance.users_in_queue = ','.join(map(str, queue_list))
-    #     else:
-    #         self.queue_instance.users_in_queue = ''
-    #     sync_to_async(self.queue_instance.save)()
+    def remove_from_queue(self):
+        self.setup_queue_instance()
+        queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
+        queue_list.remove(int(self.user_pk))
 
-    async def look_for_matchup(self):
-        while True:
-            if await self.found_players_pair():
-                print("GOT THEM!!!!")
-                print(self.player_1, self.player_2)
-            await asyncio.sleep(2)
+        self.queue_instance.users_in_queue = ','.join(map(str, queue_list))
+        self.queue_instance.save()
 
-            break
-        print("Disconnecting by def")
-        # await self.remove_from_queue()
-        await self.close()
 
-    @sync_to_async
+    # def look_for_matchup(self):
+    #     while True:
+    #         # if await self.found_players_pair():
+    #             # print("GOT THEM!!!!")
+    #             # print(self.player_1, self.player_2)
+    #         await asyncio.sleep(2)
+    #
+    #         if not self.websocket_open:
+    #             break
+    #
+    #     print("Disconnecting by def")
+    #     # await self.remove_from_queue()
+    #     await self.close()
+
     def setup_queue_instance(self):
         if PlayersQueue.objects.all().count() == 0:
             self.queue_instance = PlayersQueue.objects.create()
         else:
             self.queue_instance = PlayersQueue.objects.all().first()
 
-    async def connect(self):
+    def connect(self):
         self.user_pk = self.scope['url_route']['kwargs']['user_pk']
 
-        await self.accept()
-        await self.setup_queue_instance()
-        await self.update_instance()
-        await self.look_for_matchup()
+        self.accept()
+        self.update_instance()
 
-    async def trigger_send_enemy_data(self):
+        # self.look_for_matchup()
+
+    def trigger_send_enemy_data(self):
         """ Triggers send_board_state with chess pieces data """
 
         async_to_sync(self.channel_layer.group_send)(
@@ -262,14 +263,118 @@ class QueueConsumer(AsyncWebsocketConsumer):
             }
         )
 
-    async def send_enemy_data(self, event):
+    def send_enemy_data(self, event):
         """ Sends chat message """
-        await self.send(text_data=json.dumps({
+        self.send(text_data=json.dumps({
             'type': 'enemy_data',
             'player_1': event['player_1'],
             'player_2': event['player_2']
         }))
 
-    async def disconnect(self, code):
-        """ Removes user from disconnected websocket """
-        # await self.remove_from_queue()
+    def disconnect(self, code):
+        self.remove_from_queue()
+
+# class QueueConsumer(AsyncWebsocketConsumer):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(args, kwargs)
+#         self.user_pk = None
+#         self.player_1 = None
+#         self.player_2 = None
+#         self.queue_instance = None
+#         self.websocket_open = False
+#
+#     def is_in_queue(self):
+#         if self.queue_instance.users_in_queue:
+#             queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
+#             if int(self.user_pk) in queue_list:
+#                 return True
+#         return False
+#
+#     async def update_instance(self):
+#         if not self.queue_instance.users_in_queue:
+#             update_value = str(self.user_pk)
+#         else:
+#             update_value = ',' + str(self.user_pk)
+#
+#         if not self.is_in_queue():
+#             self.queue_instance.users_in_queue += update_value
+#             print("Saving")
+#             print(self.queue_instance.users_in_queue)
+#             sync_to_async(self.queue_instance.save)()
+#             print("Saved")
+#             print(self.queue_instance.users_in_queue)
+#
+#     async def found_players_pair(self):
+#         queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
+#         print(queue_list)
+#
+#     # async def remove_from_queue(self):
+#     #     queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
+#     #     print(queue_list, self.user_pk)
+#     #     queue_list.remove(int(self.user_pk))
+#     #     print(queue_list)
+#     #     if len(queue_list) > 0:
+#     #         self.queue_instance.users_in_queue = ','.join(map(str, queue_list))
+#     #     else:
+#     #         self.queue_instance.users_in_queue = ''
+#     #     sync_to_async(self.queue_instance.save)()
+#
+#     async def look_for_matchup(self):
+#         while True:
+#             # if await self.found_players_pair():
+#                 # print("GOT THEM!!!!")
+#                 # print(self.player_1, self.player_2)
+#             await asyncio.sleep(2)
+#
+#             if not self.websocket_open:
+#                 break
+#
+#         print("Disconnecting by def")
+#         # await self.remove_from_queue()
+#         await self.close()
+#
+#     @sync_to_async
+#     def setup_queue_instance(self):
+#         if PlayersQueue.objects.all().count() == 0:
+#             self.queue_instance = PlayersQueue.objects.create()
+#         else:
+#             self.queue_instance = PlayersQueue.objects.all().first()
+#
+#     async def connect(self):
+#         self.user_pk = self.scope['url_route']['kwargs']['user_pk']
+#
+#         await self.accept()
+#         self.websocket_open = True
+#         await self.setup_queue_instance()
+#         print("GOT INSTANCE")
+#         print(self.queue_instance.users_in_queue)
+#         await self.update_instance()
+#         await self.look_for_matchup()
+#
+#     async def trigger_send_enemy_data(self):
+#         """ Triggers send_board_state with chess pieces data """
+#
+#         async_to_sync(self.channel_layer.group_send)(
+#             {
+#                 'type': 'send_enemy_data',
+#                 'player_1': self.player_1,
+#                 'player_2': self.player_2
+#             }
+#         )
+#
+#     async def send_enemy_data(self, event):
+#         """ Sends chat message """
+#         await self.send(text_data=json.dumps({
+#             'type': 'enemy_data',
+#             'player_1': event['player_1'],
+#             'player_2': event['player_2']
+#         }))
+#
+#     async def disconnect(self, code):
+#         """ Removes user from disconnected websocket """
+#         self.websocket_open = False
+#         async_to_sync(self.channel_layer.group_discard)(
+#             self.room_group_name,
+#             self.channel_name
+#         )
+#         raise StopConsumer()
