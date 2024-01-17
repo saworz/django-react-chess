@@ -1,33 +1,13 @@
 import { Flex, Text, ScaleFade, Button, Box } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import HttpService from "../../utils/HttpService";
+import { useState } from "react";
 import SearchInfo from "../../components/SearchGamePage/SearchInfo";
 
 const SearchGamePage = () => {
   const [isSearchingGame, setIsSearchingGame] = useState(false);
 
-  const handleRequest = () => {
-    HttpService.addUserToQueue()
-      .then((response) => {
-        if (response?.status === 200) {
-          setIsSearchingGame(true);
-        } else {
-          setIsSearchingGame(false);
-        }
-      })
-      .catch((error) => {
-        const response = error.response;
-        if (
-          response.data.message === "User already in queue" &&
-          response.status === 400
-        ) {
-          setIsSearchingGame(true);
-        }
-      });
+  const handleClick = () => {
+    setIsSearchingGame(true);
   };
-  useEffect(() => {
-    handleRequest();
-  }, []);
 
   return (
     <Flex
@@ -52,7 +32,7 @@ const SearchGamePage = () => {
               <Text fontSize={"2rem"} fontWeight="black">
                 Find the game
               </Text>
-              <Button onClick={handleRequest}>PLAY</Button>
+              <Button onClick={handleClick}>PLAY</Button>
             </>
           )}
         </Box>
