@@ -247,14 +247,14 @@ class QueueConsumer(WebsocketConsumer):
 
         self.player_1 = int(self.user_pk)
         self.player_2 = random.choice(enemy_players)
-
+        return True
 
     def receive(self, text_data):
 
         data_json = json.loads(text_data)
         if data_json['data_type'] == 'find_opponent':
-            self.find_players_pair()
-            self.trigger_send_enemy_data()
+            if self.find_players_pair():
+                self.trigger_send_enemy_data()
 
     def trigger_send_enemy_data(self):
 
@@ -263,7 +263,6 @@ class QueueConsumer(WebsocketConsumer):
                 'type': 'send_enemy_data',
                 'player_1': self.player_1,
                 'player_2': self.player_2,
-                'room_id': self.room_id,
             }
         )
 
@@ -273,7 +272,6 @@ class QueueConsumer(WebsocketConsumer):
             'type': 'enemy_data',
             'player_1': event['player_1'],
             'player_2': event['player_2'],
-            'room_id': event['room_id'],
         }))
 
     def disconnect(self, code):
