@@ -1,11 +1,12 @@
 import asyncio
 
 from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
-from .models import ChessGame
+from .models import ChessGame, PlayersQueue
 from .chess_game import GameHandler
 from .chess_db import DatabaseHandler
 from .utils import (prepare_data)
-from asgiref.sync import async_to_sync
+from asgiref.sync import async_to_sync, sync_to_async
+from channels.db import database_sync_to_async
 import json
 
 
@@ -23,7 +24,6 @@ class ChessConsumer(WebsocketConsumer):
 
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
-            self.channel_name
         )
 
         if ChessGame.objects.filter(room_id=self.room_id).exists():
@@ -185,13 +185,54 @@ class ChessConsumer(WebsocketConsumer):
 
 
 class QueueConsumer(AsyncWebsocketConsumer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.websocket_is_open = False
+        self.user_pk = None
+
+    def is_in_queue(self, queue_instance):
+        if queue_instance.users_in_queue:
+            queue_list = [int(num) for num in queue_instance.users_in_queue.split(',')]
+            if self.user_pk in queue_list:
+                return True
+        return False
+
+    @database_sync_to_async
+    def update_instance(self):
+
+        if PlayersQueue.objects.all().count() == 0:
+            instance = PlayersQueue.objects.create()
+        else:
+            instance = PlayersQueue.objects.all.first()
+
+        if not instance.users_in_queue:
+            update_value = str(self.user_pk)
+        else:
+            update_value = ',' + str(self.user_pk)
+
+        if not self.is_in_queue(instance):
+            instance.users_in_queue += update_value
+            instance.save()
+
+
     async def look_for_matchup(self):
         while True:
-            await asyncio.sleep(5)
             print(f'looking for matchup for user with id: {self.user_pk}')
+            print(self.websocket_is_open)
+            await asyncio.sleep(5)
+
+            if not self.websocket_is_open:
+                break
 
     async def connect(self):
         self.user_pk = self.scope['url_route']['kwargs']['user_pk']
+        self.websocket_is_open = True
+
+        self.update_instance()
         await self.accept()
 
         asyncio.ensure_future(self.look_for_matchup())
+
+    async def disconnect(self, code):
+        """ Removes user from disconnected websocket """
+        self.websocket_is_open = False
