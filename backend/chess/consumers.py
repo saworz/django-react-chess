@@ -198,6 +198,13 @@ class QueueConsumer(WebsocketConsumer):
         self.queue_instance = None
         self.send_enemy_data_task = None
 
+    def connect(self):
+        self.user_pk = self.scope['url_route']['kwargs']['user_pk']
+
+        self.accept()
+        self.update_instance()
+        self.find_players_pair()
+
     def is_in_queue(self):
         if self.queue_instance.users_in_queue:
             queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
@@ -230,14 +237,8 @@ class QueueConsumer(WebsocketConsumer):
         else:
             self.queue_instance = PlayersQueue.objects.all().first()
 
-    def connect(self):
-        self.user_pk = self.scope['url_route']['kwargs']['user_pk']
-
-        self.accept()
-        self.update_instance()
-        self.find_players_pair()
-
     def find_players_pair(self):
+        self.setup_queue_instance()
         queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
         enemy_players = queue_list.copy()
         enemy_players.remove(int(self.user_pk))
@@ -250,29 +251,14 @@ class QueueConsumer(WebsocketConsumer):
         return True
 
     def receive(self, text_data):
-
         data_json = json.loads(text_data)
         if data_json['data_type'] == 'find_opponent':
             if self.find_players_pair():
-                self.trigger_send_enemy_data()
-
-    def trigger_send_enemy_data(self):
-
-        async_to_sync(self.channel_layer.group_send)(
-            {
-                'type': 'send_enemy_data',
-                'player_1': self.player_1,
-                'player_2': self.player_2,
-            }
-        )
-
-    def send_enemy_data(self, event):
-        """ Sends chat message """
-        self.send(text_data=json.dumps({
-            'type': 'enemy_data',
-            'player_1': event['player_1'],
-            'player_2': event['player_2'],
-        }))
+                self.send(text_data=json.dumps({
+                    'type': 'send_enemy_data',
+                    'player_1': self.player_1,
+                    'player_2': self.player_2,
+                }))
 
     def disconnect(self, code):
         if self.send_enemy_data_task:
