@@ -7,12 +7,13 @@ import { getKingPosition } from "../../../arbiter/getMoves";
 import { Box, useColorModeValue } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../app/store";
-import SoundPlayer from "../SoundPlayer";
 import GameEndsPopup from "../GameEndsPopup";
 import { endGameByWin } from "../../../features/chess/chessSlice";
 import { openPopup } from "../../../features/popup/popupSlice";
 import { useEffect } from "react";
 import PromotionPopup from "../PromotionPopup";
+import { Howl } from "howler";
+import SoundPlayer from "../SoundPlayer";
 
 const ChessBoard = ({ webSocket }: Types.IProps) => {
   const { chess } = useSelector((state: RootState) => state.chess);
@@ -25,10 +26,13 @@ const ChessBoard = ({ webSocket }: Types.IProps) => {
 
   useEffect(() => {
     if (chess.black_checkmated || chess.white_checkmated) {
-      soundComponent = (
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        <SoundPlayer src="/sounds/game-end.mp3" format="mp3" autoplay={false} />
-      );
+      const sound = new Howl({
+        src: "/sounds/game-end.mp3",
+        format: "mp3",
+        html5: true,
+        autoplay: false,
+      });
+      sound.play();
       //TODO - FIX
       dispatch(endGameByWin(checkedPlayer));
       dispatch(openPopup());
@@ -49,8 +53,8 @@ const ChessBoard = ({ webSocket }: Types.IProps) => {
       soundComponent = (
         <SoundPlayer
           src="/sounds/move-check.mp3"
-          format="mp3"
           autoplay={false}
+          format="mp3"
         />
       );
       return getKingPosition(chess.piecesPosition, checkedPlayer);

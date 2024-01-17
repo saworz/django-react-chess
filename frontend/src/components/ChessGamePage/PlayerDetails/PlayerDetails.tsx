@@ -23,7 +23,7 @@ const PlayerDetails = ({ image, username, playerDetails }: Types.IProps) => {
           <Text pl={3}>{username}</Text>
           <Box display="flex" pl={1} alignItems="center">
             {_.uniq(playerDetails.piecesCaptured).map((item) => (
-              <Styles.Piece $piece={item} />
+              <Styles.Piece key={item} $piece={item} />
             ))}
             {playerDetails.points ? `+${playerDetails.points}` : null}
           </Box>
