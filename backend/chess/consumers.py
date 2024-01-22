@@ -201,7 +201,16 @@ class QueueConsumer(WebsocketConsumer):
     def connect(self):
         self.user_pk = self.scope['url_route']['kwargs']['user_pk']
 
+        self.room_name = 'queue_room'
+        self.room_group_name = self.room_name
+
         self.accept()
+
+        async_to_sync(self.channel_layer.group_add)(
+            self.room_group_name,
+            self.channel_name
+        )
+
         self.update_instance()
         self.find_players_pair()
 
@@ -254,13 +263,31 @@ class QueueConsumer(WebsocketConsumer):
         data_json = json.loads(text_data)
         if data_json['data_type'] == 'find_opponent':
             if self.find_players_pair():
-                self.send(text_data=json.dumps({
-                    'type': 'send_enemy_data',
-                    'player_1': self.player_1,
-                    'player_2': self.player_2,
-                }))
+                self.trigger_send_enemy_data()
+
+    def trigger_send_enemy_data(self):
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'send_enemy_data',
+                'player_1': self.player_1,
+                'player_2': self.player_2,
+            }
+        )
+
+    def send_enemy_data(self, event):
+        self.send(text_data=json.dumps({
+            'type': 'enemy_data',
+            'player_1': event['player_1'],
+            'player_2': event['player_2'],
+        }))
 
     def disconnect(self, code):
         if self.send_enemy_data_task:
             self.send_enemy_data_task.cancel()
         self.remove_from_queue()
+
+        async_to_sync(self.channel_layer.group_discard)(
+            self.room_group_name,
+            self.channel_name
+        )
