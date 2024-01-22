@@ -1,9 +1,16 @@
-from channels.generic.websocket import WebsocketConsumer
-from .models import ChessGame
+import asyncio
+import random
+
+from channels.exceptions import StopConsumer
+from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
+from .models import ChessGame, PlayersQueue
 from .chess_game import GameHandler
 from .chess_db import DatabaseHandler
 from .utils import (prepare_data)
-from asgiref.sync import async_to_sync
+from asgiref.sync import async_to_sync, sync_to_async
+from channels.db import database_sync_to_async
+from channels.consumer import SyncConsumer
+from channels.layers import get_channel_layer
 import json
 
 
@@ -21,7 +28,6 @@ class ChessConsumer(WebsocketConsumer):
 
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
-            self.channel_name
         )
 
         if ChessGame.objects.filter(room_id=self.room_id).exists():
@@ -176,6 +182,111 @@ class ChessConsumer(WebsocketConsumer):
 
     def disconnect(self, code):
         """ Removes user from disconnected websocket """
+        async_to_sync(self.channel_layer.group_discard)(
+            self.room_group_name,
+            self.channel_name
+        )
+
+
+class QueueConsumer(WebsocketConsumer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.user_pk = None
+        self.player_1 = None
+        self.player_2 = None
+        self.room_id = None
+        self.queue_instance = None
+        self.send_enemy_data_task = None
+
+    def connect(self):
+        self.user_pk = self.scope['url_route']['kwargs']['user_pk']
+
+        self.room_name = 'queue_room'
+        self.room_group_name = self.room_name
+
+        self.accept()
+
+        async_to_sync(self.channel_layer.group_add)(
+            self.room_group_name,
+            self.channel_name
+        )
+
+        self.update_instance()
+        self.find_players_pair()
+
+    def is_in_queue(self):
+        if self.queue_instance.users_in_queue:
+            queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
+            if int(self.user_pk) in queue_list:
+                return True
+        return False
+
+    def update_instance(self):
+        self.setup_queue_instance()
+        if not self.queue_instance.users_in_queue:
+            update_value = str(self.user_pk)
+        else:
+            update_value = ',' + str(self.user_pk)
+
+        if not self.is_in_queue():
+            self.queue_instance.users_in_queue += update_value
+            self.queue_instance.save()
+
+    def remove_from_queue(self):
+        self.setup_queue_instance()
+        queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
+        queue_list.remove(int(self.user_pk))
+
+        self.queue_instance.users_in_queue = ','.join(map(str, queue_list))
+        self.queue_instance.save()
+
+    def setup_queue_instance(self):
+        if PlayersQueue.objects.all().count() == 0:
+            self.queue_instance = PlayersQueue.objects.create()
+        else:
+            self.queue_instance = PlayersQueue.objects.all().first()
+
+    def find_players_pair(self):
+        self.setup_queue_instance()
+        queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
+        enemy_players = queue_list.copy()
+        enemy_players.remove(int(self.user_pk))
+
+        if len(enemy_players) == 0:
+            return False
+
+        self.player_1 = int(self.user_pk)
+        self.player_2 = random.choice(enemy_players)
+        return True
+
+    def receive(self, text_data):
+        data_json = json.loads(text_data)
+        if data_json['data_type'] == 'find_opponent':
+            if self.find_players_pair():
+                self.trigger_send_enemy_data()
+
+    def trigger_send_enemy_data(self):
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'send_enemy_data',
+                'player_1': self.player_1,
+                'player_2': self.player_2,
+            }
+        )
+
+    def send_enemy_data(self, event):
+        self.send(text_data=json.dumps({
+            'type': 'enemy_data',
+            'player_1': event['player_1'],
+            'player_2': event['player_2'],
+        }))
+
+    def disconnect(self, code):
+        if self.send_enemy_data_task:
+            self.send_enemy_data_task.cancel()
+        self.remove_from_queue()
+
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name,
             self.channel_name

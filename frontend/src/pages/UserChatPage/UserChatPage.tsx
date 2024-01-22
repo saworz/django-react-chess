@@ -8,7 +8,7 @@ import * as SharedTypes from "../../shared/types";
 const UserChatPage = () => {
   const { userId } = useParams();
   const [chatRoomId, setChatRoomId] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [, setIsLoading] = useState(false);
   const [userDetails, setUserDetails] =
     useState<SharedTypes.ISuggestionFriendData>();
 
@@ -34,6 +34,7 @@ const UserChatPage = () => {
       .catch((error) => {
         console.log("Błąd", error);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

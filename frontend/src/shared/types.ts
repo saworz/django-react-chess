@@ -22,6 +22,7 @@ export interface IFriendSystemState {
 
 export interface IChessState {
   chess: {
+    gameDetails: IChessGameDetails;
     gameRoomId: string;
     isGameStarted: boolean;
     chessBoard: string[][];
@@ -42,7 +43,6 @@ export interface IChessState {
     black_en_passant_pawn_to_capture: string | null;
     black_long_castle_legal: boolean;
     black_short_castle_legal: boolean;
-    black_captured_pieces: number[];
     black_score: number;
     white_checked: boolean;
     white_checkmated: boolean;
@@ -50,7 +50,6 @@ export interface IChessState {
     white_en_passant_pawn_to_capture: string | null;
     white_long_castle_legal: boolean;
     white_short_castle_legal: boolean;
-    white_captured_pieces: number[];
     white_score: number;
     gameStatus: string;
     promotionSquare: {
@@ -66,6 +65,18 @@ export interface IChessState {
   isSuccess: boolean;
   isLoading: boolean;
   message: string;
+}
+
+export interface IChessGameDetails {
+  id: number;
+  white_score: number;
+  black_score: number;
+  white_captures: string[];
+  black_captures: string[];
+  current_player: string;
+  room_id: string;
+  player_white: number;
+  player_black: number;
 }
 
 export interface IPopupState {
@@ -160,4 +171,8 @@ export interface ICreateChessGameResponse {
   room_id: string;
   player_white: number;
   player_black: number;
+}
+
+export interface ICreateChessGameRequest {
+  userId: string;
 }

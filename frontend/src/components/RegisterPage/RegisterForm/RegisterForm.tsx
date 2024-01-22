@@ -76,7 +76,7 @@ const RegisterForm = () => {
             navigate("/login");
           } else if (response.meta.requestStatus === "rejected") {
             toast.error(
-              `${response.payload.message.slice(0, -1)} - ${
+              `${response.payload.message?.slice(0, -1)} - ${
                 response.payload.errors[Object.keys(response.payload.errors)[0]]
               }`,
               {

@@ -14,6 +14,7 @@ import UserChatPage from "../../pages/UserChatPage";
 import PrivateRoutes from "../../utils/PrivateRoutes";
 import PublicRoutes from "../../utils/PublicRoutes";
 import Navigation from "../../components/Navigation";
+import SearchGamePage from "../../pages/SearchGamePage";
 import TokenService from "../../app/tokenService";
 
 const RouterProvider = () => {
@@ -27,6 +28,8 @@ const RouterProvider = () => {
           <Route path="/dashboard" element={<DashboardPage />}></Route>
           <Route path="/friends" element={<FriendsPage />}></Route>
           <Route path="/account" element={<AccountPage />}></Route>
+          <Route path="/play" element={<SearchGamePage />}></Route>
+
           <Route path="/chess/game/:gameId" element={<ChessGamePage />}></Route>
           <Route
             path="/user_details/:userId/chat"

@@ -1,9 +1,22 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Status } from "../../constants";
+import chessService from "./chessService";
+import axios from "axios";
 import * as SharedTypes from "../../shared/types";
 
 const initialState: SharedTypes.IChessState = {
   chess: {
+    gameDetails: {
+      id: -1,
+      white_score: -1,
+      black_score: -1,
+      white_captures: [],
+      black_captures: [],
+      current_player: "",
+      room_id: "",
+      player_white: -1,
+      player_black: -1,
+    },
     gameRoomId: "",
     isGameStarted: false,
     chessBoard: [],
@@ -24,7 +37,6 @@ const initialState: SharedTypes.IChessState = {
     black_en_passant_pawn_to_capture: null,
     black_long_castle_legal: false,
     black_short_castle_legal: false,
-    black_captured_pieces: [],
     black_score: 0,
     white_checked: false,
     white_checkmated: false,
@@ -32,7 +44,6 @@ const initialState: SharedTypes.IChessState = {
     white_en_passant_pawn_to_capture: null,
     white_long_castle_legal: false,
     white_short_castle_legal: false,
-    white_captured_pieces: [],
     white_score: 0,
     gameStatus: Status.ongoing,
     promotionSquare: null,
@@ -42,6 +53,50 @@ const initialState: SharedTypes.IChessState = {
   isLoading: false,
   message: "",
 };
+
+export const postCreateChessGame = createAsyncThunk(
+  "/chess/postCreateChessGame",
+  async (data: string, thunkAPI) => {
+    try {
+      return await chessService.postCreateChessGame(data);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message =
+          (error.response &&
+            error.response.data &&
+            error.response.data.message) ||
+          error.message ||
+          error.toString();
+        return thunkAPI.rejectWithValue(message);
+      } else {
+        console.log("unexpected error: ", error);
+        return "An unexpected error occurred";
+      }
+    }
+  }
+);
+
+export const getGameRoomDetails = createAsyncThunk(
+  "/chess/getGameRoomDetails",
+  async (data: string, thunkAPI) => {
+    try {
+      return await chessService.getGameRoomDetails(data);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message =
+          (error.response &&
+            error.response.data &&
+            error.response.data.message) ||
+          error.message ||
+          error.toString();
+        return thunkAPI.rejectWithValue(message);
+      } else {
+        console.log("unexpected error: ", error);
+        return "An unexpected error occurred";
+      }
+    }
+  }
+);
 
 export const chessSlice = createSlice({
   name: "chess",
@@ -62,7 +117,8 @@ export const chessSlice = createSlice({
         action.payload.black_long_castle_legal;
       state.chess.black_short_castle_legal =
         action.payload.black_short_castle_legal;
-      state.chess.black_captured_pieces = action.payload.black_captured_pieces;
+      state.chess.gameDetails.black_captures =
+        action.payload.black_captured_pieces;
       state.chess.black_score = action.payload.black_score;
       state.chess.white_checked = action.payload.white_checked;
       state.chess.white_checkmated = action.payload.white_checkmated;
@@ -74,9 +130,12 @@ export const chessSlice = createSlice({
         action.payload.white_long_castle_legal;
       state.chess.white_short_castle_legal =
         action.payload.white_short_castle_legal;
-      state.chess.white_captured_pieces = action.payload.white_captured_pieces;
+      state.chess.gameDetails.white_captures =
+        action.payload.white_captured_pieces;
       state.chess.white_score = action.payload.white_score;
       state.chess.current_player = action.payload.current_player;
+      state.chess.gameDetails!.black_score = action.payload.black_score;
+      state.chess.gameDetails!.white_score = action.payload.white_score;
       state.chess.copyPiecesPosition.black_pieces = action.payload.black_pieces;
       state.chess.copyPiecesPosition.white_pieces = action.payload.white_pieces;
     },
@@ -98,10 +157,6 @@ export const chessSlice = createSlice({
     },
     setGameRoomId: (state, action) => {
       state.chess.gameRoomId = action.payload;
-    },
-    prepareChessGame: (state, action) => {
-      state.chess.gameRoomId = action.payload.gameRoomId;
-      state.chess.isGameStarted = action.payload.isGameStarted;
     },
     createChessGame: (state, action) => {
       state.chess.gameRoomId = action.payload.gameRoomId;
@@ -138,14 +193,59 @@ export const chessSlice = createSlice({
     },
   },
   //State - pendning, fullfiled, rejected
-  extraReducers() {},
+  extraReducers(builder) {
+    builder
+      .addCase(postCreateChessGame.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(postCreateChessGame.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.isError = false;
+        state.chess.gameRoomId = action.payload.room_id;
+        state.chess.isGameStarted = true;
+        state.chess.current_player = "white";
+      })
+      .addCase(postCreateChessGame.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = false;
+        state.isError = true;
+        state.message = action.payload as string;
+      })
+      .addCase(getGameRoomDetails.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getGameRoomDetails.fulfilled, (state, action) => {
+        const whiteCaptures = action.payload.white_captures;
+        const blackCaptures = action.payload.black_captures;
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.isError = false;
+        state.chess.gameDetails.id = action.payload.id;
+        state.chess.gameDetails.white_score = action.payload.white_score;
+        state.chess.gameDetails.black_score = action.payload.black_score;
+        state.chess.gameDetails.white_captures =
+          whiteCaptures === null ? [] : whiteCaptures;
+        state.chess.gameDetails.black_captures =
+          blackCaptures === null ? [] : blackCaptures;
+        state.chess.gameDetails.current_player = action.payload.current_player;
+        state.chess.gameDetails.room_id = action.payload.room_id;
+        state.chess.gameDetails.player_white = action.payload.player_white;
+        state.chess.gameDetails.player_black = action.payload.player_black;
+      })
+      .addCase(getGameRoomDetails.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = false;
+        state.isError = true;
+        state.message = action.payload as string;
+      });
+  },
 });
 
 export const {
   reset,
   updateGame,
   setGameRoomId,
-  prepareChessGame,
   initGame,
   generateCandidateMoves,
   clearCandidates,
