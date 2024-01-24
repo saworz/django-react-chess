@@ -89,8 +89,6 @@ const ChessGamePage = () => {
       }
     });
 
-    dispatch(getGameRoomDetails(gameId!));
-
     const connectWebSocket = () => {
       const clientWebSocket = new W3CWebSocket(
         "ws://localhost:8000/ws/chess/" +
@@ -102,6 +100,7 @@ const ChessGamePage = () => {
       clientWebSocket.onopen = () => {
         //createChessGame  TODO
         console.log("WebSocket connected");
+        dispatch(getGameRoomDetails(gameId!));
         dispatch(
           createChessGame({
             gameRoomId: Number(Functions.computeGameId(user?.id!, gameId!)),

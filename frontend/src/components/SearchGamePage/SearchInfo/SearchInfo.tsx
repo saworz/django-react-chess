@@ -5,12 +5,20 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../app/store";
 import { toast } from "react-toastify";
 import * as Types from "./SearchInfo.types";
+import Functions from "../../../utils/Functions";
+import { useNavigate } from "react-router-dom";
 
 const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
   const webSocketRef = useRef<W3CWebSocket | null>(null);
   const { user } = useSelector((state: RootState) => state.auth);
   const [webSocket, setWebSocket] = useState<W3CWebSocket>();
+  const navigate = useNavigate();
   let intervalId: number | undefined | NodeJS.Timer;
+
+  const clearWebSocket = () => {
+    webSocket?.close();
+    clearInterval(intervalId);
+  };
 
   const connectWebSocket = () => {
     const clientWebSocket = new W3CWebSocket(
@@ -31,6 +39,16 @@ const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
         progress: undefined,
         theme: "dark",
       });
+      try {
+        clientWebSocket?.send(
+          JSON.stringify({
+            data_type: "find_opponent",
+          })
+        );
+        console.log("WebSocket Queue - Looking for opponent");
+      } catch (error) {
+        console.log("Socket error:", error);
+      }
       intervalId = setInterval(() => {
         try {
           clientWebSocket?.send(
@@ -54,7 +72,18 @@ const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
 
     clientWebSocket.onmessage = (message) => {
       const dataFromServer = JSON.parse(message.data.toString());
-      console.log("odp", dataFromServer);
+      if (dataFromServer.type === "enemy_data") {
+        const firstPlayerId = dataFromServer.player_1;
+        const secondPlayerId = dataFromServer.player_2;
+        if (firstPlayerId === user!.id || secondPlayerId === user!.id) {
+          clearWebSocket();
+          if (Functions.isLoggedPlayer(firstPlayerId, user!.id)) {
+            navigate(`/chess/game/${secondPlayerId}`);
+          } else {
+            navigate(`/chess/game/${firstPlayerId}`);
+          }
+        }
+      }
     };
     setWebSocket(clientWebSocket);
   };
@@ -62,8 +91,7 @@ const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
   useEffect(() => {
     connectWebSocket();
     return () => {
-      webSocket?.close();
-      clearInterval(intervalId);
+      clearWebSocket();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -138,6 +138,8 @@ export const chessSlice = createSlice({
       state.chess.gameDetails!.white_score = action.payload.white_score;
       state.chess.copyPiecesPosition.black_pieces = action.payload.black_pieces;
       state.chess.copyPiecesPosition.white_pieces = action.payload.white_pieces;
+      state.chess.piecesPosition.black_pieces = action.payload.black_pieces;
+      state.chess.piecesPosition.white_pieces = action.payload.white_pieces;
     },
     initGame: (state, action) => {
       state.chess.copyPiecesPosition.black_pieces =

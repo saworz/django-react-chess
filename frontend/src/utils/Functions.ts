@@ -215,6 +215,14 @@ const promotePiece = (
   return piecesPosition;
 };
 
+const isLoggedPlayer = (playerId: number, loggedUserId: number) => {
+  if (playerId === loggedUserId) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
 const Functions = {
   updatePiecePostion,
   placeOnTheBoard,
@@ -225,6 +233,7 @@ const Functions = {
   raisePawn,
   getCastlingMoves,
   promotePiece,
+  isLoggedPlayer,
 };
 
 export default Functions;
