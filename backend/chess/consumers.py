@@ -28,6 +28,7 @@ class ChessConsumer(WebsocketConsumer):
 
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
+            self.channel_name
         )
 
         if ChessGame.objects.filter(room_id=self.room_id).exists():
