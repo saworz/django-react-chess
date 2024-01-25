@@ -1,24 +1,21 @@
 import { Box, Button, Spinner, Text } from "@chakra-ui/react";
 import { w3cwebsocket as W3CWebSocket } from "websocket";
 import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "../../../app/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../../app/store";
 import { toast } from "react-toastify";
 import * as Types from "./SearchInfo.types";
 import Functions from "../../../utils/Functions";
 import { useNavigate } from "react-router-dom";
+import { postCreateChessGame } from "../../../features/chess/chessSlice";
 
 const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
   const webSocketRef = useRef<W3CWebSocket | null>(null);
   const { user } = useSelector((state: RootState) => state.auth);
   const [webSocket, setWebSocket] = useState<W3CWebSocket>();
   const navigate = useNavigate();
+  const dispatch: AppDispatch = useDispatch();
   let intervalId: number | undefined | NodeJS.Timer;
-
-  const clearWebSocket = () => {
-    webSocket?.close();
-    clearInterval(intervalId);
-  };
 
   const connectWebSocket = () => {
     const clientWebSocket = new W3CWebSocket(
@@ -76,9 +73,12 @@ const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
         const firstPlayerId = dataFromServer.player_1;
         const secondPlayerId = dataFromServer.player_2;
         if (firstPlayerId === user!.id || secondPlayerId === user!.id) {
-          clearWebSocket();
+          clientWebSocket!.close();
+          clearInterval(intervalId);
           if (Functions.isLoggedPlayer(firstPlayerId, user!.id)) {
-            navigate(`/chess/game/${secondPlayerId}`);
+            dispatch(postCreateChessGame(secondPlayerId)).then(() => {
+              navigate(`/chess/game/${secondPlayerId}`);
+            });
           } else {
             navigate(`/chess/game/${firstPlayerId}`);
           }
@@ -91,7 +91,8 @@ const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
   useEffect(() => {
     connectWebSocket();
     return () => {
-      clearWebSocket();
+      webSocket?.close();
+      clearInterval(intervalId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -15,6 +15,7 @@ import PrivateRoutes from "../../utils/PrivateRoutes";
 import PublicRoutes from "../../utils/PublicRoutes";
 import Navigation from "../../components/Navigation";
 import SearchGamePage from "../../pages/SearchGamePage";
+import GameNotFoundPage from "../../pages/GameNotFoundPage";
 import TokenService from "../../app/tokenService";
 
 const RouterProvider = () => {
@@ -40,6 +41,7 @@ const RouterProvider = () => {
             path="/user_details/:userId"
             element={<UserDetailsPage />}
           ></Route>
+          <Route path="/notfound" element={<GameNotFoundPage />} />
         </Route>
         <Route element={<PublicRoutes />}>
           <Route path="/" element={<HomePage />}></Route>

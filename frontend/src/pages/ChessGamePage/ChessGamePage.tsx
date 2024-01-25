@@ -3,11 +3,10 @@ import {
   updateGame,
   createChessGame,
   initGame,
-  postCreateChessGame,
   getGameRoomDetails,
 } from "../../features/chess/chessSlice";
 import ChessBoard from "../../components/ChessGamePage/ChessBoard";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { w3cwebsocket as W3CWebSocket } from "websocket";
 import Functions from "../../utils/Functions";
@@ -28,7 +27,9 @@ const ChessGamePage = () => {
   const [messages, setMessages] = useState<SharedTypes.IMessagesData[]>([]);
   const [isUserFound, setIsUserFound] = useState(false);
   const dispatch: AppDispatch = useDispatch();
+  const navigate = useNavigate();
   const webSocketRef = useRef<W3CWebSocket | null>(null);
+  const reconnectCounter = useRef(1);
   const [enemyDetails, setEnemyDetails] =
     useState<SharedTypes.ISuggestionFriendData>();
   const isGameReady =
@@ -121,10 +122,12 @@ const ChessGamePage = () => {
       };
 
       clientWebSocket.onerror = () => {
-        dispatch(postCreateChessGame(gameId!)).then(() => {
-          setTimeout(connectWebSocket, 2000);
-        });
-        console.log("Websoket Error");
+        if (reconnectCounter.current < 3) {
+          connectWebSocket();
+          reconnectCounter.current += 1;
+        } else {
+          navigate("/notfound");
+        }
       };
 
       clientWebSocket.onmessage = (message) => {

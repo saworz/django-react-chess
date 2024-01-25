@@ -83,7 +83,7 @@ const Pieces = ({ webSocket }: Types.IProps) => {
     ];
 
     return allCastlingMoves.some(
-      (tablica) => tablica.toString() === [x, y].toString()
+      (array) => array.toString() === [x, y].toString()
     );
   };
 
