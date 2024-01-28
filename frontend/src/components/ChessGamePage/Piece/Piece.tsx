@@ -20,7 +20,9 @@ const Piece = ({ file, piece, rank }: Types.IProps) => {
     black_short_castle_legal,
     white_long_castle_legal,
     white_short_castle_legal,
+    gameDetails,
   } = chess;
+  const { user } = useSelector((state: RootState) => state.auth);
   const isGameEnded = chess.gameStatus === Status.ongoing ? false : true;
   const isBlackCastleLegal =
     black_long_castle_legal || black_short_castle_legal;
@@ -28,52 +30,54 @@ const Piece = ({ file, piece, rank }: Types.IProps) => {
     white_long_castle_legal || white_short_castle_legal;
   let selectedPiece: SharedTypes.IBlackPiece | SharedTypes.IWhitePiece | null =
     null;
+  const playerColor = user?.id === gameDetails.player_black ? "black" : "white";
 
   const onDragStart = (e: Types.DragEvent) => {
-    const pieceColor = piece[0];
+    if (current_player === playerColor) {
+      const pieceColor = piece[0];
+      const target = e.target as HTMLDivElement;
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", `${piece},${rank},${file}`);
+      setTimeout(() => {
+        target.style.display = "none";
+      }, 0);
 
-    const target = e.target as HTMLDivElement;
-    e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", `${piece},${rank},${file}`);
-    setTimeout(() => {
-      target.style.display = "none";
-    }, 0);
-
-    if (pieceColor === "w") {
-      selectedPiece = copyPiecesPosition.white_pieces.filter(
-        (piece) =>
-          piece.position[0] === file + 1 && piece.position[1] === rank + 1
-      )[0];
-      dispatch(setSelectedPiece(selectedPiece));
-    } else {
-      selectedPiece = copyPiecesPosition.black_pieces.filter(
-        (piece) =>
-          piece.position[0] === file + 1 && piece.position[1] === rank + 1
-      )[0];
-      dispatch(setSelectedPiece(selectedPiece));
-    }
-
-    if (current_player[0] === piece[0]) {
-      let candidateMoves = [
-        ...selectedPiece?.valid_moves,
-        ...selectedPiece?.capturing_moves,
-      ].map((pos) => [pos[1] - 1, pos[0] - 1]);
-      if (
-        (isBlackCastleLegal || isWhiteCastleLegal) &&
-        (piece === "wking" || piece === "bking")
-      ) {
-        candidateMoves = [
-          ...candidateMoves,
-          ...Functions.getCastlingMoves(
-            black_long_castle_legal,
-            black_short_castle_legal,
-            white_long_castle_legal,
-            white_short_castle_legal,
-            piece
-          ),
-        ];
+      if (pieceColor === "w") {
+        selectedPiece = copyPiecesPosition.white_pieces.filter(
+          (piece) =>
+            piece.position[0] === file + 1 && piece.position[1] === rank + 1
+        )[0];
+        dispatch(setSelectedPiece(selectedPiece));
+      } else {
+        selectedPiece = copyPiecesPosition.black_pieces.filter(
+          (piece) =>
+            piece.position[0] === file + 1 && piece.position[1] === rank + 1
+        )[0];
+        dispatch(setSelectedPiece(selectedPiece));
       }
-      dispatch(generateCandidateMoves(candidateMoves));
+
+      if (current_player[0] === piece[0]) {
+        let candidateMoves = [
+          ...selectedPiece?.valid_moves,
+          ...selectedPiece?.capturing_moves,
+        ].map((pos) => [pos[1] - 1, pos[0] - 1]);
+        if (
+          (isBlackCastleLegal || isWhiteCastleLegal) &&
+          (piece === "wking" || piece === "bking")
+        ) {
+          candidateMoves = [
+            ...candidateMoves,
+            ...Functions.getCastlingMoves(
+              black_long_castle_legal,
+              black_short_castle_legal,
+              white_long_castle_legal,
+              white_short_castle_legal,
+              piece
+            ),
+          ];
+        }
+        dispatch(generateCandidateMoves(candidateMoves));
+      }
     }
   };
 
