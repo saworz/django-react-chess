@@ -15,7 +15,7 @@ const Piece = ({ file, piece, rank }: Types.IProps) => {
   const dispatch: AppDispatch = useDispatch();
   const {
     current_player,
-    copyPiecesPosition,
+    piecesPosition,
     black_long_castle_legal,
     black_short_castle_legal,
     white_long_castle_legal,
@@ -43,18 +43,19 @@ const Piece = ({ file, piece, rank }: Types.IProps) => {
       }, 0);
 
       if (pieceColor === "w") {
-        selectedPiece = copyPiecesPosition.white_pieces.filter(
+        selectedPiece = piecesPosition.white_pieces.filter(
           (piece) =>
             piece.position[0] === file + 1 && piece.position[1] === rank + 1
         )[0];
         dispatch(setSelectedPiece(selectedPiece));
       } else {
-        selectedPiece = copyPiecesPosition.black_pieces.filter(
+        selectedPiece = piecesPosition.black_pieces.filter(
           (piece) =>
             piece.position[0] === file + 1 && piece.position[1] === rank + 1
         )[0];
         dispatch(setSelectedPiece(selectedPiece));
       }
+      console.log("selectedPiece", selectedPiece);
 
       if (current_player[0] === piece[0]) {
         let candidateMoves = [
