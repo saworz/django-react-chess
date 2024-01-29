@@ -1,18 +1,11 @@
-import json
 import random
-
-from django.shortcuts import render
-from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView
-from rest_framework.views import APIView
-from .serializers import ChessGameSerializer, PlayersQueueSerializer, MakeMoveSerializer, BlackBoardSerializer, WhiteBoardSerializer
-from rest_framework.response import Response
+from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
+from .serializers import ChessGameSerializer, PlayersQueueSerializer, DeleteRoomSerializer
 from django.http import JsonResponse
 from rest_framework import status
 from django.contrib.auth.models import User
-from .models import ChessGame, WhitePieces, BlackPieces, PlayersQueue
+from .models import ChessGame, PlayersQueue
 from rest_framework.exceptions import NotFound
-from django.shortcuts import get_object_or_404
-from django.core import serializers
 
 
 class CreateNewGameView(CreateAPIView):
@@ -69,7 +62,7 @@ class RetrieveGameIdView(RetrieveAPIView):
         return obj
 
 
-class AddUserToQueue(UpdateAPIView):
+class AddUserToQueueView(UpdateAPIView):
     queryset = PlayersQueue.objects.all()
     serializer_class = PlayersQueueSerializer
 
@@ -101,7 +94,7 @@ class AddUserToQueue(UpdateAPIView):
         return JsonResponse({"message": "User added to queue"}, status=status.HTTP_200_OK)
 
 
-class RemoveUserFromQueue(UpdateAPIView):
+class RemoveUserFromQueueView(UpdateAPIView):
     queryset = PlayersQueue.objects.all()
     serializer_class = PlayersQueueSerializer
 
@@ -118,7 +111,6 @@ class RemoveUserFromQueue(UpdateAPIView):
         return ','.join(map(str, queue_list))
 
     def update(self, request, *args, **kwargs):
-        pk = self.request.user.pk
         instance = self.queryset.first()
 
         if not self.is_in_queue(instance):
@@ -127,3 +119,22 @@ class RemoveUserFromQueue(UpdateAPIView):
         instance.users_in_queue = self.remove_from_queue(instance.users_in_queue)
         instance.save()
         return JsonResponse({"message": "User removed from queue"}, status=status.HTTP_200_OK)
+
+
+class DeleteRoomView(DestroyAPIView):
+    serializer_class = DeleteRoomSerializer
+    queryset = ChessGame.objects.all()
+
+    def get_object(self):
+        room_id = self.kwargs.get('room_id')
+        queryset = self.filter_queryset(self.get_queryset())
+        obj = queryset.filter(room_id=room_id).first()
+
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return JsonResponse({"message": "Game object deleted"},
+                            status=status.HTTP_200_OK)

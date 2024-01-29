@@ -31,3 +31,7 @@ class PlayersQueueSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlayersQueue
         fields = "__all__"
+
+
+class DeleteRoomSerializer(serializers.Serializer):
+    room_id = serializers.CharField(max_length=6)
