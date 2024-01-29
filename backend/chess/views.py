@@ -15,11 +15,6 @@ from django.shortcuts import get_object_or_404
 from django.core import serializers
 
 
-def gametest(request, *args, **kwargs):
-    parameters = {'user': request.user.username, 'game_id': kwargs.get("game_id")}
-    return render(request, "chess/lobby.html", parameters)
-
-
 class CreateNewGameView(CreateAPIView):
     serializer_class = ChessGameSerializer
 

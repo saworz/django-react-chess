@@ -1,17 +1,11 @@
-import asyncio
 import random
-
-from channels.exceptions import StopConsumer
-from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
+import json
+from channels.generic.websocket import WebsocketConsumer
 from .models import ChessGame, PlayersQueue
 from .chess_game import GameHandler
 from .chess_db import DatabaseHandler
 from .utils import (prepare_data)
-from asgiref.sync import async_to_sync, sync_to_async
-from channels.db import database_sync_to_async
-from channels.consumer import SyncConsumer
-from channels.layers import get_channel_layer
-import json
+from asgiref.sync import async_to_sync
 
 
 class ChessConsumer(WebsocketConsumer):
