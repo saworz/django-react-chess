@@ -55,7 +55,6 @@ const Piece = ({ file, piece, rank }: Types.IProps) => {
         )[0];
         dispatch(setSelectedPiece(selectedPiece));
       }
-      console.log("selectedPiece", selectedPiece);
 
       if (current_player[0] === piece[0]) {
         let candidateMoves = [

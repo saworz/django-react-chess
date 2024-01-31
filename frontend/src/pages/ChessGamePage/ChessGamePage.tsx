@@ -39,6 +39,7 @@ const ChessGamePage = () => {
     isUserFound &&
     chess.gameDetails &&
     enemyDetails &&
+    chess.isGameStarted &&
     user!.id
       ? true
       : false;
@@ -233,7 +234,9 @@ const ChessGamePage = () => {
               playerDetails={getPlayerPoints("black")}
             />
           )}
-          {isGameReady && <ChessBoard webSocket={webSocket!} />}
+          {isGameReady && enemyDetails && (
+            <ChessBoard enemyDetails={enemyDetails} webSocket={webSocket!} />
+          )}
           {isGameReady && (
             <PlayerDetails
               image={

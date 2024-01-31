@@ -15,6 +15,7 @@ import {
 import { closePopup } from "../../../features/popup/popupSlice";
 import WhiteKingImage from "../../../images/wking.png";
 import BlackKingImage from "../../../images/bking.png";
+import { Link } from "react-router-dom";
 
 const GameEndsPopup = () => {
   const { chess } = useSelector((state: RootState) => state.chess);
@@ -33,16 +34,11 @@ const GameEndsPopup = () => {
     dispatch(closePopup());
   };
 
-  const handleClick = () => {
-    //dispatch(setupNewGame());
-    console.log("NOWA GRA");
-  };
-
   return (
     <Modal isOpen={popup.isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader textAlign="center">{chess.gameStatus}!</ModalHeader>
+        <ModalHeader textAlign="center">{chess.gameWinner} wins!</ModalHeader>
         <ModalCloseButton />
         <ModalBody alignSelf="center">
           <Image
@@ -55,14 +51,11 @@ const GameEndsPopup = () => {
           />
         </ModalBody>
         <ModalFooter alignSelf="center">
-          <Button
-            isDisabled={true}
-            variant="solid"
-            colorScheme="orange"
-            onClick={handleClick}
-          >
-            NEW GAME
-          </Button>
+          <Link to="/dashboard">
+            <Button variant="solid" colorScheme="orange">
+              BACK TO DASHBOARD
+            </Button>
+          </Link>
         </ModalFooter>
       </ModalContent>
     </Modal>

@@ -8,20 +8,33 @@ import { Box, useColorModeValue } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../app/store";
 import GameEndsPopup from "../GameEndsPopup";
-import { endGameByWin } from "../../../features/chess/chessSlice";
+import {
+  deleteGameRoom,
+  endGameByWin,
+} from "../../../features/chess/chessSlice";
 import { openPopup } from "../../../features/popup/popupSlice";
 import { useEffect } from "react";
 import PromotionPopup from "../PromotionPopup";
 import { Howl } from "howler";
 import SoundPlayer from "../SoundPlayer";
 
-const ChessBoard = ({ webSocket }: Types.IProps) => {
+const ChessBoard = ({ webSocket, enemyDetails }: Types.IProps) => {
   const { chess } = useSelector((state: RootState) => state.chess);
   const { popup } = useSelector((state: RootState) => state.popup);
+  const { user } = useSelector((state: RootState) => state.auth);
 
   const dispatch: AppDispatch = useDispatch();
   const { candidateMoves, chessBoard } = chess;
   const checkedPlayer = chess.current_player[0];
+  const blackPlayerName =
+    chess.gameDetails.player_black === user?.id
+      ? user.username
+      : enemyDetails.username;
+  const whitePlayerName =
+    chess.gameDetails.player_white === user?.id
+      ? user.username
+      : enemyDetails.username;
+
   let soundComponent = null;
 
   useEffect(() => {
@@ -34,9 +47,16 @@ const ChessBoard = ({ webSocket }: Types.IProps) => {
       });
       sound.play();
       //TODO - FIX
-      dispatch(endGameByWin(checkedPlayer));
+      dispatch(
+        endGameByWin({
+          colorWinner: checkedPlayer,
+          winner: checkedPlayer === "w" ? blackPlayerName : whitePlayerName,
+        })
+      );
       dispatch(openPopup());
+      dispatch(deleteGameRoom(chess.gameRoomId));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkedPlayer, chess, dispatch]);
 
   const ranks = Array(8)
