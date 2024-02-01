@@ -135,6 +135,10 @@ class DeleteRoomView(DestroyAPIView):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
+        if not instance:
+            return JsonResponse({"message": "Game object doesnt exist"},
+                                status=status.HTTP_404_NOT_FOUND)
+
         self.perform_destroy(instance)
         return JsonResponse({"message": "Game object deleted"},
                             status=status.HTTP_200_OK)
