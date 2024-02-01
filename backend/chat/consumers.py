@@ -5,12 +5,14 @@ from .models import ChatRooms
 import json
 
 
-class ChatConsumer(WebsocketConsumer):
+class PrivateChatConsumer(WebsocketConsumer):
 
     def connect(self):
-        room_id = self.scope['url_route']['kwargs']['room_id']
-        self.room_name = room_id
-        self.room_group_name = f"chat_{room_id}"
+        self.other_user_id = self.scope['url_route']['kwargs']['other_user_id']
+        self.logged_user_id = self.scope['user'].pk
+        self.room_id = ''.join(sorted([str(self.logged_user_id), str(self.other_user_id)]))
+        self.room_name = self.room_id
+        self.room_group_name = f"private_chat_{self.room_id}"
 
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
@@ -33,10 +35,8 @@ class ChatConsumer(WebsocketConsumer):
         )
 
     def save_chat_message(self, message):
-        user = self.scope['user'].pk
-        room_id = self.scope['url_route']['kwargs']['room_id']
-        chat_room = ChatRooms.objects.get(room_id=room_id)
-        data = {"sender": user, "chat_room": chat_room.pk, "message": message}
+        chat_room = ChatRooms.objects.get(room_id=self.room_id)
+        data = {"sender": self.logged_user_id, "chat_room": chat_room.pk, "message": message}
         serializer = MessageSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -51,3 +51,5 @@ class ChatConsumer(WebsocketConsumer):
         }))
         if self.scope['user'].pk == sender:
             self.save_chat_message(message)
+
+
