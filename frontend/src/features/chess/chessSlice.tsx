@@ -46,6 +46,7 @@ const initialState: SharedTypes.IChessState = {
     white_short_castle_legal: false,
     white_score: 0,
     gameStatus: Status.ongoing,
+    gameWinner: "",
     promotionSquare: null,
   },
   isError: false,
@@ -81,6 +82,28 @@ export const getGameRoomDetails = createAsyncThunk(
   async (data: string, thunkAPI) => {
     try {
       return await chessService.getGameRoomDetails(data);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message =
+          (error.response &&
+            error.response.data &&
+            error.response.data.message) ||
+          error.message ||
+          error.toString();
+        return thunkAPI.rejectWithValue(message);
+      } else {
+        console.log("unexpected error: ", error);
+        return "An unexpected error occurred";
+      }
+    }
+  }
+);
+
+export const deleteGameRoom = createAsyncThunk(
+  "/chess/deleteGameRoom",
+  async (data: string, thunkAPI) => {
+    try {
+      return await chessService.deleteGameRoom(data);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const message =
@@ -138,6 +161,8 @@ export const chessSlice = createSlice({
       state.chess.gameDetails!.white_score = action.payload.white_score;
       state.chess.copyPiecesPosition.black_pieces = action.payload.black_pieces;
       state.chess.copyPiecesPosition.white_pieces = action.payload.white_pieces;
+      state.chess.piecesPosition.black_pieces = action.payload.black_pieces;
+      state.chess.piecesPosition.white_pieces = action.payload.white_pieces;
     },
     initGame: (state, action) => {
       state.chess.copyPiecesPosition.black_pieces =
@@ -182,7 +207,8 @@ export const chessSlice = createSlice({
     },
     endGameByWin: (state, action) => {
       state.chess.gameStatus =
-        action.payload === "w" ? Status.black : Status.white;
+        action.payload.colorWinner === "w" ? Status.black : Status.white;
+      state.chess.gameWinner = action.payload.winner;
     },
     updatePromotionSquare: (state, action) => {
       state.chess.promotionSquare = action.payload;
@@ -234,6 +260,16 @@ export const chessSlice = createSlice({
         state.chess.gameDetails.player_black = action.payload.player_black;
       })
       .addCase(getGameRoomDetails.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = false;
+        state.isError = true;
+        state.message = action.payload as string;
+      })
+      .addCase(deleteGameRoom.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(deleteGameRoom.fulfilled, (state, action) => {})
+      .addCase(deleteGameRoom.rejected, (state, action) => {
         state.isLoading = false;
         state.isSuccess = false;
         state.isError = true;

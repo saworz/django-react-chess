@@ -63,7 +63,6 @@ class GameLoader:
 
         return {"board_state": {"white": whites_state, "black": blacks_state}}
 
-
     def init_moves(self):
         black_board = self.get_board_state().get('board_state').get('black')
         white_board = self.get_board_state().get('board_state').get('white')

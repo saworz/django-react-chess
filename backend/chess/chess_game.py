@@ -113,7 +113,7 @@ class GameHandler:
             piece_to_capture = piece.capture_piece(new_position)
             _ = self.remove_piece(piece_to_capture, self.game)
 
-        if new_position == en_passant_field:
+        if new_position in en_passant_field:
             self.check_en_passant_field(piece)
 
         if piece.piece_type == 'pawn':

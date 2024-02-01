@@ -52,6 +52,7 @@ export interface IChessState {
     white_short_castle_legal: boolean;
     white_score: number;
     gameStatus: string;
+    gameWinner: string;
     promotionSquare: {
       x: number;
       y: number;

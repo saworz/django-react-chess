@@ -38,9 +38,27 @@ const getGameRoomDetails = async (userId: string) => {
   return response.data;
 };
 
+const deleteGameRoom = async (roomId: string) => {
+  const config = {
+    withCredentials: true,
+    headers: {
+      "X-CSRFToken": TokenService.getCsrfToken(),
+      "Content-Type": "application/json",
+    },
+  };
+
+  const response = await axios.delete(
+    API_URL + `chess/delete_room/${roomId}`,
+    config
+  );
+
+  return response.data;
+};
+
 const chessService = {
   postCreateChessGame,
   getGameRoomDetails,
+  deleteGameRoom,
 };
 
 export default chessService;

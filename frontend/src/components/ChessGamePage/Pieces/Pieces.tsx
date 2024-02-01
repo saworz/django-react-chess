@@ -18,6 +18,7 @@ import * as SharedTypes from "../../../shared/types";
 const Pieces = ({ webSocket }: Types.IProps) => {
   const dispatch: AppDispatch = useDispatch();
   const { chess } = useSelector((state: RootState) => state.chess);
+  const { user } = useSelector((state: RootState) => state.auth);
   const {
     candidateMoves,
     white_en_passant_field,
@@ -28,12 +29,15 @@ const Pieces = ({ webSocket }: Types.IProps) => {
     black_short_castle_legal,
     white_long_castle_legal,
     white_short_castle_legal,
+    gameDetails,
+    current_player,
   } = chess;
   const isGameEnded = chess.gameStatus === Status.ongoing ? false : true;
   const isBlackCastleLegal =
     black_long_castle_legal || black_short_castle_legal;
   const isWhiteCastleLegal =
     white_long_castle_legal || white_short_castle_legal;
+  const playerColor = user?.id === gameDetails.player_black ? "black" : "white";
 
   useEffect(() => {
     dispatch(updateBoard(Functions.placeOnTheBoard(chess.piecesPosition)));
@@ -48,9 +52,6 @@ const Pieces = ({ webSocket }: Types.IProps) => {
     const x = 7 - Math.floor((e.clientY - top) / size);
     return { x, y };
   };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handlePromotion = () => {};
 
   const enPassantMove = (
     piece: string,
@@ -83,130 +84,133 @@ const Pieces = ({ webSocket }: Types.IProps) => {
     ];
 
     return allCastlingMoves.some(
-      (tablica) => tablica.toString() === [x, y].toString()
+      (array) => array.toString() === [x, y].toString()
     );
   };
 
   const onDrop = (e: Types.DragEvent) => {
-    const { x, y } = calculateCoords(e); //New
-    const [piece, rank, file] = e.dataTransfer.getData("text").split(","); //Old
+    if (current_player === playerColor) {
+      const { x, y } = calculateCoords(e); //New
+      const [piece, rank, file] = e.dataTransfer.getData("text").split(","); //Old
 
-    const placedPawnColor = chess.chessBoard[x][y][0];
-    const placedPawn = chess.chessBoard[x][y];
-    const selectedPieceColor = chess.selectedPiece?.color;
-    const selectedPieceId = chess.selectedPiece?.id;
+      const placedPawnColor = chess.chessBoard[x][y][0];
+      const placedPawn = chess.chessBoard[x][y];
+      const selectedPieceColor = chess.selectedPiece?.color;
+      const selectedPieceId = chess.selectedPiece?.id;
 
-    let updatedPiecesPosition = { ...chess.piecesPosition };
+      let updatedPiecesPosition = { ...chess.piecesPosition };
 
-    let promoteTo: string | null = null;
+      let promoteTo: string | null = null;
 
-    if (candidateMoves.find((pos) => pos[0] === x && pos[1] === y)) {
-      //En Passant
-      if (
-        black_en_passant_pawn_to_capture !== null &&
-        x === black_en_passant_field[1] - 1 &&
-        y === black_en_passant_field[0] - 1
-      ) {
-        enPassantMove(piece, updatedPiecesPosition);
-      }
-      if (
-        white_en_passant_pawn_to_capture !== null &&
-        x === white_en_passant_field[1] - 1 &&
-        y === white_en_passant_field[0] - 1
-      ) {
-        enPassantMove(piece, updatedPiecesPosition);
-      }
-      //////Castle
-      if (
-        (piece === "wking" || piece === "bking") &&
-        (isBlackCastleLegal || isWhiteCastleLegal) &&
-        isCastleMove(x, y)
-      ) {
-        const pieceColor = piece[0];
-        if (Math.abs(y - +file) > 1) {
-          if (y === 2) {
-            updatedPiecesPosition = Functions.updatePiecePostion(
-              updatedPiecesPosition,
-              "rook_1",
-              pieceColor === "w" ? "white" : "black",
-              +rank + 1,
-              4
-            );
-            webSocket.send(
-              JSON.stringify({
-                data_type: "castle",
-                castle_type: pieceColor === "w" ? "white_long" : "black_long",
-              })
-            );
-          }
-          if (y === 6) {
-            updatedPiecesPosition = Functions.updatePiecePostion(
-              updatedPiecesPosition,
-              "rook_2",
-              pieceColor === "w" ? "white" : "black",
-              +rank + 1,
-              6
-            );
-            webSocket.send(
-              JSON.stringify({
-                data_type: "castle",
-                castle_type: pieceColor === "w" ? "white_short" : "black_short",
-              })
-            );
+      if (candidateMoves.find((pos) => pos[0] === x && pos[1] === y)) {
+        //En Passant
+        if (
+          black_en_passant_pawn_to_capture !== null &&
+          x === black_en_passant_field[1] - 1 &&
+          y === black_en_passant_field[0] - 1
+        ) {
+          enPassantMove(piece, updatedPiecesPosition);
+        }
+        if (
+          white_en_passant_pawn_to_capture !== null &&
+          x === white_en_passant_field[1] - 1 &&
+          y === white_en_passant_field[0] - 1
+        ) {
+          enPassantMove(piece, updatedPiecesPosition);
+        }
+        //////Castle
+        if (
+          (piece === "wking" || piece === "bking") &&
+          (isBlackCastleLegal || isWhiteCastleLegal) &&
+          isCastleMove(x, y)
+        ) {
+          const pieceColor = piece[0];
+          if (Math.abs(y - +file) > 1) {
+            if (y === 2) {
+              updatedPiecesPosition = Functions.updatePiecePostion(
+                updatedPiecesPosition,
+                "rook_1",
+                pieceColor === "w" ? "white" : "black",
+                +rank + 1,
+                4
+              );
+              webSocket.send(
+                JSON.stringify({
+                  data_type: "castle",
+                  castle_type: pieceColor === "w" ? "white_long" : "black_long",
+                })
+              );
+            }
+            if (y === 6) {
+              updatedPiecesPosition = Functions.updatePiecePostion(
+                updatedPiecesPosition,
+                "rook_2",
+                pieceColor === "w" ? "white" : "black",
+                +rank + 1,
+                6
+              );
+              webSocket.send(
+                JSON.stringify({
+                  data_type: "castle",
+                  castle_type:
+                    pieceColor === "w" ? "white_short" : "black_short",
+                })
+              );
+            }
           }
         }
-      }
-      //PROMOTION
-      else if (
-        (piece === "wpawn" && x === 7) ||
-        (piece === "bpawn" && x === 0)
-      ) {
-        dispatch(
-          updatePromotionSquare({
-            x,
-            y,
-            rank,
-            file,
-            selectedPieceColor,
-            selectedPieceId,
-          })
-        );
-        dispatch(openPopup());
-      } ///Other moves
-      else {
-        webSocket.send(
-          JSON.stringify({
-            data_type: "move",
-            color: chess.selectedPiece?.color,
-            piece: chess.selectedPiece?.id,
-            new_position: `${y + 1}${x + 1}`,
-            promote_to: promoteTo,
-          })
-        );
-      }
+        //PROMOTION
+        else if (
+          (piece === "wpawn" && x === 7) ||
+          (piece === "bpawn" && x === 0)
+        ) {
+          dispatch(
+            updatePromotionSquare({
+              x,
+              y,
+              rank,
+              file,
+              selectedPieceColor,
+              selectedPieceId,
+            })
+          );
+          dispatch(openPopup());
+        } ///Other moves
+        else {
+          webSocket.send(
+            JSON.stringify({
+              data_type: "move",
+              color: chess.selectedPiece?.color,
+              piece: chess.selectedPiece?.id,
+              new_position: `${y + 1}${x + 1}`,
+              promote_to: promoteTo,
+            })
+          );
+        }
 
-      //
+        //
 
-      updatedPiecesPosition = Functions.updatePiecePostion(
-        updatedPiecesPosition,
-        chess.selectedPiece!.id,
-        chess.selectedPiece!.color,
-        x + 1,
-        y + 1
-      );
-
-      //Remove knocked pawn
-      if (placedPawn) {
-        Functions.raisePawn(
+        updatedPiecesPosition = Functions.updatePiecePostion(
           updatedPiecesPosition,
-          placedPawnColor,
+          chess.selectedPiece!.id,
+          chess.selectedPiece!.color,
           x + 1,
           y + 1
         );
+
+        //Remove knocked pawn
+        if (placedPawn) {
+          Functions.raisePawn(
+            updatedPiecesPosition,
+            placedPawnColor,
+            x + 1,
+            y + 1
+          );
+        }
+        dispatch(updatePosition(updatedPiecesPosition));
       }
-      dispatch(updatePosition(updatedPiecesPosition));
+      dispatch(clearCandidates());
     }
-    dispatch(clearCandidates());
   };
 
   const onDragOver = (e: Types.DragEvent) => {

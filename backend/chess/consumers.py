@@ -1,17 +1,11 @@
-import asyncio
 import random
-
-from channels.exceptions import StopConsumer
-from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
+import json
+from channels.generic.websocket import WebsocketConsumer
 from .models import ChessGame, PlayersQueue
 from .chess_game import GameHandler
 from .chess_db import DatabaseHandler
 from .utils import (prepare_data)
-from asgiref.sync import async_to_sync, sync_to_async
-from channels.db import database_sync_to_async
-from channels.consumer import SyncConsumer
-from channels.layers import get_channel_layer
-import json
+from asgiref.sync import async_to_sync
 
 
 class ChessConsumer(WebsocketConsumer):
@@ -28,6 +22,7 @@ class ChessConsumer(WebsocketConsumer):
 
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
+            self.channel_name
         )
 
         if ChessGame.objects.filter(room_id=self.room_id).exists():
@@ -64,20 +59,6 @@ class ChessConsumer(WebsocketConsumer):
             self.database.save_board_state_to_db()
             self.game_handler.get_valid_moves()
             self.trigger_send_board_state("init")
-
-        elif data_json['data_type'] == 'chat_message':
-            self.trigger_send_message(data_json['message'])
-
-    def trigger_send_message(self, message):
-        """ Triggers sending message via websocket """
-        async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name,
-            {
-                'type': 'send_message',
-                'message': message,
-                'sender': self.scope['user'].pk
-            }
-        )
 
     def trigger_send_error(self, error):
         """ Triggers sending an error via websocket """
@@ -130,14 +111,6 @@ class ChessConsumer(WebsocketConsumer):
                 'send_type': send_type,
             }
         )
-
-    def send_message(self, event):
-        """ Sends chat message """
-        self.send(text_data=json.dumps({
-            'type': 'chat_message',
-            'message': event['message'],
-            'sender': event['sender']
-        }))
 
     def send_board_state(self, event):
         """ Sends data about board """

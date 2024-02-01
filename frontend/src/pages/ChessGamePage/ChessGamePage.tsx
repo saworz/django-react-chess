@@ -3,11 +3,10 @@ import {
   updateGame,
   createChessGame,
   initGame,
-  postCreateChessGame,
   getGameRoomDetails,
 } from "../../features/chess/chessSlice";
 import ChessBoard from "../../components/ChessGamePage/ChessBoard";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { w3cwebsocket as W3CWebSocket } from "websocket";
 import Functions from "../../utils/Functions";
@@ -28,7 +27,9 @@ const ChessGamePage = () => {
   const [messages, setMessages] = useState<SharedTypes.IMessagesData[]>([]);
   const [isUserFound, setIsUserFound] = useState(false);
   const dispatch: AppDispatch = useDispatch();
+  const navigate = useNavigate();
   const webSocketRef = useRef<W3CWebSocket | null>(null);
+  const reconnectCounter = useRef(1);
   const [enemyDetails, setEnemyDetails] =
     useState<SharedTypes.ISuggestionFriendData>();
   const isGameReady =
@@ -38,6 +39,7 @@ const ChessGamePage = () => {
     isUserFound &&
     chess.gameDetails &&
     enemyDetails &&
+    chess.isGameStarted &&
     user!.id
       ? true
       : false;
@@ -89,8 +91,6 @@ const ChessGamePage = () => {
       }
     });
 
-    dispatch(getGameRoomDetails(gameId!));
-
     const connectWebSocket = () => {
       const clientWebSocket = new W3CWebSocket(
         "ws://localhost:8000/ws/chess/" +
@@ -102,6 +102,7 @@ const ChessGamePage = () => {
       clientWebSocket.onopen = () => {
         //createChessGame  TODO
         console.log("WebSocket connected");
+        dispatch(getGameRoomDetails(gameId!));
         dispatch(
           createChessGame({
             gameRoomId: Number(Functions.computeGameId(user?.id!, gameId!)),
@@ -122,10 +123,12 @@ const ChessGamePage = () => {
       };
 
       clientWebSocket.onerror = () => {
-        dispatch(postCreateChessGame(gameId!)).then(() => {
-          setTimeout(connectWebSocket, 2000);
-        });
-        console.log("Websoket Error");
+        if (reconnectCounter.current < 3) {
+          connectWebSocket();
+          reconnectCounter.current += 1;
+        } else {
+          navigate("/notfound");
+        }
       };
 
       clientWebSocket.onmessage = (message) => {
@@ -231,7 +234,9 @@ const ChessGamePage = () => {
               playerDetails={getPlayerPoints("black")}
             />
           )}
-          {isGameReady && <ChessBoard webSocket={webSocket!} />}
+          {isGameReady && enemyDetails && (
+            <ChessBoard enemyDetails={enemyDetails} webSocket={webSocket!} />
+          )}
           {isGameReady && (
             <PlayerDetails
               image={

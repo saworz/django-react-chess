@@ -1,15 +1,20 @@
 import { Box, Button, Spinner, Text } from "@chakra-ui/react";
 import { w3cwebsocket as W3CWebSocket } from "websocket";
 import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "../../../app/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../../app/store";
 import { toast } from "react-toastify";
 import * as Types from "./SearchInfo.types";
+import Functions from "../../../utils/Functions";
+import { useNavigate } from "react-router-dom";
+import { postCreateChessGame } from "../../../features/chess/chessSlice";
 
 const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
   const webSocketRef = useRef<W3CWebSocket | null>(null);
   const { user } = useSelector((state: RootState) => state.auth);
   const [webSocket, setWebSocket] = useState<W3CWebSocket>();
+  const navigate = useNavigate();
+  const dispatch: AppDispatch = useDispatch();
   let intervalId: number | undefined | NodeJS.Timer;
 
   const connectWebSocket = () => {
@@ -31,6 +36,16 @@ const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
         progress: undefined,
         theme: "dark",
       });
+      try {
+        clientWebSocket?.send(
+          JSON.stringify({
+            data_type: "find_opponent",
+          })
+        );
+        console.log("WebSocket Queue - Looking for opponent");
+      } catch (error) {
+        console.log("Socket error:", error);
+      }
       intervalId = setInterval(() => {
         try {
           clientWebSocket?.send(
@@ -54,7 +69,21 @@ const SearchInfo = ({ setIsSearchingGame, isSearchingGame }: Types.IProps) => {
 
     clientWebSocket.onmessage = (message) => {
       const dataFromServer = JSON.parse(message.data.toString());
-      console.log("odp", dataFromServer);
+      if (dataFromServer.type === "enemy_data") {
+        const firstPlayerId = dataFromServer.player_1;
+        const secondPlayerId = dataFromServer.player_2;
+        if (firstPlayerId === user!.id || secondPlayerId === user!.id) {
+          clientWebSocket!.close();
+          clearInterval(intervalId);
+          if (Functions.isLoggedPlayer(firstPlayerId, user!.id)) {
+            dispatch(postCreateChessGame(secondPlayerId)).then(() => {
+              navigate(`/chess/game/${secondPlayerId}`);
+            });
+          } else {
+            navigate(`/chess/game/${firstPlayerId}`);
+          }
+        }
+      }
     };
     setWebSocket(clientWebSocket);
   };
