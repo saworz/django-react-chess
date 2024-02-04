@@ -44,7 +44,7 @@ const ChatLayout = ({ userDetails, chatRoomId }: Types.IProps) => {
   useEffect(() => {
     getPreviousMessages();
     const clientWebSocket = new W3CWebSocket(
-      "ws://localhost:8000/ws/chat/" + chatRoomId
+      "ws://localhost:8000/ws/private_chat/" + chatRoomId
     );
 
     clientWebSocket.onopen = () => {
