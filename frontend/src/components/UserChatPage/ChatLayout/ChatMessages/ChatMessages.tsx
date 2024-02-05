@@ -10,17 +10,27 @@ const ChatMessages = ({ messages, userDetails }: Types.IProps) => {
   };
 
   return (
-    <Flex w="100%" h="60vh" overflowY="scroll" flexDirection="column" p="3">
+    <Flex
+      w="100%"
+      h="60vh"
+      overflowY="scroll"
+      flexDirection="column"
+      p="3"
+      pl={0}
+    >
       {messages.map((item: any, index: number) => {
         if (item.from === "me") {
           return (
-            <Flex key={index} w="100%" justify="flex-end">
+            <Flex key={index} w="100%" justifyContent="flex-end" mb={2}>
               <Flex
                 bg="black"
                 color="white"
-                minW="100px"
+                w="-webkit-fit-content"
                 maxW="350px"
-                my="1"
+                maxH="30px"
+                alignItems="center"
+                justifyContent="flex-end"
+                borderRadius="20px"
                 p="3"
               >
                 <Text>{item.text}</Text>
@@ -29,7 +39,7 @@ const ChatMessages = ({ messages, userDetails }: Types.IProps) => {
           );
         } else {
           return (
-            <Flex key={index} w="100%">
+            <Flex key={index} w="100%" alignItems="center" marginBottom={2}>
               <Avatar
                 name="Computer"
                 src={"http://localhost:8000" + userDetails.image}
@@ -38,10 +48,13 @@ const ChatMessages = ({ messages, userDetails }: Types.IProps) => {
               <Flex
                 bg="gray.100"
                 color="black"
-                minW="100px"
                 maxW="350px"
-                my="1"
+                maxH="30px"
+                w="-webkit-fit-content"
+                alignItems="center"
+                borderRadius="20px"
                 p="3"
+                ml={2}
               >
                 <Text>{item.text}</Text>
               </Flex>

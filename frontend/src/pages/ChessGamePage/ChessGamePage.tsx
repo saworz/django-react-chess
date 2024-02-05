@@ -24,7 +24,6 @@ const ChessGamePage = () => {
   const [webSocket, setWebSocket] = useState<W3CWebSocket>();
   const { user } = useSelector((state: RootState) => state.auth);
   const { chess } = useSelector((state: RootState) => state.chess);
-  const [messages, setMessages] = useState<SharedTypes.IMessagesData[]>([]);
   const [isUserFound, setIsUserFound] = useState(false);
   const dispatch: AppDispatch = useDispatch();
   const navigate = useNavigate();
@@ -187,14 +186,6 @@ const ChessGamePage = () => {
               ),
             })
           );
-        } else if (dataFromServer.type === "chat_message") {
-          setMessages((prevState) => [
-            ...prevState,
-            {
-              from: dataFromServer.sender === user?.id ? "me" : "computer",
-              text: dataFromServer.message,
-            },
-          ]);
         }
         setWebSocket(clientWebSocket);
       };
@@ -257,13 +248,9 @@ const ChessGamePage = () => {
               <GameDetailsWindow />
             </GridItem>
             <GridItem>
-              {isGameReady && (
-                <ChessGameChat
-                  enemyDetails={enemyDetails!}
-                  messages={messages}
-                  webSocket={webSocket!}
-                />
-              )}
+              {isGameReady && typeof gameId === "string" ? (
+                <ChessGameChat enemyDetails={enemyDetails!} gameId={gameId} />
+              ) : null}
             </GridItem>
           </Grid>
         </GridItem>

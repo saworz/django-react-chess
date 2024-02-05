@@ -55,8 +55,12 @@ const UserChatPage = () => {
           p={4}
           h="-webkit-fit-content"
         >
-          {userDetails && chatRoomId && (
-            <ChatLayout userDetails={userDetails} chatRoomId={chatRoomId} />
+          {userDetails && chatRoomId && userId && (
+            <ChatLayout
+              userDetails={userDetails}
+              userId={userId}
+              chatRoomId={chatRoomId}
+            />
           )}
         </Box>
       </Stack>

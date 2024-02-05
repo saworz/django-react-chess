@@ -3,7 +3,7 @@ import * as Types from "./ChatHeader.types";
 
 const ChatHeader = ({ userDetails }: Types.IProps) => {
   return (
-    <Flex w="100%">
+    <Flex w="100%" borderBottom="1px solid black" paddingBottom={2}>
       <Avatar
         size="lg"
         name={userDetails.username}

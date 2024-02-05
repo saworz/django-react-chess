@@ -39,10 +39,13 @@ const ChessGameChatMessages = ({ messages, enemyDetails }: Types.IProps) => {
               <Flex
                 bg="black"
                 color="white"
-                minW="100px"
-                maxW="150px"
-                my="1"
-                p="2"
+                w="-webkit-fit-content"
+                maxW="350px"
+                maxH="30px"
+                alignItems="center"
+                justifyContent="flex-end"
+                borderRadius="20px"
+                p="3"
               >
                 <Text>{item.text}</Text>
               </Flex>
@@ -55,10 +58,12 @@ const ChessGameChatMessages = ({ messages, enemyDetails }: Types.IProps) => {
               <Flex
                 bg="gray.100"
                 color="black"
-                minW="100px"
-                maxW="150px"
-                my="1"
-                p="2"
+                maxW="350px"
+                maxH="30px"
+                w="-webkit-fit-content"
+                alignItems="center"
+                borderRadius="20px"
+                p="3"
               >
                 <Text>{item.text}</Text>
               </Flex>

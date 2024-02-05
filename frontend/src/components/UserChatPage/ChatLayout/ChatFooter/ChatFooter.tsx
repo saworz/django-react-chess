@@ -7,7 +7,7 @@ const ChatFooter = ({
   handleSendMessage,
 }: Types.IProps) => {
   return (
-    <Flex w="100%" mt="5">
+    <Flex w="100%" mt="5" borderTop="1px solid black" paddingTop={3}>
       <Input
         placeholder="Type Something..."
         border="none"
