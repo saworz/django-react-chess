@@ -10,6 +10,8 @@ class PrivateChatConsumer(WebsocketConsumer):
     def connect(self):
         self.other_user_id = int(self.scope['url_route']['kwargs']['other_user_id'])
         self.logged_user_id = self.scope['user'].pk
+
+        print(self.logged_user_id, self.other_user_id)
         self.room_id = sorted([self.logged_user_id, self.other_user_id])
         self.room_name = ''.join(str(i) for i in self.room_id)
         self.room_group_name = f"private_chat_{self.room_name}"
@@ -35,9 +37,8 @@ class PrivateChatConsumer(WebsocketConsumer):
         )
 
     def save_chat_message(self, message):
-        print(self.logged_user_id, self.other_user_id)
-        print(self.room_id)
-        chat_room = ChatRooms.objects.get(room_id=self.room_id)
+        print(self.room_name)
+        chat_room = ChatRooms.objects.get(room_id=self.room_name)
         data = {"sender": self.logged_user_id, "chat_room": chat_room.pk, "message": message}
         serializer = MessageSerializer(data=data)
         serializer.is_valid(raise_exception=True)
