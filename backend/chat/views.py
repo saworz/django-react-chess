@@ -1,12 +1,10 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
-from .serializers import MessageSerializer, RoomIdSerializer, GetMessagesSerializer
-from django.http import JsonResponse, HttpResponse
+from .serializers import RoomIdSerializer, GetMessagesSerializer
+from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.generics import ListAPIView
 from .models import Messages, ChatRooms
 from django.contrib.auth.models import User
-from itertools import chain
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 
