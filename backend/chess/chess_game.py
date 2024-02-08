@@ -350,3 +350,18 @@ class GameHandler:
         self.game.check_kings_safety()
         self.add_en_passant_field()
         self.get_valid_moves()
+
+    def is_move_ambiguous(self) -> bool:
+        """ Checks if the is ambiguous for this type of piece """
+        if self.socket_data['color'] == 'white':
+            moving_piece = self.game.white_pieces[self.socket_data['piece']]
+            friendly_pieces = [piece for piece in self.game.white_pieces.values()
+                               if isinstance(piece, type(moving_piece)) and piece is not moving_piece]
+        elif self.socket_data['color'] == 'black':
+            moving_piece = self.game.black_pieces[self.socket_data['piece']]
+            friendly_pieces = [piece for piece in self.game.black_pieces.values()
+                               if isinstance(piece, type(moving_piece)) and piece is not moving_piece]
+
+        print(moving_piece, friendly_pieces)
+        return False
+
