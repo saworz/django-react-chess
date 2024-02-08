@@ -17,6 +17,8 @@ NOTATION_MAPPING = {
     "queen": "Q",
     "king": "K"
 }
+
+
 def deserialize_lists(lst: list) -> list:
     """ Deserializes lists """
     result = []
@@ -43,6 +45,10 @@ def unpack_positions(moves: list) -> list:
 def position_to_tuple(position: str) -> tuple:
     """ Rewrites position (e.g. 45 to (4, 5)) """
     return int(position[0]), int(position[1])
+
+
+def get_position_in_chess_notation(position: str) -> str:
+    return chr(ord('a') + int(position[0]) - 1) + position[1]
 
 
 def prepare_data(pieces: dict) -> dict:

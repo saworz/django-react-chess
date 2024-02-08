@@ -4,7 +4,7 @@ from channels.generic.websocket import WebsocketConsumer
 from .models import ChessGame, PlayersQueue
 from .chess_game import GameHandler
 from .chess_db import DatabaseHandler
-from .utils import prepare_data, NOTATION_MAPPING
+from .utils import prepare_data, get_position_in_chess_notation, NOTATION_MAPPING
 from asgiref.sync import async_to_sync
 
 
@@ -64,8 +64,10 @@ class ChessConsumer(WebsocketConsumer):
             self.trigger_send_board_state("init")
 
     def create_chess_notation(self, move_data):
+        print(move_data)
         moving_piece_notation = NOTATION_MAPPING[move_data['piece'].split("_")[0]]
-        print(moving_piece_notation)
+        new_position_notation = get_position_in_chess_notation(move_data['new_position'])
+        print(new_position_notation)
 
     def trigger_send_error(self, error):
         """ Triggers sending an error via websocket """
