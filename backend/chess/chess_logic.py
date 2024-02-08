@@ -42,6 +42,8 @@ class GameLoader:
         self.black_score = 0
         self.black_captured_pieces = []
 
+        self.promoting_move = False
+
     def get_board_state(self):
         whites_state = {}
         blacks_state = {}
@@ -186,29 +188,34 @@ class GameLoader:
                     promote_name = name
                     promote_piece = piece
                     color = 'white'
+                    last_position = piece.last_position
         elif self.socket_data['color'] == 'black':
             for name, piece in self.black_pieces.items():
                 if name == self.socket_data['piece']:
                     promote_name = name
                     promote_piece = piece
                     color = 'black'
+                    last_position = piece.last_position
 
-        return promote_name, promote_piece, color
+        return promote_name, promote_piece, color, last_position
 
-    def get_promoted_piece(self, color):
+    def get_promoted_piece(self, color, last_position):
         """ Creates piece object to promote pawn to """
         piece_class = CLASS_MAPPING[self.socket_data['promote_to']]
         position = position_to_tuple(self.socket_data['new_position'])
         new_piece = piece_class(position, position, color)
+        new_piece.last_position = last_position
         return new_piece
 
     def promote_pawn(self):
         """ Handles promoting pawn to new piece type """
         if (self.socket_data['data_type'] == 'move' and self.socket_data['piece'][:4] == 'pawn'
                 and (self.socket_data['new_position'][1] == '1' or self.socket_data['new_position'][1] == '8')):
-            name, piece, color = self.get_piece_to_promote()
+            name, piece, color, last_position = self.get_piece_to_promote()
 
             if color == 'white':
-                self.white_pieces[name] = self.get_promoted_piece(color)
+                self.white_pieces[name] = self.get_promoted_piece(color, last_position)
             elif color == 'black':
-                self.black_pieces[name] = self.get_promoted_piece(color)
+                self.black_pieces[name] = self.get_promoted_piece(color, last_position)
+
+            self.promoting_move = True
