@@ -91,9 +91,12 @@ class ChessConsumer(WebsocketConsumer):
             is_checked = game.white_check
             is_checkmated = game.white_checkmate
 
+        is_move_ambiguous = self.game_handler.is_move_ambiguous()
+
         notation_creator = NotationCreator(piece_symbol=moving_piece_notation,
+                                           pawn_column=self.game_handler.pawn_last_position_column_notation,
                                            new_position=new_position_notation,
-                                           is_move_ambiguous=self.game_handler.is_move_ambiguous(),
+                                           is_move_ambiguous=is_move_ambiguous,
                                            ambiguous_move_identifier=self.game_handler.ambiguous_move_identifier,
                                            did_capture_in_last_move=self.game_handler.did_capture_in_last_move,
                                            castle_type=castle_type,

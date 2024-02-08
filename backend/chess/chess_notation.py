@@ -1,8 +1,10 @@
 class NotationCreator:
-    def __init__(self, piece_symbol, new_position, is_move_ambiguous,
+    def __init__(self, piece_symbol, pawn_column, new_position, is_move_ambiguous,
                  ambiguous_move_identifier, did_capture_in_last_move,
                  castle_type, promote_to, is_checked, is_checkmated):
+
         self.piece_symbol = piece_symbol
+        self.pawn_column = pawn_column
         self.new_position = new_position
         self.is_move_ambiguous = is_move_ambiguous
         self.ambiguous_move_identifier = ambiguous_move_identifier
@@ -32,6 +34,9 @@ class NotationCreator:
         return self.piece_symbol + self.new_position
 
     def capturing_move_notation(self):
+        if self.pawn_column:
+            self.piece_symbol = self.pawn_column
+
         if self.is_move_ambiguous:
             return self.piece_symbol + self.ambiguous_move_identifier + "x" + self.new_position
         return self.piece_symbol + "x" + self.new_position

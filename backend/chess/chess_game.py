@@ -1,5 +1,6 @@
 import copy
 from .chess_logic import GameLoader
+from .chess_pieces import PiecePawn
 from .utils import position_to_tuple, unpack_positions, get_position_in_chess_notation
 
 
@@ -11,6 +12,7 @@ class GameHandler:
         self.socket_data = socket_data
         self.ambiguous_move_identifier = ""
         self.did_capture_in_last_move = False
+        self.pawn_last_position_column_notation = None
         self.game = None
 
     def initialize_board(self):
@@ -365,6 +367,13 @@ class GameHandler:
             moving_piece = self.game.black_pieces[self.socket_data['piece']]
             friendly_pieces = [piece for piece in self.game.black_pieces.values()
                                if isinstance(piece, type(moving_piece)) and piece is not moving_piece]
+
+        if isinstance(moving_piece, PiecePawn):
+            print("HEEERE!")
+            position_str = str(moving_piece.last_position[0]) + str(moving_piece.last_position[1])
+            position_in_notation = get_position_in_chess_notation(position_str)
+            self.pawn_last_position_column_notation = position_in_notation[0]
+            print(self.pawn_last_position_column_notation)
 
         for piece in friendly_pieces:
             for move_set in piece.all_moves:
