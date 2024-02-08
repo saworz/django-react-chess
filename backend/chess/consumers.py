@@ -71,10 +71,14 @@ class ChessConsumer(WebsocketConsumer):
         moving_piece_notation = None
         new_position_notation = None
         castle_type = None
+        promote_to = None
 
         if move_data["data_type"] == "move":
             moving_piece_notation = NOTATION_MAPPING[move_data["piece"].split("_")[0]]
             new_position_notation = get_position_in_chess_notation(move_data["new_position"])
+            if move_data["promote_to"]:
+                promote_to = NOTATION_MAPPING[move_data["promote_to"]]
+
         elif move_data["data_type"] == "castle":
             castle_type = move_data["castle_type"]
 
@@ -93,6 +97,7 @@ class ChessConsumer(WebsocketConsumer):
                                            ambiguous_move_identifier=self.game_handler.ambiguous_move_identifier,
                                            did_capture_in_last_move=self.game_handler.did_capture_in_last_move,
                                            castle_type=castle_type,
+                                           promote_to=promote_to,
                                            is_checked=is_checked,
                                            is_checkmated=is_checkmated)
 
