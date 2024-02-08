@@ -369,11 +369,9 @@ class GameHandler:
                                if isinstance(piece, type(moving_piece)) and piece is not moving_piece]
 
         if isinstance(moving_piece, PiecePawn) or self.game.promoting_move:
-            print("HEEERE!")
             position_str = str(moving_piece.last_position[0]) + str(moving_piece.last_position[1])
             position_in_notation = get_position_in_chess_notation(position_str)
             self.pawn_last_position_column_notation = position_in_notation[0]
-            print(self.pawn_last_position_column_notation)
 
         for piece in friendly_pieces:
             for move_set in piece.all_moves:

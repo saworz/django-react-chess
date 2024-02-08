@@ -107,7 +107,6 @@ class ChessConsumer(WebsocketConsumer):
         self.chess_notation = notation_creator.get_notation()
         print(self.chess_notation)
 
-
     def trigger_send_error(self, error):
         """ Triggers sending an error via websocket """
         async_to_sync(self.channel_layer.group_send)(
