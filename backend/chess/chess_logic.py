@@ -1,6 +1,6 @@
 from .chess_pieces import PiecePawn, PieceRook, PieceBishop, PieceKnight, PieceKing, PieceQueen
 from .models import ChessGame
-from .utils import position_to_tuple
+from .utils import position_to_tuple, CLASS_MAPPING
 
 
 class GameLoader:
@@ -41,16 +41,6 @@ class GameLoader:
         self.white_captured_pieces = []
         self.black_score = 0
         self.black_captured_pieces = []
-
-        self.class_mapping = {
-            "pawn": PiecePawn,
-            "rook": PieceRook,
-            "bishop": PieceBishop,
-            "knight": PieceKnight,
-            "queen": PieceQueen,
-            "king": PieceKing
-
-        }
 
     def get_board_state(self):
         whites_state = {}
@@ -119,7 +109,7 @@ class GameLoader:
                 piece_type = value["piece_type"]
                 piece_position = value["position"]
                 piece_color = value["color"]
-                piece_class = self.class_mapping[piece_type]
+                piece_class = CLASS_MAPPING[piece_type]
 
                 if piece_color == 'white':
                     piece_base_position = white_base_positions[piece]
@@ -207,7 +197,7 @@ class GameLoader:
 
     def get_promoted_piece(self, color):
         """ Creates piece object to promote pawn to """
-        piece_class = self.class_mapping[self.socket_data['promote_to']]
+        piece_class = CLASS_MAPPING[self.socket_data['promote_to']]
         position = position_to_tuple(self.socket_data['new_position'])
         new_piece = piece_class(position, position, color)
         return new_piece

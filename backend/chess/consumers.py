@@ -4,7 +4,7 @@ from channels.generic.websocket import WebsocketConsumer
 from .models import ChessGame, PlayersQueue
 from .chess_game import GameHandler
 from .chess_db import DatabaseHandler
-from .utils import (prepare_data)
+from .utils import prepare_data, NOTATION_MAPPING
 from asgiref.sync import async_to_sync
 
 
@@ -13,6 +13,7 @@ class ChessConsumer(WebsocketConsumer):
         super().__init__(args, kwargs)
         self.game_handler = None
         self.database = None
+        self.chess_notation = ''
 
     def connect(self):
         """ Handles websocket connection """
@@ -45,6 +46,7 @@ class ChessConsumer(WebsocketConsumer):
             self.database.update_player_turn()
             self.game_handler.recalculate_moves()
             self.database.save_board_state_to_db()
+            self.create_chess_notation(data_json)
             self.trigger_send_board_state("move")
         elif data_json['data_type'] == 'castle':
             db_game_state = self.database.read_board_from_db()
@@ -53,12 +55,17 @@ class ChessConsumer(WebsocketConsumer):
             self.database.update_player_turn()
             self.game_handler.recalculate_moves()
             self.database.save_board_state_to_db()
+            self.create_chess_notation(data_json)
             self.trigger_send_board_state("move")
         elif data_json['data_type'] == 'init_board':
             self.game_handler.initialize_board()
             self.database.save_board_state_to_db()
             self.game_handler.get_valid_moves()
             self.trigger_send_board_state("init")
+
+    def create_chess_notation(self, move_data):
+        moving_piece_notation = NOTATION_MAPPING[move_data['piece'].split("_")[0]]
+        print(moving_piece_notation)
 
     def trigger_send_error(self, error):
         """ Triggers sending an error via websocket """
@@ -108,12 +115,14 @@ class ChessConsumer(WebsocketConsumer):
                 'black_score': game.black_score,
                 'black_captured_pieces': game.black_captured_pieces,
 
+                'move_in_chess_notation': self.chess_notation,
                 'send_type': send_type,
             }
         )
 
     def send_board_state(self, event):
         """ Sends data about board """
+        print(event['move_in_chess_notation'])
         self.send(text_data=json.dumps({
             'type': event['send_type'],
             'current_player': event['current_player'],

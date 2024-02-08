@@ -1,3 +1,22 @@
+from .chess_pieces import PiecePawn, PieceRook, PieceBishop, PieceKnight, PieceQueen, PieceKing
+
+CLASS_MAPPING = {
+    "pawn": PiecePawn,
+    "rook": PieceRook,
+    "bishop": PieceBishop,
+    "knight": PieceKnight,
+    "queen": PieceQueen,
+    "king": PieceKing
+}
+
+NOTATION_MAPPING = {
+    "pawn": "",
+    "rook": "R",
+    "bishop": "B",
+    "knight": "N",
+    "queen": "Q",
+    "king": "K"
+}
 def deserialize_lists(lst: list) -> list:
     """ Deserializes lists """
     result = []
