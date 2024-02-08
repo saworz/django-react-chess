@@ -1,6 +1,6 @@
 import copy
 from .chess_logic import GameLoader
-from .utils import position_to_tuple, unpack_positions
+from .utils import position_to_tuple, unpack_positions, get_position_in_chess_notation
 
 
 class GameHandler:
@@ -10,6 +10,7 @@ class GameHandler:
         self.room_id = room_id
         self.socket_data = socket_data
         self.ambiguous_move_identifier = ""
+        self.did_capture_in_last_move = False
         self.game = None
 
     def initialize_board(self):
@@ -113,6 +114,7 @@ class GameHandler:
         if new_position in possible_captures:
             piece_to_capture = piece.capture_piece(new_position)
             _ = self.remove_piece(piece_to_capture, self.game)
+            self.did_capture_in_last_move = True
 
         if new_position in en_passant_field:
             self.check_en_passant_field(piece)
@@ -368,12 +370,14 @@ class GameHandler:
             for move_set in piece.all_moves:
                 if moving_piece.position in move_set:
                     self.get_ambiguous_move_identifier(moving_piece, piece)
-                    return False
+                    return True
 
-        return True
+        return False
 
     def get_ambiguous_move_identifier(self, moving_piece, second_piece):
+        position_str = str(moving_piece.last_position[0]) + str(moving_piece.last_position[1])
+        position_in_notation = get_position_in_chess_notation(position_str)
         if moving_piece.last_position[0] == second_piece.position[0]:
-            self.ambiguous_move_identifier = moving_piece.last_position[1]
+            self.ambiguous_move_identifier = position_in_notation[1]
         elif moving_piece.last_position[1] == second_piece.position[1]:
-            self.ambiguous_move_identifier = moving_piece.last_position[0]
+            self.ambiguous_move_identifier = position_in_notation[0]

@@ -1,10 +1,13 @@
 import random
 import json
 from channels.generic.websocket import WebsocketConsumer
+
+from . import chess_notation
 from .models import ChessGame, PlayersQueue
 from .chess_game import GameHandler
 from .chess_db import DatabaseHandler
 from .utils import prepare_data, get_position_in_chess_notation, NOTATION_MAPPING
+from .chess_notation import NotationCreator
 from asgiref.sync import async_to_sync
 
 
@@ -65,10 +68,36 @@ class ChessConsumer(WebsocketConsumer):
 
     def create_chess_notation(self, move_data):
         print(move_data)
-        moving_piece_notation = NOTATION_MAPPING[move_data['piece'].split("_")[0]]
-        new_position_notation = get_position_in_chess_notation(move_data['new_position'])
-        print(self.game_handler.is_move_ambiguous())
-        print(self.game_handler.ambiguous_move_identifier)
+        moving_piece_notation = None
+        new_position_notation = None
+        castle_type = None
+
+        if move_data["data_type"] == "move":
+            moving_piece_notation = NOTATION_MAPPING[move_data["piece"].split("_")[0]]
+            new_position_notation = get_position_in_chess_notation(move_data["new_position"])
+        elif move_data["data_type"] == "castle":
+            castle_type = move_data["castle_type"]
+
+        game = self.game_handler.game
+        if move_data["color"] == "white":
+            is_checked = game.black_check
+            is_checkmated = game.black_checkmate
+
+        elif move_data["color"] == "black":
+            is_checked = game.white_check
+            is_checkmated = game.white_checkmate
+
+        notation_creator = NotationCreator(piece_symbol=moving_piece_notation,
+                                           new_position=new_position_notation,
+                                           is_move_ambiguous=self.game_handler.is_move_ambiguous(),
+                                           ambiguous_move_identifier=self.game_handler.ambiguous_move_identifier,
+                                           did_capture_in_last_move=self.game_handler.did_capture_in_last_move,
+                                           castle_type=castle_type,
+                                           is_checked=is_checked,
+                                           is_checkmated=is_checkmated)
+
+        self.chess_notation = notation_creator.get_notation()
+        print(self.chess_notation)
 
 
     def trigger_send_error(self, error):
@@ -126,10 +155,10 @@ class ChessConsumer(WebsocketConsumer):
 
     def send_board_state(self, event):
         """ Sends data about board """
-        print(event['move_in_chess_notation'])
         self.send(text_data=json.dumps({
             'type': event['send_type'],
             'current_player': event['current_player'],
+            'move_in_chess_notation': event['move_in_chess_notation'],
 
             'white_pieces': event['white_pieces'],
             'black_pieces': event['black_pieces'],
