@@ -362,6 +362,13 @@ class GameHandler:
             friendly_pieces = [piece for piece in self.game.black_pieces.values()
                                if isinstance(piece, type(moving_piece)) and piece is not moving_piece]
 
-        print(moving_piece, friendly_pieces)
-        return False
+        friendly_pieces_moves = []
+        for piece in friendly_pieces:
+            piece_moves = []
+            for move in piece.all_moves:
+                piece_moves += move
+
+            friendly_pieces_moves += piece_moves
+
+        return moving_piece.position not in friendly_pieces_moves
 

@@ -11,6 +11,7 @@ class Piece(ABC):
         self.base_position = base_position
         self.color = color
 
+        self.all_moves = []
         self.possible_moves = []
         self.capturing_moves = []
         self.pieces_to_capture = []
@@ -65,6 +66,7 @@ class Piece(ABC):
                     move_set.append(move)
             if len(move_set) > 0:
                 self.possible_moves.append(move_set)
+                self.all_moves.append(move_set)
 
     def capture_piece(self, position):
         """ Returns piece object that's about to be captured """
