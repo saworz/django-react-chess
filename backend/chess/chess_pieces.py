@@ -6,6 +6,7 @@ class Piece(ABC):
     def __init__(self, base_position, position, color):
         self.piece_type = ''
         self.position = position
+        self.last_position = None
         self.x_position = position[0]
         self.y_position = position[1]
         self.base_position = base_position

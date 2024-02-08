@@ -9,6 +9,7 @@ class GameHandler:
     def __init__(self, room_id, socket_data):
         self.room_id = room_id
         self.socket_data = socket_data
+        self.ambiguous_move_identifier = ""
         self.game = None
 
     def initialize_board(self):
@@ -119,6 +120,7 @@ class GameHandler:
         if piece.piece_type == 'pawn':
             self.set_en_passant_field(piece, new_position)
 
+        piece.last_position = piece.position
         piece.position = new_position
 
     def add_en_passant_field(self):
@@ -362,13 +364,16 @@ class GameHandler:
             friendly_pieces = [piece for piece in self.game.black_pieces.values()
                                if isinstance(piece, type(moving_piece)) and piece is not moving_piece]
 
-        friendly_pieces_moves = []
         for piece in friendly_pieces:
-            piece_moves = []
-            for move in piece.all_moves:
-                piece_moves += move
+            for move_set in piece.all_moves:
+                if moving_piece.position in move_set:
+                    self.get_ambiguous_move_identifier(moving_piece, piece)
+                    return False
 
-            friendly_pieces_moves += piece_moves
+        return True
 
-        return moving_piece.position not in friendly_pieces_moves
-
+    def get_ambiguous_move_identifier(self, moving_piece, second_piece):
+        if moving_piece.last_position[0] == second_piece.position[0]:
+            self.ambiguous_move_identifier = moving_piece.last_position[1]
+        elif moving_piece.last_position[1] == second_piece.position[1]:
+            self.ambiguous_move_identifier = moving_piece.last_position[0]

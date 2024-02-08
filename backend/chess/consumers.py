@@ -68,6 +68,7 @@ class ChessConsumer(WebsocketConsumer):
         moving_piece_notation = NOTATION_MAPPING[move_data['piece'].split("_")[0]]
         new_position_notation = get_position_in_chess_notation(move_data['new_position'])
         print(self.game_handler.is_move_ambiguous())
+        print(self.game_handler.ambiguous_move_identifier)
 
 
     def trigger_send_error(self, error):
