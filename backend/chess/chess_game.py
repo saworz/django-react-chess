@@ -120,6 +120,7 @@ class GameHandler:
 
         if new_position in en_passant_field:
             self.check_en_passant_field(piece)
+            self.did_capture_in_last_move = True
 
         if piece.piece_type == 'pawn':
             self.set_en_passant_field(piece, new_position)

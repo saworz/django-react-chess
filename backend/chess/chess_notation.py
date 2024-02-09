@@ -68,6 +68,3 @@ class NotationCreator:
             return "O-O"
         elif self.castle_type.split("_")[1] == "long":
             return "O-O-O"
-
-    def en_passant_notation(self):
-        pass
