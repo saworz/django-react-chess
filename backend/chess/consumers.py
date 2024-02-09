@@ -72,26 +72,30 @@ class ChessConsumer(WebsocketConsumer):
         new_position_notation = None
         castle_type = None
         promote_to = None
+        game = self.game_handler.game
 
         if move_data["data_type"] == "move":
             moving_piece_notation = NOTATION_MAPPING[move_data["piece"].split("_")[0]]
             new_position_notation = get_position_in_chess_notation(move_data["new_position"])
+
+            is_move_ambiguous = self.game_handler.is_move_ambiguous()
+
             if move_data["promote_to"]:
                 promote_to = NOTATION_MAPPING[move_data["promote_to"]]
 
+            if move_data["color"] == "white":
+                is_checked = game.black_check
+                is_checkmated = game.black_checkmate
+
+            elif move_data["color"] == "black":
+                is_checked = game.white_check
+                is_checkmated = game.white_checkmate
+
         elif move_data["data_type"] == "castle":
             castle_type = move_data["castle_type"]
-
-        game = self.game_handler.game
-        if move_data["color"] == "white":
-            is_checked = game.black_check
-            is_checkmated = game.black_checkmate
-
-        elif move_data["color"] == "black":
-            is_checked = game.white_check
-            is_checkmated = game.white_checkmate
-
-        is_move_ambiguous = self.game_handler.is_move_ambiguous()
+            is_move_ambiguous = False
+            is_checked = False
+            is_checkmated = False
 
         notation_creator = NotationCreator(piece_symbol=moving_piece_notation,
                                            pawn_column=self.game_handler.pawn_last_position_column_notation,
