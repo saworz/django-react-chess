@@ -48,6 +48,7 @@ def position_to_tuple(position: str) -> tuple:
 
 
 def get_position_in_chess_notation(position: str) -> str:
+    """ Rewrites position to valid notation"""
     return chr(ord('a') + int(position[0]) - 1) + position[1]
 
 

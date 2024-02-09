@@ -1,4 +1,5 @@
 class NotationCreator:
+    """ Handles creating notation strings"""
     def __init__(self, piece_symbol, pawn_column, new_position, is_move_ambiguous,
                  ambiguous_move_identifier, did_capture_in_last_move,
                  castle_type, promote_to, is_checked, is_checkmated):
@@ -15,6 +16,7 @@ class NotationCreator:
         self.is_checkmated = is_checkmated
 
     def get_notation(self):
+        """ Selects correct type of building notation string """
         if self.castle_type:
             return self.castle_move_notation()
         elif self.promote_to:
@@ -29,11 +31,13 @@ class NotationCreator:
             return self.regular_move_notation()
 
     def regular_move_notation(self):
+        """ Creates notation for regular move"""
         if self.is_move_ambiguous:
             return self.piece_symbol + self.ambiguous_move_identifier + self.new_position
         return self.piece_symbol + self.new_position
 
     def capturing_move_notation(self):
+        """ Creates notation for capturing move """
         if self.pawn_column:
             self.piece_symbol = self.pawn_column
 
@@ -42,6 +46,7 @@ class NotationCreator:
         return self.piece_symbol + "x" + self.new_position
 
     def promoting_move_notation(self):
+        """ Creates notation for promoting pawn """
         if self.did_capture_in_last_move:
             base_str = self.capturing_move_notation() + "=" + self.promote_to
         else:
@@ -54,16 +59,19 @@ class NotationCreator:
         return base_str
 
     def check_move_notation(self):
+        """ Creates notation for check move """
         if self.did_capture_in_last_move:
             return self.capturing_move_notation() + "+"
         return self.regular_move_notation() + "+"
 
     def checkmate_move_notation(self):
+        """ Creates notation for checkmate move """
         if self.did_capture_in_last_move:
             return self.capturing_move_notation() + "#"
         return self.regular_move_notation() + "#"
 
     def castle_move_notation(self):
+        """ Creates notation for castle move """
         if self.castle_type.split("_")[1] == "short":
             return "O-O"
         elif self.castle_type.split("_")[1] == "long":

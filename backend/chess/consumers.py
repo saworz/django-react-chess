@@ -67,7 +67,7 @@ class ChessConsumer(WebsocketConsumer):
             self.trigger_send_board_state("init")
 
     def create_chess_notation(self, move_data):
-        print(move_data)
+        """ Handles creating chess move notation """
         moving_piece_notation = None
         new_position_notation = None
         castle_type = None
@@ -109,7 +109,6 @@ class ChessConsumer(WebsocketConsumer):
                                            is_checkmated=is_checkmated)
 
         self.chess_notation = notation_creator.get_notation()
-        print(self.chess_notation)
 
     def trigger_send_error(self, error):
         """ Triggers sending an error via websocket """
