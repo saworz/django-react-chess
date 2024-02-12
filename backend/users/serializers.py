@@ -51,10 +51,12 @@ class LoggedUserSerializer(serializers.Serializer):
     username = serializers.ReadOnlyField(source='user.username')
     email = serializers.ReadOnlyField(source='user.email')
     image = serializers.SerializerMethodField()
+    wins = serializers.IntegerField()
+    losses = serializers.IntegerField()
 
     class Meta:
         model = Profile
-        fields = ['id', 'username', 'email', 'image']
+        fields = ['id', 'username', 'email', 'image', 'wins', 'losses']
 
     def get_image(self, obj) -> str:
         if obj.image:
@@ -68,7 +70,7 @@ class OtherUserSerializer(LoggedUserSerializer):
 
     class Meta:
         model = Profile
-        fields = ['id', 'username', 'email', 'image', 'is_friend', 'pending_request', 'request_sender_id']
+        fields = ['is_friend', 'pending_request', 'request_sender_id']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
