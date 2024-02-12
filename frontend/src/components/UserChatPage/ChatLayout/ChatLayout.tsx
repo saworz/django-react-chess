@@ -10,7 +10,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../app/store";
 import HttpService from "../../../utils/HttpService";
 
-const ChatLayout = ({ userDetails, chatRoomId }: Types.IProps) => {
+const ChatLayout = ({ userDetails, userId, chatRoomId }: Types.IProps) => {
   const [inputMessage, setInputMessage] = useState("");
   const { user } = useSelector((state: RootState) => state.auth);
   const [messages, setMessages] = useState<SharedTypes.IMessagesData[]>([]);
@@ -44,12 +44,12 @@ const ChatLayout = ({ userDetails, chatRoomId }: Types.IProps) => {
   useEffect(() => {
     getPreviousMessages();
     const clientWebSocket = new W3CWebSocket(
-      "ws://localhost:8000/ws/chat/" + chatRoomId
+      "ws://localhost:8000/ws/private_chat/" + userId
     );
 
     clientWebSocket.onopen = () => {
       console.log("WebSocket connected");
-      console.log(chatRoomId);
+      console.log(userId);
     };
 
     clientWebSocket.onmessage = (message) => {

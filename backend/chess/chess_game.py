@@ -1,6 +1,7 @@
 import copy
 from .chess_logic import GameLoader
-from .utils import position_to_tuple, unpack_positions
+from .chess_pieces import PiecePawn
+from .utils import position_to_tuple, unpack_positions, get_position_in_chess_notation
 
 
 class GameHandler:
@@ -9,6 +10,9 @@ class GameHandler:
     def __init__(self, room_id, socket_data):
         self.room_id = room_id
         self.socket_data = socket_data
+        self.ambiguous_move_identifier = ""
+        self.did_capture_in_last_move = False
+        self.pawn_last_position_column_notation = None
         self.game = None
 
     def initialize_board(self):
@@ -112,13 +116,16 @@ class GameHandler:
         if new_position in possible_captures:
             piece_to_capture = piece.capture_piece(new_position)
             _ = self.remove_piece(piece_to_capture, self.game)
+            self.did_capture_in_last_move = True
 
         if new_position in en_passant_field:
             self.check_en_passant_field(piece)
+            self.did_capture_in_last_move = True
 
         if piece.piece_type == 'pawn':
             self.set_en_passant_field(piece, new_position)
 
+        piece.last_position = piece.position
         piece.position = new_position
 
     def add_en_passant_field(self):
@@ -350,3 +357,35 @@ class GameHandler:
         self.game.check_kings_safety()
         self.add_en_passant_field()
         self.get_valid_moves()
+
+    def is_move_ambiguous(self) -> bool:
+        """ Checks if the is ambiguous for this type of piece """
+        if self.socket_data['color'] == 'white':
+            moving_piece = self.game.white_pieces[self.socket_data['piece']]
+            friendly_pieces = [piece for piece in self.game.white_pieces.values()
+                               if isinstance(piece, type(moving_piece)) and piece is not moving_piece]
+        elif self.socket_data['color'] == 'black':
+            moving_piece = self.game.black_pieces[self.socket_data['piece']]
+            friendly_pieces = [piece for piece in self.game.black_pieces.values()
+                               if isinstance(piece, type(moving_piece)) and piece is not moving_piece]
+
+        if isinstance(moving_piece, PiecePawn) or self.game.promoting_move:
+            position_str = str(moving_piece.last_position[0]) + str(moving_piece.last_position[1])
+            position_in_notation = get_position_in_chess_notation(position_str)
+            self.pawn_last_position_column_notation = position_in_notation[0]
+
+        for piece in friendly_pieces:
+            for move_set in piece.all_moves:
+                if moving_piece.position in move_set:
+                    self.get_ambiguous_move_identifier(moving_piece, piece)
+                    return True
+
+        return False
+
+    def get_ambiguous_move_identifier(self, moving_piece, second_piece):
+        position_str = str(moving_piece.last_position[0]) + str(moving_piece.last_position[1])
+        position_in_notation = get_position_in_chess_notation(position_str)
+        if moving_piece.last_position[0] == second_piece.position[0]:
+            self.ambiguous_move_identifier = position_in_notation[1]
+        elif moving_piece.last_position[1] == second_piece.position[1]:
+            self.ambiguous_move_identifier = position_in_notation[0]

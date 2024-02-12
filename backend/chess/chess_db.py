@@ -1,5 +1,3 @@
-import json
-
 from .models import ChessGame, WhitePieces, BlackPieces
 from .serializers import BlackBoardSerializer, WhiteBoardSerializer
 from .utils import deserialize_lists

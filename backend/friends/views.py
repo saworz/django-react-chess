@@ -1,9 +1,7 @@
-from django.shortcuts import render, get_object_or_404
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from .models import FriendRequest
 from django.contrib.auth.models import User
-from .serializers import FriendsRequestSerializer, CoupledUsersSerializer
 from users.serializers import MessageResponseSerializer, LoggedUserSerializer
 from rest_framework import status
 from drf_spectacular.utils import extend_schema, OpenApiResponse
