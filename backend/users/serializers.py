@@ -140,3 +140,9 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate_password(self, value):
         validate_password(value)
         return value
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = '__all__'

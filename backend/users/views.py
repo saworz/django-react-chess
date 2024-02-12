@@ -5,7 +5,8 @@ from rest_framework.generics import RetrieveAPIView, ListAPIView, UpdateAPIView
 from rest_framework import status
 from .serializers import (UserRegisterFormSerializer, UserErrorResponseSerializer,
                           UserLoginSerializer, UserDataDictSerializer, MessageResponseSerializer,
-                          UsersListSerializer, OtherUserSerializer, UpdateUserSerializer, ChangePasswordSerializer)
+                          UsersListSerializer, OtherUserSerializer, UpdateUserSerializer, ChangePasswordSerializer,
+                          ProfileSerializer)
 
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from django.utils.decorators import method_decorator
@@ -208,3 +209,37 @@ class UpdatePasswordView(UpdateAPIView):
             update_session_auth_hash(request, user)
 
         return JsonResponse({"message": "Password changed"}, status=status.HTTP_200_OK)
+
+
+class AddWinView(UpdateAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        instance.wins += 1
+        instance.save()
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return JsonResponse({"message": "Win added"}, status=status.HTTP_200_OK)
+
+
+class AddLoseView(UpdateAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        instance.losses += 1
+        instance.save()
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return JsonResponse({"message": "Loss added"}, status=status.HTTP_200_OK)
