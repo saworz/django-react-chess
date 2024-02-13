@@ -211,35 +211,47 @@ class UpdatePasswordView(UpdateAPIView):
         return JsonResponse({"message": "Password changed"}, status=status.HTTP_200_OK)
 
 
-class AddWinView(UpdateAPIView):
+class RecalculateEloView(UpdateAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
+    def get_object(self, winner_pk, loser_pk):
+        winner_instance = Profile.objects.get(pk=winner_pk)
+        loser_instance = Profile.objects.get(pk=loser_pk)
+        return winner_instance, loser_instance
+
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        instance.wins += 1
-        instance.save()
+        winner_instance, loser_instance = self.get_object(kwargs['winner_pk'], kwargs['loser_pk'])
 
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        winner_serializer = self.get_serializer(winner_instance, data=request.data, partial=partial)
+        loser_serializer = self.get_serializer(loser_instance, data=request.data, partial=partial)
 
-        return JsonResponse({"message": "Win added"}, status=status.HTTP_200_OK)
+        winner_serializer.is_valid(raise_exception=True)
+        loser_serializer.is_valid(raise_exception=True)
+
+        self.perform_update(winner_serializer)
+        self.perform_update(loser_serializer)
+
+        return JsonResponse({"message": "Win added"})
 
 
-class AddLoseView(UpdateAPIView):
+class LeaderboardListView(ListAPIView):
     queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
+    serializer_class = UsersListSerializer
 
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        instance.losses += 1
-        instance.save()
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        partial_string = self.kwargs.get('username')
 
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        if not partial_string:
+            raise ValidationError("Incorrect or empty query parameter")
 
-        return JsonResponse({"message": "Loss added"}, status=status.HTTP_200_OK)
+        queryset = queryset.filter(user__username__icontains=partial_string)
+        new_queryset = []
+
+        for profile in queryset:
+            if self.request.user.profile != User.objects.get(pk=profile.pk).profile:
+                new_queryset.append(profile)
+
+        return new_queryset
