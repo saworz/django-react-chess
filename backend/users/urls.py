@@ -13,5 +13,5 @@ urlpatterns = [
     path('update_user/', login_required(views.UserUpdateView.as_view())),
     path('change_password/', login_required(views.UpdatePasswordView.as_view())),
 
-    path('recalculate_elo/<int:winner_pk>/<int:loser_pk>/', login_required(views.RecalculateEloView.as_view())),
+    path('recalculate_elo/<int:white_player_pk>/<int:black_player_pk>/<int:game_outcome>/', login_required(views.RecalculateEloView.as_view())),
 ]
