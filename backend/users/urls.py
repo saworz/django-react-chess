@@ -13,5 +13,7 @@ urlpatterns = [
     path('update_user/', login_required(views.UserUpdateView.as_view())),
     path('change_password/', login_required(views.UpdatePasswordView.as_view())),
 
-    path('recalculate_elo/<int:white_player_pk>/<int:black_player_pk>/<int:game_outcome>/', login_required(views.RecalculateEloView.as_view())),
+    path('recalculate_elo/<int:white_player_pk>/<int:black_player_pk>/<int:game_outcome>/',
+         login_required(views.RecalculateEloView.as_view())),
+    path('get_leaderboard/', login_required(views.LeaderboardListView.as_view())),
 ]

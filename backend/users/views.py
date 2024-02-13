@@ -278,21 +278,5 @@ class RecalculateEloView(UpdateAPIView):
 
 
 class LeaderboardListView(ListAPIView):
-    queryset = Profile.objects.all()
+    queryset = Profile.objects.all().order_by("-elo")
     serializer_class = UsersListSerializer
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        partial_string = self.kwargs.get('username')
-
-        if not partial_string:
-            raise ValidationError("Incorrect or empty query parameter")
-
-        queryset = queryset.filter(user__username__icontains=partial_string)
-        new_queryset = []
-
-        for profile in queryset:
-            if self.request.user.profile != User.objects.get(pk=profile.pk).profile:
-                new_queryset.append(profile)
-
-        return new_queryset
