@@ -237,9 +237,13 @@ class RecalculateEloView(UpdateAPIView):
         elif game_outcome == 1:
             white_player_new_elo = self.get_new_ratings(white_player.elo, 1, white_win_probability)
             black_player_new_elo = self.get_new_ratings(black_player.elo, 0, 1-white_win_probability)
+            white_player.wins += 1
+            black_player.losses += 1
         elif game_outcome == 2:
             white_player_new_elo = self.get_new_ratings(white_player.elo, 0, white_win_probability)
             black_player_new_elo = self.get_new_ratings(black_player.elo, 1, 1-white_win_probability)
+            white_player.losses += 1
+            black_player.wins += 1
 
         white_player_elo_gain = white_player_new_elo - white_player.elo
         black_player_elo_gain = black_player_new_elo - black_player.elo

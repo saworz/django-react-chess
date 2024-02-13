@@ -53,10 +53,11 @@ class LoggedUserSerializer(serializers.Serializer):
     image = serializers.SerializerMethodField()
     wins = serializers.IntegerField()
     losses = serializers.IntegerField()
+    elo = serializers.IntegerField()
 
     class Meta:
         model = Profile
-        fields = ['id', 'username', 'email', 'image', 'wins', 'losses']
+        fields = ['id', 'username', 'email', 'image', 'wins', 'losses', 'elo']
 
     def get_image(self, obj) -> str:
         if obj.image:
