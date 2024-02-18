@@ -46,6 +46,26 @@ const transformBlackPieces = (
   return copy;
 };
 
+const getCorrectImageAndName = (
+  loggedColor: string,
+  loggedId: number,
+  loggedUser: any,
+  enemyUser: any,
+  colorId: any
+) => {
+  if (loggedColor === "white") {
+    if (colorId === loggedId) {
+      return loggedUser;
+    }
+    return enemyUser;
+  } else {
+    if (colorId !== loggedId) {
+      return loggedUser;
+    }
+    return enemyUser;
+  }
+};
+
 const fillPositionsPieces = (
   boardPositions: string[][],
   piecesObject:
@@ -261,6 +281,7 @@ const Functions = {
   isLoggedPlayer,
   transformBlackPiecesPosition: transformBlackPieces,
   transformWhitePiecesPosition: transformWhitePieces,
+  getCorrectImageAndName,
 };
 
 export default Functions;

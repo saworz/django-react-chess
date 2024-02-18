@@ -80,7 +80,6 @@ const Piece = ({ file, piece, rank }: Types.IProps) => {
           for (let i = 0; i < candidateMoves.length; i++) {
             candidateMoves[i][0] = 7 - candidateMoves[i][0];
           }
-          console.log(candidateMoves);
         }
         dispatch(generateCandidateMoves(candidateMoves));
       }

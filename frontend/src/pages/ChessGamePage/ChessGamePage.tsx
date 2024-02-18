@@ -43,7 +43,6 @@ const ChessGamePage = () => {
     user!.id
       ? true
       : false;
-  const whitePlayerId = chess.gameDetails!.player_white!;
   const blackPlayerId = chess.gameDetails!.player_black!;
   const isBlackPiecesLogged = blackPlayerId === user!.id ? true : false;
   const areYouBlackPieces = chess.gameDetails.yourColor === "black";
@@ -140,7 +139,6 @@ const ChessGamePage = () => {
         } else if (dataFromServer.type === "move") {
           dispatch(
             updateGame({
-              yourColor: isBlackPiecesLogged ? "black" : "white",
               black_checkmated: dataFromServer.black_checkmated,
               black_checked: dataFromServer.black_checked,
               black_en_passant_field: dataFromServer.black_en_passant_field,
@@ -175,7 +173,6 @@ const ChessGamePage = () => {
         } else if (dataFromServer.type === "init") {
           dispatch(
             initGame({
-              yourColor: isBlackPiecesLogged ? "black" : "white",
               white_pieces: isBlackPiecesLogged
                 ? Functions.transformWhitePiecesPosition(
                     Functions.mapPiecesToArray(dataFromServer.white_pieces)
@@ -234,10 +231,22 @@ const ChessGamePage = () => {
           {isGameReady && (
             <PlayerDetails
               image={
-                blackPlayerId === user!.id ? user!.image : enemyDetails!.image
+                Functions.getCorrectImageAndName(
+                  chess.gameDetails.yourColor,
+                  user!.id,
+                  user,
+                  enemyDetails,
+                  chess.gameDetails.player_black
+                ).image
               }
               username={
-                areYouWhitePieces ? enemyDetails!.username : user!.username
+                Functions.getCorrectImageAndName(
+                  chess.gameDetails.yourColor,
+                  user!.id,
+                  user,
+                  enemyDetails,
+                  chess.gameDetails.player_black
+                ).username
               }
               playerDetails={
                 areYouBlackPieces
@@ -252,10 +261,22 @@ const ChessGamePage = () => {
           {isGameReady && (
             <PlayerDetails
               image={
-                whitePlayerId === user!.id ? user!.image : enemyDetails!.image
+                Functions.getCorrectImageAndName(
+                  chess.gameDetails.yourColor,
+                  user!.id,
+                  user,
+                  enemyDetails,
+                  chess.gameDetails.player_white
+                ).image
               }
               username={
-                areYouWhitePieces ? user!.username : enemyDetails!.username
+                Functions.getCorrectImageAndName(
+                  chess.gameDetails.yourColor,
+                  user!.id,
+                  user,
+                  enemyDetails,
+                  chess.gameDetails.player_white
+                ).username
               }
               playerDetails={
                 areYouWhitePieces

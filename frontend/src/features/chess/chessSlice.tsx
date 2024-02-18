@@ -165,7 +165,6 @@ export const chessSlice = createSlice({
       state.chess.copyPiecesPosition.white_pieces = action.payload.white_pieces;
       state.chess.piecesPosition.black_pieces = action.payload.black_pieces;
       state.chess.piecesPosition.white_pieces = action.payload.white_pieces;
-      state.chess.gameDetails.yourColor = action.payload.yourColor;
     },
     initGame: (state, action) => {
       state.chess.copyPiecesPosition.black_pieces =
@@ -180,7 +179,6 @@ export const chessSlice = createSlice({
       state.chess.white_checked = action.payload.white_checked;
       state.chess.white_checkmated = action.payload.white_checkmated;
       state.chess.current_player = action.payload.current_player;
-      state.chess.gameDetails.yourColor = action.payload.yourColor;
       state.chess.candidateMoves = [];
       state.chess.gameStatus = Status.ongoing;
     },
@@ -248,6 +246,8 @@ export const chessSlice = createSlice({
       .addCase(getGameRoomDetails.fulfilled, (state, action) => {
         const whiteCaptures = action.payload.white_captures;
         const blackCaptures = action.payload.black_captures;
+        const playerWhiteId = action.payload.player_white;
+        const playerBlackId = action.payload.player_black;
         state.isLoading = false;
         state.isSuccess = true;
         state.isError = false;
@@ -260,9 +260,11 @@ export const chessSlice = createSlice({
           blackCaptures === null ? [] : blackCaptures;
         state.chess.gameDetails.current_player = action.payload.current_player;
         state.chess.gameDetails.room_id = action.payload.room_id;
-        state.chess.gameDetails.player_white = action.payload.player_white;
-        state.chess.gameDetails.player_black = action.payload.player_black;
+        state.chess.gameDetails.player_white = playerWhiteId;
+        state.chess.gameDetails.player_black = playerBlackId;
         state.chess.gameDetails.yourId = action.payload.yourId;
+        state.chess.gameDetails.yourColor =
+          action.payload.yourId === playerBlackId ? "black" : "white";
       })
       .addCase(getGameRoomDetails.rejected, (state, action) => {
         state.isLoading = false;
