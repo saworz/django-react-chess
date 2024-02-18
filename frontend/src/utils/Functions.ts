@@ -20,6 +20,31 @@ const mapPiecesToArray = (
     ...value,
   }));
 };
+//y=n+1-y'
+
+const transformWhitePieces = (
+  piecesObject: SharedTypes.IPiecesPosition["white_pieces"]
+) => {
+  let copy = piecesObject.map((object) => ({ ...object }));
+  copy.forEach((object) => {
+    let [x, y] = object.position;
+    object.position = [x, 8 + 1 - y];
+  });
+
+  return copy;
+};
+
+const transformBlackPieces = (
+  piecesObject: SharedTypes.IPiecesPosition["black_pieces"]
+) => {
+  let copy = piecesObject.map((object) => ({ ...object }));
+  copy.forEach((object) => {
+    let [x, y] = object.position;
+    object.position = [x, 8 + 1 - y];
+  });
+
+  return copy;
+};
 
 const fillPositionsPieces = (
   boardPositions: string[][],
@@ -234,6 +259,8 @@ const Functions = {
   getCastlingMoves,
   promotePiece,
   isLoggedPlayer,
+  transformBlackPiecesPosition: transformBlackPieces,
+  transformWhitePiecesPosition: transformWhitePieces,
 };
 
 export default Functions;

@@ -16,6 +16,8 @@ const initialState: SharedTypes.IChessState = {
       room_id: "",
       player_white: -1,
       player_black: -1,
+      yourColor: "",
+      yourId: -1,
     },
     gameRoomId: "",
     isGameStarted: false,
@@ -79,7 +81,7 @@ export const postCreateChessGame = createAsyncThunk(
 
 export const getGameRoomDetails = createAsyncThunk(
   "/chess/getGameRoomDetails",
-  async (data: string, thunkAPI) => {
+  async (data: { gameId: string; yourId: number | undefined }, thunkAPI) => {
     try {
       return await chessService.getGameRoomDetails(data);
     } catch (error) {
@@ -163,6 +165,7 @@ export const chessSlice = createSlice({
       state.chess.copyPiecesPosition.white_pieces = action.payload.white_pieces;
       state.chess.piecesPosition.black_pieces = action.payload.black_pieces;
       state.chess.piecesPosition.white_pieces = action.payload.white_pieces;
+      state.chess.gameDetails.yourColor = action.payload.yourColor;
     },
     initGame: (state, action) => {
       state.chess.copyPiecesPosition.black_pieces =
@@ -177,6 +180,7 @@ export const chessSlice = createSlice({
       state.chess.white_checked = action.payload.white_checked;
       state.chess.white_checkmated = action.payload.white_checkmated;
       state.chess.current_player = action.payload.current_player;
+      state.chess.gameDetails.yourColor = action.payload.yourColor;
       state.chess.candidateMoves = [];
       state.chess.gameStatus = Status.ongoing;
     },
@@ -258,6 +262,7 @@ export const chessSlice = createSlice({
         state.chess.gameDetails.room_id = action.payload.room_id;
         state.chess.gameDetails.player_white = action.payload.player_white;
         state.chess.gameDetails.player_black = action.payload.player_black;
+        state.chess.gameDetails.yourId = action.payload.yourId;
       })
       .addCase(getGameRoomDetails.rejected, (state, action) => {
         state.isLoading = false;

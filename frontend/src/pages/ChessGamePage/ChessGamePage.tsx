@@ -3,7 +3,6 @@ import {
   updateGame,
   createChessGame,
   initGame,
-  getGameRoomDetails,
 } from "../../features/chess/chessSlice";
 import ChessBoard from "../../components/ChessGamePage/ChessBoard";
 import { useNavigate, useParams } from "react-router-dom";
@@ -28,6 +27,7 @@ const ChessGamePage = () => {
   const dispatch: AppDispatch = useDispatch();
   const navigate = useNavigate();
   const webSocketRef = useRef<W3CWebSocket | null>(null);
+  const [isGameDetailsLoaded, setIsGameDetailsLoaded] = useState(false);
   const reconnectCounter = useRef(1);
   const [enemyDetails, setEnemyDetails] =
     useState<SharedTypes.ISuggestionFriendData>();
@@ -39,11 +39,15 @@ const ChessGamePage = () => {
     chess.gameDetails &&
     enemyDetails &&
     chess.isGameStarted &&
+    isGameDetailsLoaded &&
     user!.id
       ? true
       : false;
   const whitePlayerId = chess.gameDetails!.player_white!;
   const blackPlayerId = chess.gameDetails!.player_black!;
+  const isBlackPiecesLogged = blackPlayerId === user!.id ? true : false;
+  const areYouBlackPieces = chess.gameDetails.yourColor === "black";
+  const areYouWhitePieces = chess.gameDetails.yourColor === "white";
 
   const getPlayerPoints = (
     playerColor: string
@@ -98,10 +102,9 @@ const ChessGamePage = () => {
 
       webSocketRef.current = clientWebSocket;
 
-      clientWebSocket.onopen = () => {
+      clientWebSocket.onopen = async () => {
         //createChessGame  TODO
         console.log("WebSocket connected");
-        dispatch(getGameRoomDetails(gameId!));
         dispatch(
           createChessGame({
             gameRoomId: Number(Functions.computeGameId(user?.id!, gameId!)),
@@ -137,6 +140,7 @@ const ChessGamePage = () => {
         } else if (dataFromServer.type === "move") {
           dispatch(
             updateGame({
+              yourColor: isBlackPiecesLogged ? "black" : "white",
               black_checkmated: dataFromServer.black_checkmated,
               black_checked: dataFromServer.black_checked,
               black_en_passant_field: dataFromServer.black_en_passant_field,
@@ -156,34 +160,47 @@ const ChessGamePage = () => {
               white_captured_pieces: dataFromServer.white_captured_pieces,
               white_score: dataFromServer.white_score,
               current_player: dataFromServer.current_player,
-              black_pieces: Functions.mapPiecesToArray(
-                dataFromServer.black_pieces
-              ),
-              white_pieces: Functions.mapPiecesToArray(
-                dataFromServer.white_pieces
-              ),
+              black_pieces: isBlackPiecesLogged
+                ? Functions.transformBlackPiecesPosition(
+                    Functions.mapPiecesToArray(dataFromServer.black_pieces)
+                  )
+                : Functions.mapPiecesToArray(dataFromServer.black_pieces),
+              white_pieces: isBlackPiecesLogged
+                ? Functions.transformBlackPiecesPosition(
+                    Functions.mapPiecesToArray(dataFromServer.white_pieces)
+                  )
+                : Functions.mapPiecesToArray(dataFromServer.white_pieces),
             })
           );
         } else if (dataFromServer.type === "init") {
           dispatch(
             initGame({
-              white_pieces: Functions.mapPiecesToArray(
-                dataFromServer.white_pieces
-              ),
-              black_pieces: Functions.mapPiecesToArray(
-                dataFromServer.black_pieces
-              ),
+              yourColor: isBlackPiecesLogged ? "black" : "white",
+              white_pieces: isBlackPiecesLogged
+                ? Functions.transformWhitePiecesPosition(
+                    Functions.mapPiecesToArray(dataFromServer.white_pieces)
+                  )
+                : Functions.mapPiecesToArray(dataFromServer.white_pieces),
+              black_pieces: isBlackPiecesLogged
+                ? Functions.transformBlackPiecesPosition(
+                    Functions.mapPiecesToArray(dataFromServer.black_pieces)
+                  )
+                : Functions.mapPiecesToArray(dataFromServer.black_pieces),
               black_checkmated: dataFromServer.black_checkmated,
               black_checked: dataFromServer.black_checked,
               white_checked: dataFromServer.white_checked,
               white_checkmated: dataFromServer.white_checkmated,
               current_player: dataFromServer.current_player,
-              copy_white_pieces: Functions.mapPiecesToArray(
-                dataFromServer.white_pieces
-              ),
-              copy_black_pieces: Functions.mapPiecesToArray(
-                dataFromServer.black_pieces
-              ),
+              copy_white_pieces: isBlackPiecesLogged
+                ? Functions.transformWhitePiecesPosition(
+                    Functions.mapPiecesToArray(dataFromServer.white_pieces)
+                  )
+                : Functions.mapPiecesToArray(dataFromServer.white_pieces),
+              copy_black_pieces: isBlackPiecesLogged
+                ? Functions.transformBlackPiecesPosition(
+                    Functions.mapPiecesToArray(dataFromServer.black_pieces)
+                  )
+                : Functions.mapPiecesToArray(dataFromServer.black_pieces),
             })
           );
         }
@@ -191,16 +208,18 @@ const ChessGamePage = () => {
       };
     };
 
-    connectWebSocket();
+    if (isGameDetailsLoaded) {
+      connectWebSocket();
+    }
 
     return () => {
       webSocketRef.current?.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isGameDetailsLoaded]);
 
   if (!isGameReady) {
-    return <LoadingScreen />;
+    return <LoadingScreen setIsGameDetailsLoaded={setIsGameDetailsLoaded} />;
   }
 
   return (
@@ -218,11 +237,13 @@ const ChessGamePage = () => {
                 blackPlayerId === user!.id ? user!.image : enemyDetails!.image
               }
               username={
-                blackPlayerId === user!.id
-                  ? user!.username
-                  : enemyDetails!.username
+                areYouWhitePieces ? enemyDetails!.username : user!.username
               }
-              playerDetails={getPlayerPoints("black")}
+              playerDetails={
+                areYouBlackPieces
+                  ? getPlayerPoints("white")
+                  : getPlayerPoints("black")
+              }
             />
           )}
           {isGameReady && enemyDetails && (
@@ -234,11 +255,13 @@ const ChessGamePage = () => {
                 whitePlayerId === user!.id ? user!.image : enemyDetails!.image
               }
               username={
-                whitePlayerId === user!.id
-                  ? user!.username
-                  : enemyDetails!.username
+                areYouWhitePieces ? user!.username : enemyDetails!.username
               }
-              playerDetails={getPlayerPoints("white")}
+              playerDetails={
+                areYouWhitePieces
+                  ? getPlayerPoints("white")
+                  : getPlayerPoints("black")
+              }
             />
           )}
         </GridItem>
