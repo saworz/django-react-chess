@@ -1,7 +1,10 @@
-import { Box, useColorModeValue, Flex } from "@chakra-ui/react";
+import { Box, useColorModeValue, Flex, Image, HStack } from "@chakra-ui/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../app/store";
 import { useEffect, useRef, useState } from "react";
+import BlackPawnIcon from "../../../images/bking.png";
+import WhitePawnIcon from "../../../images/wking.png";
+
 import * as Styles from "./GameDetailsWindow.styles";
 
 const GameDetailsWindow = () => {
@@ -44,7 +47,8 @@ const GameDetailsWindow = () => {
     <Box
       rounded={"lg"}
       boxShadow={"lg"}
-      p={4}
+      pl={4}
+      pr={4}
       height="100%"
       maxHeight="512.5px"
       bg={useColorModeValue("white", "gray.700")}
@@ -60,6 +64,10 @@ const GameDetailsWindow = () => {
         h="99px"
         pt="12px"
       >
+        <HStack spacing={1} p={1} ml={3.5}>
+          <Image height="25px" src={WhitePawnIcon} />
+          <Image height="25px" src={BlackPawnIcon} />
+        </HStack>
         {allMovesPairs.map((pair, index) => (
           <Styles.MovesRow
             bg={index % 2 === 0 ? "#2d3748" : "#181b2e"}
