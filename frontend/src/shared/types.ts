@@ -53,6 +53,8 @@ export interface IChessState {
     white_score: number;
     gameStatus: string;
     gameWinner: string;
+    previousMoveNotation: string;
+    allGameMoves: string[];
     promotionSquare: {
       x: number;
       y: number;

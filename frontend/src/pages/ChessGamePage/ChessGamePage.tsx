@@ -168,6 +168,7 @@ const ChessGamePage = () => {
                     Functions.mapPiecesToArray(dataFromServer.white_pieces)
                   )
                 : Functions.mapPiecesToArray(dataFromServer.white_pieces),
+              move_in_chess_notation: dataFromServer.move_in_chess_notation,
             })
           );
         } else if (dataFromServer.type === "init") {
@@ -198,6 +199,7 @@ const ChessGamePage = () => {
                     Functions.mapPiecesToArray(dataFromServer.black_pieces)
                   )
                 : Functions.mapPiecesToArray(dataFromServer.black_pieces),
+              move_in_chess_notation: dataFromServer.move_in_chess_notation,
             })
           );
         }

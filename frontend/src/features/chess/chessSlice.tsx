@@ -49,6 +49,8 @@ const initialState: SharedTypes.IChessState = {
     white_score: 0,
     gameStatus: Status.ongoing,
     gameWinner: "",
+    previousMoveNotation: "",
+    allGameMoves: [],
     promotionSquare: null,
   },
   isError: false,
@@ -165,6 +167,11 @@ export const chessSlice = createSlice({
       state.chess.copyPiecesPosition.white_pieces = action.payload.white_pieces;
       state.chess.piecesPosition.black_pieces = action.payload.black_pieces;
       state.chess.piecesPosition.white_pieces = action.payload.white_pieces;
+      state.chess.allGameMoves = [
+        ...state.chess.allGameMoves,
+        action.payload.move_in_chess_notation,
+      ];
+      state.chess.previousMoveNotation = action.payload.move_in_chess_notation;
     },
     initGame: (state, action) => {
       state.chess.copyPiecesPosition.black_pieces =
@@ -174,12 +181,17 @@ export const chessSlice = createSlice({
       ///
       state.chess.piecesPosition.white_pieces = action.payload.white_pieces;
       state.chess.piecesPosition.black_pieces = action.payload.black_pieces;
+      state.chess.gameDetails.white_score = 0;
+      state.chess.gameDetails.black_score = 0;
+
       state.chess.black_checkmated = action.payload.black_checkmated;
       state.chess.black_checked = action.payload.black_checked;
       state.chess.white_checked = action.payload.white_checked;
       state.chess.white_checkmated = action.payload.white_checkmated;
       state.chess.current_player = action.payload.current_player;
+      state.chess.previousMoveNotation = "";
       state.chess.candidateMoves = [];
+      state.chess.allGameMoves = [];
       state.chess.gameStatus = Status.ongoing;
     },
     setGameRoomId: (state, action) => {
