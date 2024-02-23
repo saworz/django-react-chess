@@ -21,7 +21,10 @@ const postCreateChessGame = async (userId: string) => {
   return response.data;
 };
 
-const getGameRoomDetails = async (userId: string) => {
+const getGameRoomDetails = async (data: {
+  gameId: string;
+  yourId: number | undefined;
+}) => {
   const config = {
     withCredentials: true,
     headers: {
@@ -31,11 +34,11 @@ const getGameRoomDetails = async (userId: string) => {
   };
 
   const response = await axios.get(
-    API_URL + `chess/get_room_id/${userId}`,
+    API_URL + `chess/get_room_id/${data.gameId}`,
     config
   );
 
-  return response.data;
+  return { ...response.data, yourId: data.yourId };
 };
 
 const deleteGameRoom = async (roomId: string) => {

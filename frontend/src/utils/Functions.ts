@@ -20,6 +20,51 @@ const mapPiecesToArray = (
     ...value,
   }));
 };
+//y=n+1-y'
+
+const transformWhitePieces = (
+  piecesObject: SharedTypes.IPiecesPosition["white_pieces"]
+) => {
+  let copy = piecesObject.map((object) => ({ ...object }));
+  copy.forEach((object) => {
+    let [x, y] = object.position;
+    object.position = [x, 8 + 1 - y];
+  });
+
+  return copy;
+};
+
+const transformBlackPieces = (
+  piecesObject: SharedTypes.IPiecesPosition["black_pieces"]
+) => {
+  let copy = piecesObject.map((object) => ({ ...object }));
+  copy.forEach((object) => {
+    let [x, y] = object.position;
+    object.position = [x, 8 + 1 - y];
+  });
+
+  return copy;
+};
+
+const getCorrectImageAndName = (
+  loggedColor: string,
+  loggedId: number,
+  loggedUser: any,
+  enemyUser: any,
+  colorId: any
+) => {
+  if (loggedColor === "white") {
+    if (colorId === loggedId) {
+      return loggedUser;
+    }
+    return enemyUser;
+  } else {
+    if (colorId !== loggedId) {
+      return loggedUser;
+    }
+    return enemyUser;
+  }
+};
 
 const fillPositionsPieces = (
   boardPositions: string[][],
@@ -234,6 +279,9 @@ const Functions = {
   getCastlingMoves,
   promotePiece,
   isLoggedPlayer,
+  transformBlackPiecesPosition: transformBlackPieces,
+  transformWhitePiecesPosition: transformWhitePieces,
+  getCorrectImageAndName,
 };
 
 export default Functions;

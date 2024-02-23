@@ -53,6 +53,8 @@ export interface IChessState {
     white_score: number;
     gameStatus: string;
     gameWinner: string;
+    previousMoveNotation: string;
+    allGameMoves: string[];
     promotionSquare: {
       x: number;
       y: number;
@@ -78,6 +80,8 @@ export interface IChessGameDetails {
   room_id: string;
   player_white: number;
   player_black: number;
+  yourId: number;
+  yourColor: string;
 }
 
 export interface IPopupState {
