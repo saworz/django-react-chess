@@ -22,6 +22,9 @@ from django.contrib.auth import update_session_auth_hash
 
 @method_decorator(csrf_exempt, name='dispatch')
 class RegisterView(APIView):
+    """
+    Register new user
+    """
     serializer_class = UserRegisterFormSerializer
 
     @extend_schema(
@@ -61,6 +64,9 @@ class RegisterView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class LoginView(APIView):
+    """
+    Log in to existing account
+    """
     serializer_class = UserLoginSerializer
 
     @extend_schema(
@@ -121,6 +127,9 @@ class LogoutView(APIView):
     },
 )
 class UserDataRetrieveAPIView(RetrieveAPIView):
+    """
+    Get informations for user with specified ID
+    """
     queryset = Profile.objects.all()
     serializer_class = OtherUserSerializer
 
@@ -132,6 +141,9 @@ class UserDataRetrieveAPIView(RetrieveAPIView):
     },
 )
 class UsersDataListView(ListAPIView):
+    """
+    Lists users data for profiles that contain specified username
+    """
     queryset = Profile.objects.all()
     serializer_class = UsersListSerializer
 
@@ -152,7 +164,16 @@ class UsersDataListView(ListAPIView):
         return new_queryset
 
 
+@extend_schema(
+    responses={
+        200: OpenApiResponse(response=UpdateUserSerializer, description='User data have been updated'),
+        400: OpenApiResponse(response=MessageResponseSerializer, description='Incorrect data'),
+    },
+)
 class UserUpdateView(UpdateAPIView):
+    """
+    Update user data such as username, email or profile image
+    """
     serializer_class = UpdateUserSerializer
     parser_classes = [MultiPartParser]
 
@@ -185,7 +206,16 @@ class UserUpdateView(UpdateAPIView):
         user.profile.save()
 
 
+@extend_schema(
+    responses={
+        200: OpenApiResponse(response=MessageResponseSerializer, description='Password updated'),
+        400: OpenApiResponse(response=MessageResponseSerializer, description='Incorrect data'),
+    },
+)
 class UpdatePasswordView(UpdateAPIView):
+    """
+    Endpoint for updating user password
+    """
     serializer_class = ChangePasswordSerializer
     model = User
     permission_classes = (IsAuthenticated,)
@@ -211,7 +241,11 @@ class UpdatePasswordView(UpdateAPIView):
         return JsonResponse({"message": "Password changed"}, status=status.HTTP_200_OK)
 
 
+@extend_schema(request=None)
 class RecalculateEloView(UpdateAPIView):
+    """
+    Calculate user's new ELO rating after the game
+    """
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
