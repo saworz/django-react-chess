@@ -1,6 +1,8 @@
 import random
+
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
-from .serializers import ChessGameSerializer, PlayersQueueSerializer, DeleteRoomSerializer
+from .serializers import ChessGameSerializer, PlayersQueueSerializer, DeleteRoomSerializer, MessageResponseSerializer
 from django.http import JsonResponse
 from rest_framework import status
 from django.contrib.auth.models import User
@@ -8,7 +10,13 @@ from .models import ChessGame, PlayersQueue
 from rest_framework.exceptions import NotFound
 
 
+@extend_schema(
+    request=None
+)
 class CreateNewGameView(CreateAPIView):
+    """
+    Creates new game room in database
+    """
     serializer_class = ChessGameSerializer
 
     def create(self, request, *args, **kwargs):
@@ -42,6 +50,9 @@ class CreateNewGameView(CreateAPIView):
 
 
 class RetrieveGameIdView(RetrieveAPIView):
+    """
+    Returns existing game id for players pair
+    """
     serializer_class = ChessGameSerializer
     queryset = ChessGame.objects.all()
 
@@ -62,7 +73,17 @@ class RetrieveGameIdView(RetrieveAPIView):
         return obj
 
 
+@extend_schema(
+    responses={
+        200: OpenApiResponse(response=MessageResponseSerializer, description='User added to queue'),
+        400: OpenApiResponse(response=MessageResponseSerializer, description='User already in queue'),
+    },
+    request=None
+)
 class AddUserToQueueView(UpdateAPIView):
+    """
+    Adds user to queue
+    """
     queryset = PlayersQueue.objects.all()
     serializer_class = PlayersQueueSerializer
 
@@ -94,7 +115,17 @@ class AddUserToQueueView(UpdateAPIView):
         return JsonResponse({"message": "User added to queue"}, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    responses={
+        200: OpenApiResponse(response=MessageResponseSerializer, description='User removed from queue'),
+        400: OpenApiResponse(response=MessageResponseSerializer, description='User not in queue'),
+    },
+    request=None
+)
 class RemoveUserFromQueueView(UpdateAPIView):
+    """
+    Removes user from queue
+    """
     queryset = PlayersQueue.objects.all()
     serializer_class = PlayersQueueSerializer
 
@@ -121,7 +152,16 @@ class RemoveUserFromQueueView(UpdateAPIView):
         return JsonResponse({"message": "User removed from queue"}, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    responses={
+        200: OpenApiResponse(response=MessageResponseSerializer, description='Game object deleted'),
+        404: OpenApiResponse(response=MessageResponseSerializer, description='Game object doesnt exist'),
+    },
+)
 class DeleteRoomView(DestroyAPIView):
+    """
+    Deletes game room
+    """
     serializer_class = DeleteRoomSerializer
     queryset = ChessGame.objects.all()
 

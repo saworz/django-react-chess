@@ -20,6 +20,10 @@ class BlackBoardSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class MessageResponseSerializer(serializers.Serializer):
+    message = serializers.CharField()
+
+
 class MakeMoveSerializer(serializers.Serializer):
     game_id = serializers.CharField(max_length=6)
     color = serializers.CharField(max_length=5)

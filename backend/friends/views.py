@@ -15,6 +15,9 @@ from django.shortcuts import get_object_or_404
     },
 )
 class UsersView(APIView):
+    """
+    Base parent class for handling friend requests
+    """
     serializer_class = None
 
     def get_logged_user(self):
@@ -26,7 +29,9 @@ class UsersView(APIView):
 
 
 class SendRequestView(UsersView):
-
+    """
+    Sends a friend request
+    """
     def post(self, request, *args, **kwargs):
         logged_user = self.get_logged_user()
         other_user = self.get_other_user()
@@ -38,7 +43,9 @@ class SendRequestView(UsersView):
 
 
 class AcceptRequestView(UsersView):
-
+    """
+    Accepts a friend request
+    """
     def post(self, request, *args, **kwargs):
         logged_user = self.get_logged_user()
         other_user = self.get_other_user()
@@ -55,7 +62,9 @@ class AcceptRequestView(UsersView):
 
 
 class DeclineRequestView(UsersView):
-
+    """
+    Declines a friend request
+    """
     def delete(self, request, *args, **kwargs):
         logged_user = self.get_logged_user()
         other_user = self.get_other_user()
@@ -69,7 +78,9 @@ class DeclineRequestView(UsersView):
 
 
 class UndoRequestView(UsersView):
-
+    """
+    Undoes a friend request
+    """
     def delete(self, request, *args, **kwargs):
         logged_user = self.get_logged_user()
         other_user = self.get_other_user()
@@ -83,7 +94,9 @@ class UndoRequestView(UsersView):
 
 
 class RemoveFriendView(UsersView):
-
+    """
+    Removes a friend from friend list
+    """
     def delete(self, request, *args, **kwargs):
         logged_user = self.get_logged_user()
         other_user = self.get_other_user()
@@ -95,6 +108,9 @@ class RemoveFriendView(UsersView):
 
 
 class GetFriendListView(ListAPIView):
+    """
+    Returns a list of friends
+    """
     serializer_class = LoggedUserSerializer
 
     def get_queryset(self):
@@ -109,6 +125,9 @@ class GetFriendListView(ListAPIView):
 
 
 class GetPendingRequestsListView(ListAPIView):
+    """
+    Gets list of pending friend requests
+    """
     serializer_class = LoggedUserSerializer
 
     def get_queryset(self):
@@ -128,6 +147,9 @@ class GetPendingRequestsListView(ListAPIView):
 
 
 class GetSentRequestsListView(ListAPIView):
+    """
+    Gets list of sent friend requests
+    """
     serializer_class = LoggedUserSerializer
 
     def get_queryset(self):
