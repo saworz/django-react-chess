@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework.views import APIView
 from .serializers import RoomIdSerializer, GetMessagesSerializer
 from django.http import JsonResponse
@@ -7,9 +8,19 @@ from .models import Messages, ChatRooms
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from .serializers import MessageResponseSerializer
 
 
+@extend_schema(
+    responses={
+        200: OpenApiResponse(response=GetMessagesSerializer, description='Returns list of messages'),
+        400: OpenApiResponse(response=MessageResponseSerializer, description='Incorrect or empty query parameter'),
+    },
+)
 class GetMessagesView(ListAPIView):
+    """
+    Return list of all messages sorted by time sent
+    """
     serializer_class = GetMessagesSerializer
 
     def get_queryset(self):
@@ -19,7 +30,17 @@ class GetMessagesView(ListAPIView):
         return messages.order_by("-timestamp")
 
 
+@extend_schema(
+    responses={
+        200: OpenApiResponse(response=RoomIdSerializer, description='Returns room_id'),
+        400: OpenApiResponse(response=MessageResponseSerializer, description='Incorrect or empty query parameter'),
+    },
+)
 class GetRoomIdView(APIView):
+    """
+    Returns room_id based on currently logged player and enemy
+    room_id is sorted and concatenated ids of two players e.g.: player1.id = 23, player2.id = 19 => room_id = 1923
+    """
     serializer_class = RoomIdSerializer
 
     def get(self, request, *args, **kwargs):
