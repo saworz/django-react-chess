@@ -103,6 +103,31 @@ export const getGameRoomDetails = createAsyncThunk(
   }
 );
 
+export const updatePlayerScore = createAsyncThunk(
+  "/chess/updatePlayerScore",
+  async (
+    data: { whitePlayerPk: number; blackPlayerPk: number; gameOutcome: number },
+    thunkAPI
+  ) => {
+    try {
+      return await chessService.updatePlayerScore(data);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message =
+          (error.response &&
+            error.response.data &&
+            error.response.data.message) ||
+          error.message ||
+          error.toString();
+        return thunkAPI.rejectWithValue(message);
+      } else {
+        console.log("unexpected error: ", error);
+        return "An unexpected error occurred";
+      }
+    }
+  }
+);
+
 export const deleteGameRoom = createAsyncThunk(
   "/chess/deleteGameRoom",
   async (data: string, thunkAPI) => {
@@ -289,6 +314,16 @@ export const chessSlice = createSlice({
       })
       .addCase(deleteGameRoom.fulfilled, (state, action) => {})
       .addCase(deleteGameRoom.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = false;
+        state.isError = true;
+        state.message = action.payload as string;
+      })
+      .addCase(updatePlayerScore.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updatePlayerScore.fulfilled, (state, action) => {})
+      .addCase(updatePlayerScore.rejected, (state, action) => {
         state.isLoading = false;
         state.isSuccess = false;
         state.isError = true;

@@ -84,131 +84,135 @@ const ChessGamePage = () => {
   };
 
   useEffect(() => {
-    HttpService.getUserDetails(Number(gameId)).then((response) => {
-      if (response?.status === 200) {
-        setIsUserFound(true);
-        setEnemyDetails(response.data);
-      } else {
-        setIsUserFound(false);
-      }
-    });
+    if (isGameDetailsLoaded) {
+      HttpService.getUserDetails(Number(gameId)).then((response) => {
+        if (response?.status === 200) {
+          setIsUserFound(true);
+          setEnemyDetails(response.data);
+        } else {
+          setIsUserFound(false);
+        }
+      });
 
-    const connectWebSocket = () => {
-      const clientWebSocket = new W3CWebSocket(
-        "ws://localhost:8000/ws/chess/" +
-          Functions.computeGameId(user?.id!, gameId!)
-      );
-
-      webSocketRef.current = clientWebSocket;
-
-      clientWebSocket.onopen = async () => {
-        //createChessGame  TODO
-        console.log("WebSocket connected");
-        dispatch(
-          createChessGame({
-            gameRoomId: Number(Functions.computeGameId(user?.id!, gameId!)),
-            isGameStarted: true,
-          })
+      const connectWebSocket = () => {
+        const clientWebSocket = new W3CWebSocket(
+          "ws://localhost:8000/ws/chess/" +
+            Functions.computeGameId(user?.id!, gameId!)
         );
 
-        try {
-          clientWebSocket?.send(
-            JSON.stringify({
-              data_type: "init_board",
-            })
-          );
-          console.log("Init Board");
-        } catch (error) {
-          console.log("Socket error:", error);
-        }
-      };
+        webSocketRef.current = clientWebSocket;
 
-      clientWebSocket.onerror = () => {
-        if (reconnectCounter.current < 3) {
-          connectWebSocket();
-          reconnectCounter.current += 1;
-        } else {
-          navigate("/notfound");
-        }
-      };
-
-      clientWebSocket.onmessage = (message) => {
-        const dataFromServer = JSON.parse(message.data.toString());
-        console.log("got reply! ");
-        if (dataFromServer.type === "error") {
-        } else if (dataFromServer.type === "move") {
+        clientWebSocket.onopen = async () => {
+          //createChessGame  TODO
+          console.log("WebSocket connected");
           dispatch(
-            updateGame({
-              black_checkmated: dataFromServer.black_checkmated,
-              black_checked: dataFromServer.black_checked,
-              black_en_passant_field: dataFromServer.black_en_passant_field,
-              black_en_passant_pawn_to_capture:
-                dataFromServer.black_en_passant_pawn_to_capture,
-              black_long_castle_legal: dataFromServer.black_long_castle_legal,
-              black_short_castle_legal: dataFromServer.black_short_castle_legal,
-              black_captured_pieces: dataFromServer.black_captured_pieces,
-              black_score: dataFromServer.black_score,
-              white_checked: dataFromServer.white_checked,
-              white_checkmated: dataFromServer.white_checkmated,
-              white_en_passant_field: dataFromServer.white_en_passant_field,
-              white_en_passant_pawn_to_capture:
-                dataFromServer.white_en_passant_pawn_to_capture,
-              white_long_castle_legal: dataFromServer.white_long_castle_legal,
-              white_short_castle_legal: dataFromServer.white_short_castle_legal,
-              white_captured_pieces: dataFromServer.white_captured_pieces,
-              white_score: dataFromServer.white_score,
-              current_player: dataFromServer.current_player,
-              black_pieces: isBlackPiecesLogged
-                ? Functions.transformBlackPiecesPosition(
-                    Functions.mapPiecesToArray(dataFromServer.black_pieces)
-                  )
-                : Functions.mapPiecesToArray(dataFromServer.black_pieces),
-              white_pieces: isBlackPiecesLogged
-                ? Functions.transformBlackPiecesPosition(
-                    Functions.mapPiecesToArray(dataFromServer.white_pieces)
-                  )
-                : Functions.mapPiecesToArray(dataFromServer.white_pieces),
-              move_in_chess_notation: dataFromServer.move_in_chess_notation,
+            createChessGame({
+              gameRoomId: Number(Functions.computeGameId(user?.id!, gameId!)),
+              isGameStarted: true,
             })
           );
-        } else if (dataFromServer.type === "init") {
-          dispatch(
-            initGame({
-              white_pieces: isBlackPiecesLogged
-                ? Functions.transformWhitePiecesPosition(
-                    Functions.mapPiecesToArray(dataFromServer.white_pieces)
-                  )
-                : Functions.mapPiecesToArray(dataFromServer.white_pieces),
-              black_pieces: isBlackPiecesLogged
-                ? Functions.transformBlackPiecesPosition(
-                    Functions.mapPiecesToArray(dataFromServer.black_pieces)
-                  )
-                : Functions.mapPiecesToArray(dataFromServer.black_pieces),
-              black_checkmated: dataFromServer.black_checkmated,
-              black_checked: dataFromServer.black_checked,
-              white_checked: dataFromServer.white_checked,
-              white_checkmated: dataFromServer.white_checkmated,
-              current_player: dataFromServer.current_player,
-              copy_white_pieces: isBlackPiecesLogged
-                ? Functions.transformWhitePiecesPosition(
-                    Functions.mapPiecesToArray(dataFromServer.white_pieces)
-                  )
-                : Functions.mapPiecesToArray(dataFromServer.white_pieces),
-              copy_black_pieces: isBlackPiecesLogged
-                ? Functions.transformBlackPiecesPosition(
-                    Functions.mapPiecesToArray(dataFromServer.black_pieces)
-                  )
-                : Functions.mapPiecesToArray(dataFromServer.black_pieces),
-              move_in_chess_notation: dataFromServer.move_in_chess_notation,
-            })
-          );
-        }
-        setWebSocket(clientWebSocket);
-      };
-    };
 
-    if (isGameDetailsLoaded) {
-      connectWebSocket();
+          try {
+            clientWebSocket?.send(
+              JSON.stringify({
+                data_type: "init_board",
+              })
+            );
+            console.log("Init Board");
+          } catch (error) {
+            console.log("Socket error:", error);
+          }
+        };
+
+        clientWebSocket.onerror = () => {
+          if (reconnectCounter.current < 3) {
+            connectWebSocket();
+            reconnectCounter.current += 1;
+          } else {
+            navigate("/notfound");
+          }
+        };
+
+        clientWebSocket.onmessage = (message) => {
+          const dataFromServer = JSON.parse(message.data.toString());
+          console.log("got reply! ");
+          if (dataFromServer.type === "error") {
+          } else if (dataFromServer.type === "move") {
+            dispatch(
+              updateGame({
+                black_checkmated: dataFromServer.black_checkmated,
+                black_checked: dataFromServer.black_checked,
+                black_en_passant_field: dataFromServer.black_en_passant_field,
+                black_en_passant_pawn_to_capture:
+                  dataFromServer.black_en_passant_pawn_to_capture,
+                black_long_castle_legal: dataFromServer.black_long_castle_legal,
+                black_short_castle_legal:
+                  dataFromServer.black_short_castle_legal,
+                black_captured_pieces: dataFromServer.black_captured_pieces,
+                black_score: dataFromServer.black_score,
+                white_checked: dataFromServer.white_checked,
+                white_checkmated: dataFromServer.white_checkmated,
+                white_en_passant_field: dataFromServer.white_en_passant_field,
+                white_en_passant_pawn_to_capture:
+                  dataFromServer.white_en_passant_pawn_to_capture,
+                white_long_castle_legal: dataFromServer.white_long_castle_legal,
+                white_short_castle_legal:
+                  dataFromServer.white_short_castle_legal,
+                white_captured_pieces: dataFromServer.white_captured_pieces,
+                white_score: dataFromServer.white_score,
+                current_player: dataFromServer.current_player,
+                black_pieces: isBlackPiecesLogged
+                  ? Functions.transformBlackPiecesPosition(
+                      Functions.mapPiecesToArray(dataFromServer.black_pieces)
+                    )
+                  : Functions.mapPiecesToArray(dataFromServer.black_pieces),
+                white_pieces: isBlackPiecesLogged
+                  ? Functions.transformBlackPiecesPosition(
+                      Functions.mapPiecesToArray(dataFromServer.white_pieces)
+                    )
+                  : Functions.mapPiecesToArray(dataFromServer.white_pieces),
+                move_in_chess_notation: dataFromServer.move_in_chess_notation,
+              })
+            );
+          } else if (dataFromServer.type === "init") {
+            dispatch(
+              initGame({
+                white_pieces: isBlackPiecesLogged
+                  ? Functions.transformWhitePiecesPosition(
+                      Functions.mapPiecesToArray(dataFromServer.white_pieces)
+                    )
+                  : Functions.mapPiecesToArray(dataFromServer.white_pieces),
+                black_pieces: isBlackPiecesLogged
+                  ? Functions.transformBlackPiecesPosition(
+                      Functions.mapPiecesToArray(dataFromServer.black_pieces)
+                    )
+                  : Functions.mapPiecesToArray(dataFromServer.black_pieces),
+                black_checkmated: dataFromServer.black_checkmated,
+                black_checked: dataFromServer.black_checked,
+                white_checked: dataFromServer.white_checked,
+                white_checkmated: dataFromServer.white_checkmated,
+                current_player: dataFromServer.current_player,
+                copy_white_pieces: isBlackPiecesLogged
+                  ? Functions.transformWhitePiecesPosition(
+                      Functions.mapPiecesToArray(dataFromServer.white_pieces)
+                    )
+                  : Functions.mapPiecesToArray(dataFromServer.white_pieces),
+                copy_black_pieces: isBlackPiecesLogged
+                  ? Functions.transformBlackPiecesPosition(
+                      Functions.mapPiecesToArray(dataFromServer.black_pieces)
+                    )
+                  : Functions.mapPiecesToArray(dataFromServer.black_pieces),
+                move_in_chess_notation: dataFromServer.move_in_chess_notation,
+              })
+            );
+          }
+          setWebSocket(clientWebSocket);
+        };
+      };
+
+      if (isGameDetailsLoaded) {
+        connectWebSocket();
+      }
     }
 
     return () => {

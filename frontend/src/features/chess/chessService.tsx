@@ -58,10 +58,34 @@ const deleteGameRoom = async (roomId: string) => {
   return response.data;
 };
 
+const updatePlayerScore = async (data: {
+  whitePlayerPk: number;
+  blackPlayerPk: number;
+  gameOutcome: number;
+}) => {
+  const config = {
+    withCredentials: true,
+    headers: {
+      "X-CSRFToken": TokenService.getCsrfToken(),
+      "Content-Type": "application/json",
+    },
+  };
+
+  const response = await axios.patch(
+    API_URL +
+      `users/recalculate_elo/${data.whitePlayerPk}/${data.blackPlayerPk}/${data.gameOutcome}/`,
+    {},
+    config
+  );
+
+  return response.data;
+};
+
 const chessService = {
   postCreateChessGame,
   getGameRoomDetails,
   deleteGameRoom,
+  updatePlayerScore,
 };
 
 export default chessService;
