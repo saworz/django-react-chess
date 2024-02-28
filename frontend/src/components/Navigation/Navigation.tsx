@@ -30,6 +30,7 @@ const Links = [
     destination: "/dashboard",
   },
   { name: "Friends", destination: "/friends" },
+  { name: "Leaderboard", destination: "/leaderboard" },
 ];
 
 const Navigation = () => {

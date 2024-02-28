@@ -16,6 +16,7 @@ import PublicRoutes from "../../utils/PublicRoutes";
 import Navigation from "../../components/Navigation";
 import SearchGamePage from "../../pages/SearchGamePage";
 import GameNotFoundPage from "../../pages/GameNotFoundPage";
+import LeaderboardPage from "../../pages/LeaderboardPage";
 import TokenService from "../../app/tokenService";
 
 const RouterProvider = () => {
@@ -30,6 +31,7 @@ const RouterProvider = () => {
           <Route path="/friends" element={<FriendsPage />}></Route>
           <Route path="/account" element={<AccountPage />}></Route>
           <Route path="/play" element={<SearchGamePage />}></Route>
+          <Route path="/leaderboard" element={<LeaderboardPage />}></Route>
 
           <Route path="/chess/game/:gameId" element={<ChessGamePage />}></Route>
           <Route
