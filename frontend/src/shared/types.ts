@@ -181,3 +181,16 @@ export interface ICreateChessGameResponse {
 export interface ICreateChessGameRequest {
   userId: string;
 }
+
+export interface IScoreboardList {
+  id: number;
+  username: string;
+  email: string;
+  image: string;
+  wins: number;
+  losses: number;
+  elo: number;
+  is_friend: boolean;
+  pending_request: boolean;
+  request_sender_id: number;
+}
