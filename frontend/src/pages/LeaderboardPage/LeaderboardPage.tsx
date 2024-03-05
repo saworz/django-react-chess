@@ -58,7 +58,7 @@ const LeaderboardPage = () => {
         boxShadow={"lg"}
         p={8}
         textAlign="center"
-        overflowY="auto"
+        height="70vh"
       >
         <TableRowList scoreboardList={scoreboardList} />
       </Box>
