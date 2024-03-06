@@ -1,17 +1,11 @@
-import {
-  Flex,
-  HStack,
-  Text,
-  Image,
-  Box,
-  useColorModeValue,
-} from "@chakra-ui/react";
+import { Flex, HStack, useColorModeValue } from "@chakra-ui/react";
 import ScoreboardKingSvg from "../../images/scoreboard_king.svg";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import TokenService from "../../app/tokenService";
-import * as SharedTypes from "../../shared/types";
 import TableRowList from "../../components/LeaderboardPage/TableRowList";
+import * as SharedTypes from "../../shared/types";
+import * as Styles from "./LeaderboardPage.styles";
 
 const API_URL = "http://localhost:8000/api/";
 
@@ -44,24 +38,19 @@ const LeaderboardPage = () => {
       direction="column"
     >
       <HStack>
-        <Image src={ScoreboardKingSvg} />
-        <Text fontSize={"4rem"} fontWeight="black">
-          Hall of Fame
-        </Text>
+        <Styles.PageTitleIcon src={ScoreboardKingSvg} />
+        <Styles.PageTitle>Hall of Fame</Styles.PageTitle>
       </HStack>
-      <Text fontSize={"2rem"} fontWeight="black">
-        Top 100
-      </Text>
-      <Box
+      <Styles.PageSubTitle>Top 100</Styles.PageSubTitle>
+      <Styles.TableRowListContainer
         rounded={"lg"}
         bg={useColorModeValue("white", "gray.700")}
         boxShadow={"lg"}
         p={8}
         textAlign="center"
-        height="70vh"
       >
         <TableRowList scoreboardList={scoreboardList} />
-      </Box>
+      </Styles.TableRowListContainer>
     </Flex>
   );
 };

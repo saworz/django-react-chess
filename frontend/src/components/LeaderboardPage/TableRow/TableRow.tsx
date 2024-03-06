@@ -1,4 +1,4 @@
-import { Box, Stack, Image, Text, useColorModeValue } from "@chakra-ui/react";
+import { Image, Text, useColorModeValue } from "@chakra-ui/react";
 import GoldMedalImg from "../../../images/gold-medal.png";
 import SilverMedalImg from "../../../images/silver-medal.png";
 import BronzeMedalImg from "../../../images/bronze-medal.png";
@@ -61,12 +61,7 @@ const TableRow = ({ userScoreDetails, position }: Types.IProps) => {
         boxSize={{ base: "120px", "2xl": "110px" }}
         height={{ base: "135px", "2xl": "110px" }}
       />
-      <Styles.DetailsContainer
-        w="100%"
-        alignSelf="flex-start"
-        textAlign={{ base: "center", md: "left" }}
-        ml={2}
-      >
+      <Styles.DetailsContainer w="100%" alignSelf="flex-start">
         <Text fontSize="2xl" fontWeight="black">
           {userScoreDetails.username}
         </Text>
@@ -77,12 +72,12 @@ const TableRow = ({ userScoreDetails, position }: Types.IProps) => {
           Losses: {userScoreDetails.losses}
         </Text>
       </Styles.DetailsContainer>
-      <Stack direction={{ base: "column", "2xl": "row" }}>
+      <Styles.RankContainer>
         <Text fontWeight="normal" fontSize="xl" w="-webkit-max-content">
           {`${userScoreDetails.elo} | #${position + 1}`}
         </Text>
         {showPositionMedal(position + 1)}
-      </Stack>
+      </Styles.RankContainer>
     </Styles.LeaderboardStack>
   );
 };
