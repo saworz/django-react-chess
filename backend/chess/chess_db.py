@@ -3,6 +3,7 @@ from .serializers import BlackBoardSerializer, WhiteBoardSerializer
 from .utils import deserialize_lists
 from django.utils import timezone
 
+
 class DatabaseHandler:
     """ Handles connection with database and saving/reading game state """
     def __init__(self, room_id, socket_data, game):
@@ -216,7 +217,7 @@ class DatabaseHandler:
 
     def update_player_turn(self):
         """ Change active player and update times left"""
-
+        print('here')
         if self.game_instance.current_player == 'white':
             self.game_instance.current_player = 'black'
 
