@@ -1,7 +1,7 @@
 from .models import ChessGame, WhitePieces, BlackPieces
 from .serializers import BlackBoardSerializer, WhiteBoardSerializer
 from .utils import deserialize_lists
-
+from django.utils import timezone
 
 class DatabaseHandler:
     """ Handles connection with database and saving/reading game state """
@@ -215,14 +215,18 @@ class DatabaseHandler:
         return pieces_data, castle_data, en_passant_field
 
     def update_player_turn(self):
-        """ Change active player """
+        """ Change active player and update times left"""
 
-        print(self.game_instance.current_player)
-        print(self.game_instance.white_time)
-        print(self.game_instance.black_time)
-        print(self.game_instance.last_move)
         if self.game_instance.current_player == 'white':
             self.game_instance.current_player = 'black'
+
+            if self.game_instance.waiting_for_first_move:
+                self.game_instance.waiting_for_first_move = False
+            else:
+                self.game_instance.white_time -= (timezone.now() - self.game_instance.last_move)
         else:
             self.game_instance.current_player = 'white'
+            self.game_instance.black_time -= (timezone.now() - self.game_instance.last_move)
+
+        self.game_instance.last_move = timezone.now()
         self.game_instance.save()

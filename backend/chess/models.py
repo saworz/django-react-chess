@@ -40,6 +40,7 @@ class ChessGame(models.Model):
     white_time = models.DurationField(default=timedelta(minutes=10))
     black_time = models.DurationField(default=timedelta(minutes=10))
 
+    waiting_for_first_move = models.BooleanField(default=True)
     last_move = models.DateTimeField(auto_now_add=True)
 
     white_score = models.IntegerField(default=0)
