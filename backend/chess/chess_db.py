@@ -216,17 +216,24 @@ class DatabaseHandler:
         return pieces_data, castle_data, en_passant_field
 
     def update_player_turn(self):
-        """ Change active player and update times left"""
-        print('here')
+        """ Change active player """
+        self.update_time_left()
+
         if self.game_instance.current_player == 'white':
             self.game_instance.current_player = 'black'
-
-            if self.game_instance.waiting_for_first_move:
-                self.game_instance.waiting_for_first_move = False
-            else:
-                self.game_instance.white_time -= (timezone.now() - self.game_instance.last_move)
         else:
             self.game_instance.current_player = 'white'
+
+        self.game_instance.save()
+
+    def update_time_left(self):
+        """ Updates time left for each player """
+        if self.game_instance.current_player == 'white':
+            if self.game_instance.waiting_for_first_move and self.socket_data['data_type'] == 'move':
+                self.game_instance.waiting_for_first_move = False
+            elif not self.game_instance.waiting_for_first_move:
+                self.game_instance.white_time -= (timezone.now() - self.game_instance.last_move)
+        else:
             self.game_instance.black_time -= (timezone.now() - self.game_instance.last_move)
 
         self.game_instance.last_move = timezone.now()

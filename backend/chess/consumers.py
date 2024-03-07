@@ -37,7 +37,6 @@ class ChessConsumer(WebsocketConsumer):
         data_json = json.loads(text_data)
         self.game_handler = GameHandler(room_id=self.room_id, socket_data=data_json)
         self.database = DatabaseHandler(room_id=self.room_id, socket_data=data_json, game=self.game_handler)
-        print(data_json)
 
         if data_json['data_type'] == 'move':
             db_game_state = self.database.read_board_from_db()
@@ -71,6 +70,7 @@ class ChessConsumer(WebsocketConsumer):
                 db_game_state = self.database.read_board_from_db()
                 self.game_handler.init_board_from_db(db_game_state)
                 self.game_handler.recalculate_moves()
+                self.database.update_time_left()
                 self.trigger_send_board_state("move")
 
     def create_chess_notation(self, move_data):
@@ -137,8 +137,6 @@ class ChessConsumer(WebsocketConsumer):
         game_object = ChessGame.objects.get(room_id=self.room_id)
         current_player = game_object.current_player
 
-        print(str(game_object.white_time).split(".")[0])
-        print(str(game_object.black_time).split(".")[0])
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
