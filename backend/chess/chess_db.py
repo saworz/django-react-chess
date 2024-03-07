@@ -216,6 +216,11 @@ class DatabaseHandler:
 
     def update_player_turn(self):
         """ Change active player """
+
+        print(self.game_instance.current_player)
+        print(self.game_instance.white_time)
+        print(self.game_instance.black_time)
+        print(self.game_instance.last_move)
         if self.game_instance.current_player == 'white':
             self.game_instance.current_player = 'black'
         else:

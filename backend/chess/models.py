@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-
+from datetime import timedelta
 
 class PiecesSetup(models.Model):
     pawn_1 = models.JSONField(null=True)
@@ -37,6 +37,11 @@ class ChessGame(models.Model):
     player_black = models.ForeignKey(User,
                                      related_name='black_player',
                                      on_delete=models.CASCADE)
+    white_time = models.DurationField(default=timedelta(minutes=10))
+    black_time = models.DurationField(default=timedelta(minutes=10))
+
+    last_move = models.DateTimeField(auto_now_add=True)
+
     white_score = models.IntegerField(default=0)
     black_score = models.IntegerField(default=0)
     white_captures = models.JSONField(null=True)
