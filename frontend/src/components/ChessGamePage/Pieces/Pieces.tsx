@@ -38,6 +38,7 @@ const Pieces = ({ webSocket }: Types.IProps) => {
   const isWhiteCastleLegal =
     white_long_castle_legal || white_short_castle_legal;
   const playerColor = user?.id === gameDetails.player_black ? "black" : "white";
+  const areYouBlackPieces = chess.gameDetails.yourColor === "black";
 
   useEffect(() => {
     dispatch(updateBoard(Functions.placeOnTheBoard(chess.piecesPosition)));
@@ -182,7 +183,7 @@ const Pieces = ({ webSocket }: Types.IProps) => {
               data_type: "move",
               color: chess.selectedPiece?.color,
               piece: chess.selectedPiece?.id,
-              new_position: `${y + 1}${x + 1}`,
+              new_position: `${y + 1}${areYouBlackPieces ? 7 - x + 1 : x + 1}`,
               promote_to: promoteTo,
             })
           );

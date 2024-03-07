@@ -22,6 +22,9 @@ from django.contrib.auth import update_session_auth_hash
 
 @method_decorator(csrf_exempt, name='dispatch')
 class RegisterView(APIView):
+    """
+    Register new user
+    """
     serializer_class = UserRegisterFormSerializer
 
     @extend_schema(
@@ -61,6 +64,9 @@ class RegisterView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class LoginView(APIView):
+    """
+    Log in to existing account
+    """
     serializer_class = UserLoginSerializer
 
     @extend_schema(
@@ -121,6 +127,9 @@ class LogoutView(APIView):
     },
 )
 class UserDataRetrieveAPIView(RetrieveAPIView):
+    """
+    Get informations for user with specified ID
+    """
     queryset = Profile.objects.all()
     serializer_class = OtherUserSerializer
 
@@ -132,6 +141,9 @@ class UserDataRetrieveAPIView(RetrieveAPIView):
     },
 )
 class UsersDataListView(ListAPIView):
+    """
+    Lists users data for profiles that contain specified username
+    """
     queryset = Profile.objects.all()
     serializer_class = UsersListSerializer
 
@@ -152,7 +164,16 @@ class UsersDataListView(ListAPIView):
         return new_queryset
 
 
+@extend_schema(
+    responses={
+        200: OpenApiResponse(response=UpdateUserSerializer, description='User data have been updated'),
+        400: OpenApiResponse(response=MessageResponseSerializer, description='Incorrect data'),
+    },
+)
 class UserUpdateView(UpdateAPIView):
+    """
+    Update user data such as username, email or profile image
+    """
     serializer_class = UpdateUserSerializer
     parser_classes = [MultiPartParser]
 
@@ -185,7 +206,16 @@ class UserUpdateView(UpdateAPIView):
         user.profile.save()
 
 
+@extend_schema(
+    responses={
+        200: OpenApiResponse(response=MessageResponseSerializer, description='Password updated'),
+        400: OpenApiResponse(response=MessageResponseSerializer, description='Incorrect data'),
+    },
+)
 class UpdatePasswordView(UpdateAPIView):
+    """
+    Endpoint for updating user password
+    """
     serializer_class = ChangePasswordSerializer
     model = User
     permission_classes = (IsAuthenticated,)
@@ -211,35 +241,76 @@ class UpdatePasswordView(UpdateAPIView):
         return JsonResponse({"message": "Password changed"}, status=status.HTTP_200_OK)
 
 
-class AddWinView(UpdateAPIView):
+@extend_schema(request=None)
+class RecalculateEloView(UpdateAPIView):
+    """
+    Calculate user's new ELO rating after the game
+    """
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
+    def get_object(self, winner_pk, loser_pk):
+        winner_instance = Profile.objects.get(pk=winner_pk)
+        loser_instance = Profile.objects.get(pk=loser_pk)
+        return winner_instance, loser_instance
+
+    @staticmethod
+    def get_win_probability(player, enemy):
+        return 1 / (1 + 10 ** round((enemy.elo - player.elo) / 400))
+
+    @staticmethod
+    def get_new_ratings(elo, score, expected_score):
+        return round(elo + 32 * (score - expected_score))
+
+    def calculate_elo(self, white_player, black_player, game_outcome):
+        white_win_probability = self.get_win_probability(white_player, black_player)
+
+        if game_outcome == 0:
+            white_player_new_elo = self.get_new_ratings(white_player.elo, 0.5, white_win_probability)
+            black_player_new_elo = self.get_new_ratings(black_player.elo, 0.5, 1-white_win_probability)
+        elif game_outcome == 1:
+            white_player_new_elo = self.get_new_ratings(white_player.elo, 1, white_win_probability)
+            black_player_new_elo = self.get_new_ratings(black_player.elo, 0, 1-white_win_probability)
+            white_player.wins += 1
+            black_player.losses += 1
+        elif game_outcome == 2:
+            white_player_new_elo = self.get_new_ratings(white_player.elo, 0, white_win_probability)
+            black_player_new_elo = self.get_new_ratings(black_player.elo, 1, 1-white_win_probability)
+            white_player.losses += 1
+            black_player.wins += 1
+
+        white_player_elo_gain = white_player_new_elo - white_player.elo
+        black_player_elo_gain = black_player_new_elo - black_player.elo
+
+        white_player.elo = white_player_new_elo
+        black_player.elo = black_player_new_elo
+
+        return white_player_elo_gain, black_player_elo_gain
+
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        instance.wins += 1
-        instance.save()
+        white_player_instance, black_player_instance = self.get_object(kwargs['white_player_pk'], kwargs['black_player_pk'])
+        game_outcome = kwargs['game_outcome']
+        white_player_elo_gain, black_player_elo_gain = self.calculate_elo(white_player_instance, black_player_instance, game_outcome)
 
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        white_player_serializer = self.get_serializer(white_player_instance, data=request.data, partial=partial)
+        black_player_serializer = self.get_serializer(black_player_instance, data=request.data, partial=partial)
 
-        return JsonResponse({"message": "Win added"}, status=status.HTTP_200_OK)
+        white_player_serializer.is_valid(raise_exception=True)
+        black_player_serializer.is_valid(raise_exception=True)
+
+        self.perform_update(white_player_serializer)
+        self.perform_update(black_player_serializer)
+
+        return JsonResponse(
+            data={
+                'white_elo_difference': white_player_elo_gain,
+                'black_elo_difference': black_player_elo_gain,
+                'white_player_data': white_player_serializer.data,
+                'black_player_data': black_player_serializer.data
+            }, status=status.HTTP_200_OK)
 
 
-class AddLoseView(UpdateAPIView):
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        instance.losses += 1
-        instance.save()
-
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
-        return JsonResponse({"message": "Loss added"}, status=status.HTTP_200_OK)
+class LeaderboardListView(ListAPIView):
+    queryset = Profile.objects.all().order_by("-elo")
+    serializer_class = UsersListSerializer

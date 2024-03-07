@@ -11,6 +11,7 @@ import GameEndsPopup from "../GameEndsPopup";
 import {
   deleteGameRoom,
   endGameByWin,
+  updatePlayerScore,
 } from "../../../features/chess/chessSlice";
 import { openPopup } from "../../../features/popup/popupSlice";
 import { useEffect } from "react";
@@ -54,10 +55,33 @@ const ChessBoard = ({ webSocket, enemyDetails }: Types.IProps) => {
         })
       );
       dispatch(openPopup());
-      dispatch(deleteGameRoom(chess.gameRoomId));
+      if (
+        user?.id === chess.gameDetails.player_white &&
+        chess.white_checkmated
+      ) {
+        dispatch(
+          updatePlayerScore({
+            whitePlayerPk: chess.gameDetails.player_white,
+            blackPlayerPk: chess.gameDetails.player_black,
+            gameOutcome: 1,
+          })
+        ).then(() => dispatch(deleteGameRoom(chess.gameRoomId)));
+      }
+      if (
+        user?.id === chess.gameDetails.player_black &&
+        chess.black_checkmated
+      ) {
+        dispatch(
+          updatePlayerScore({
+            whitePlayerPk: chess.gameDetails.player_white,
+            blackPlayerPk: chess.gameDetails.player_black,
+            gameOutcome: 2,
+          })
+        ).then(() => dispatch(deleteGameRoom(chess.gameRoomId)));
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [checkedPlayer, chess, dispatch]);
+  }, [checkedPlayer]);
 
   const ranks = Array(8)
     .fill("")

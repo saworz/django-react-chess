@@ -10,6 +10,10 @@ class MessageSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class MessageResponseSerializer(serializers.Serializer):
+    message = serializers.CharField()
+
+
 class RoomIdSerializer(serializers.Serializer):
     room_id = serializers.CharField(max_length=10)
 

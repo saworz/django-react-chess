@@ -61,10 +61,17 @@ class ChessConsumer(WebsocketConsumer):
             self.create_chess_notation(data_json)
             self.trigger_send_board_state("move")
         elif data_json['data_type'] == 'init_board':
-            self.game_handler.initialize_board()
-            self.database.save_board_state_to_db()
-            self.game_handler.get_valid_moves()
-            self.trigger_send_board_state("init")
+            if ChessGame.objects.get(room_id=self.room_id).waiting_for_first_move:
+                self.game_handler.initialize_board()
+                self.database.save_board_state_to_db()
+                self.game_handler.get_valid_moves()
+                self.trigger_send_board_state("init")
+            else:
+                db_game_state = self.database.read_board_from_db()
+                self.game_handler.init_board_from_db(db_game_state)
+                self.game_handler.recalculate_moves()
+                self.database.update_time_left()
+                self.trigger_send_board_state("move")
 
     def create_chess_notation(self, move_data):
         """ Handles creating chess move notation """
@@ -126,13 +133,18 @@ class ChessConsumer(WebsocketConsumer):
         game = self.game_handler.game
         white_pieces_data = prepare_data(game.white_pieces.items())
         black_pieces_data = prepare_data(game.black_pieces.items())
-        current_player = ChessGame.objects.get(room_id=self.room_id).current_player
+
+        game_object = ChessGame.objects.get(room_id=self.room_id)
+        current_player = game_object.current_player
 
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
                 'type': 'send_board_state',
                 'current_player': current_player,
+
+                'white_time_left': str(game_object.white_time).split(".")[0],
+                'black_time_left': str(game_object.black_time).split(".")[0],
                 'white_pieces': white_pieces_data,
                 'black_pieces': black_pieces_data,
 
@@ -168,6 +180,8 @@ class ChessConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({
             'type': event['send_type'],
             'current_player': event['current_player'],
+            'white_time_left': event['white_time_left'],
+            'black_time_left': event['black_time_left'],
             'move_in_chess_notation': event['move_in_chess_notation'],
 
             'white_pieces': event['white_pieces'],

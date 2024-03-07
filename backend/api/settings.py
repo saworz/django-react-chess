@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'chess.apps.ChessConfig',
     'drf_spectacular',
     'rest_framework',
-
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -173,4 +172,5 @@ SIMPLE_JWT = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Django React Chess',
+    'SCHEMA_PATH_PREFIX': r'/api',
 }

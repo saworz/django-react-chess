@@ -12,6 +12,7 @@ import Functions from "../../../utils/Functions";
 
 const Piece = ({ file, piece, rank }: Types.IProps) => {
   const { chess } = useSelector((state: RootState) => state.chess);
+  const { user } = useSelector((state: RootState) => state.auth);
   const dispatch: AppDispatch = useDispatch();
   const {
     current_player,
@@ -22,7 +23,6 @@ const Piece = ({ file, piece, rank }: Types.IProps) => {
     white_short_castle_legal,
     gameDetails,
   } = chess;
-  const { user } = useSelector((state: RootState) => state.auth);
   const isGameEnded = chess.gameStatus === Status.ongoing ? false : true;
   const isBlackCastleLegal =
     black_long_castle_legal || black_short_castle_legal;
@@ -75,6 +75,11 @@ const Piece = ({ file, piece, rank }: Types.IProps) => {
               piece
             ),
           ];
+        }
+        if (chess.gameDetails.yourColor === "black") {
+          for (let i = 0; i < candidateMoves.length; i++) {
+            candidateMoves[i][0] = 7 - candidateMoves[i][0];
+          }
         }
         dispatch(generateCandidateMoves(candidateMoves));
       }

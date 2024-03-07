@@ -53,6 +53,8 @@ export interface IChessState {
     white_score: number;
     gameStatus: string;
     gameWinner: string;
+    previousMoveNotation: string;
+    allGameMoves: string[];
     promotionSquare: {
       x: number;
       y: number;
@@ -78,6 +80,8 @@ export interface IChessGameDetails {
   room_id: string;
   player_white: number;
   player_black: number;
+  yourId: number;
+  yourColor: string;
 }
 
 export interface IPopupState {
@@ -176,4 +180,17 @@ export interface ICreateChessGameResponse {
 
 export interface ICreateChessGameRequest {
   userId: string;
+}
+
+export interface IScoreboardList {
+  id: number;
+  username: string;
+  email: string;
+  image: string;
+  wins: number;
+  losses: number;
+  elo: number;
+  is_friend: boolean;
+  pending_request: boolean;
+  request_sender_id: number;
 }

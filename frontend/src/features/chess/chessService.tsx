@@ -21,7 +21,10 @@ const postCreateChessGame = async (userId: string) => {
   return response.data;
 };
 
-const getGameRoomDetails = async (userId: string) => {
+const getGameRoomDetails = async (data: {
+  gameId: string;
+  yourId: number | undefined;
+}) => {
   const config = {
     withCredentials: true,
     headers: {
@@ -31,11 +34,11 @@ const getGameRoomDetails = async (userId: string) => {
   };
 
   const response = await axios.get(
-    API_URL + `chess/get_room_id/${userId}`,
+    API_URL + `chess/get_room_id/${data.gameId}`,
     config
   );
 
-  return response.data;
+  return { ...response.data, yourId: data.yourId };
 };
 
 const deleteGameRoom = async (roomId: string) => {
@@ -55,10 +58,34 @@ const deleteGameRoom = async (roomId: string) => {
   return response.data;
 };
 
+const updatePlayerScore = async (data: {
+  whitePlayerPk: number;
+  blackPlayerPk: number;
+  gameOutcome: number;
+}) => {
+  const config = {
+    withCredentials: true,
+    headers: {
+      "X-CSRFToken": TokenService.getCsrfToken(),
+      "Content-Type": "application/json",
+    },
+  };
+
+  const response = await axios.patch(
+    API_URL +
+      `users/recalculate_elo/${data.whitePlayerPk}/${data.blackPlayerPk}/${data.gameOutcome}/`,
+    {},
+    config
+  );
+
+  return response.data;
+};
+
 const chessService = {
   postCreateChessGame,
   getGameRoomDetails,
   deleteGameRoom,
+  updatePlayerScore,
 };
 
 export default chessService;
