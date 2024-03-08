@@ -1,5 +1,4 @@
 import random
-
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
 from .serializers import ChessGameSerializer, PlayersQueueSerializer, DeleteRoomSerializer, MessageResponseSerializer

@@ -1,8 +1,6 @@
 import random
 import json
 from channels.generic.websocket import WebsocketConsumer
-
-from . import chess_notation
 from .models import ChessGame, PlayersQueue
 from .chess_game import GameHandler
 from .chess_db import DatabaseHandler

@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from datetime import timedelta
 
+
 class PiecesSetup(models.Model):
     pawn_1 = models.JSONField(null=True)
     pawn_2 = models.JSONField(null=True)
