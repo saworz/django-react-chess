@@ -1,4 +1,3 @@
-from .chess_pieces import PiecePawn, PieceRook, PieceBishop, PieceKnight, PieceKing, PieceQueen
 from .models import ChessGame
 from .utils import position_to_tuple, CLASS_MAPPING
 
