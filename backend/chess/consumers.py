@@ -14,6 +14,7 @@ from asgiref.sync import async_to_sync
 class ChessConsumer(WebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
+        self.data_json = None
         self.game_handler = None
         self.database = None
         self.chess_notation = ''
@@ -34,44 +35,62 @@ class ChessConsumer(WebsocketConsumer):
 
     def receive(self, text_data):
         """ Handles data sent in websocket """
-        data_json = json.loads(text_data)
-        self.game_handler = GameHandler(room_id=self.room_id, socket_data=data_json)
-        self.database = DatabaseHandler(room_id=self.room_id, socket_data=data_json, game=self.game_handler)
+        self.data_json = json.loads(text_data)
+        self.game_handler = GameHandler(room_id=self.room_id, socket_data=self.data_json)
+        self.database = DatabaseHandler(room_id=self.room_id, socket_data=self.data_json, game=self.game_handler)
 
-        if data_json['data_type'] == 'move':
-            db_game_state = self.database.read_board_from_db()
-            self.game_handler.init_board_from_db(db_game_state)
-            error = self.game_handler.validate_move_request()
+        if self.data_json['data_type'] == 'move':
+            self.handle_move_event()
 
-            if error:
-                self.trigger_send_error(error)
+        elif self.data_json['data_type'] == 'castle':
+            self.handle_castle_event()
 
-            self.database.update_player_turn()
-            self.game_handler.recalculate_moves()
-            self.database.save_board_state_to_db()
-            self.create_chess_notation(data_json)
-            self.trigger_send_board_state("move")
-        elif data_json['data_type'] == 'castle':
-            db_game_state = self.database.read_board_from_db()
-            self.game_handler.init_board_from_db(db_game_state)
-            self.game_handler.do_castle()
-            self.database.update_player_turn()
-            self.game_handler.recalculate_moves()
-            self.database.save_board_state_to_db()
-            self.create_chess_notation(data_json)
-            self.trigger_send_board_state("move")
-        elif data_json['data_type'] == 'init_board':
+        elif self.data_json['data_type'] == 'init_board':
             if ChessGame.objects.get(room_id=self.room_id).waiting_for_first_move:
-                self.game_handler.initialize_board()
-                self.database.save_board_state_to_db()
-                self.game_handler.get_valid_moves()
-                self.trigger_send_board_state("init")
+                self.handle_creating_new_board()
             else:
-                db_game_state = self.database.read_board_from_db()
-                self.game_handler.init_board_from_db(db_game_state)
-                self.game_handler.recalculate_moves()
-                self.database.update_time_left()
-                self.trigger_send_board_state("move")
+                self.handle_loading_existing_board()
+
+    def handle_move_event(self):
+        """ Handles moving piece """
+        db_game_state = self.database.read_board_from_db()
+        self.game_handler.init_board_from_db(db_game_state)
+        error = self.game_handler.validate_move_request()
+
+        if error:
+            self.trigger_send_error(error)
+
+        self.database.update_player_turn()
+        self.game_handler.recalculate_moves()
+        self.database.save_board_state_to_db()
+        self.create_chess_notation(self.data_json)
+        self.trigger_send_board_state("move")
+
+    def handle_castle_event(self):
+        """ Handles executing castling """
+        db_game_state = self.database.read_board_from_db()
+        self.game_handler.init_board_from_db(db_game_state)
+        self.game_handler.do_castle()
+        self.database.update_player_turn()
+        self.game_handler.recalculate_moves()
+        self.database.save_board_state_to_db()
+        self.create_chess_notation(self.data_json)
+        self.trigger_send_board_state("move")
+
+    def handle_creating_new_board(self):
+        """ Handles creating new board """
+        self.game_handler.initialize_board()
+        self.database.save_board_state_to_db()
+        self.game_handler.get_valid_moves()
+        self.trigger_send_board_state("init")
+
+    def handle_loading_existing_board(self):
+        """ Handles loading existing board from database """
+        db_game_state = self.database.read_board_from_db()
+        self.game_handler.init_board_from_db(db_game_state)
+        self.game_handler.recalculate_moves()
+        self.database.update_time_left()
+        self.trigger_send_board_state("move")
 
     def create_chess_notation(self, move_data):
         """ Handles creating chess move notation """
