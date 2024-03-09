@@ -28,19 +28,8 @@ class ChessConsumer(WebsocketConsumer):
             self.channel_name
         )
 
-        if ChessGame.objects.filter(room_id=self.room_id).exists():
-            game = ChessGame.objects.get(room_id=self.room_id)
-            connected_players, created = ConnectedPlayers.objects.get_or_create(game_id=game)
-
-            user_pk = self.scope['user'].pk
-
-            if user_pk == game.player_white.pk:
-                connected_players.white_player_pk = user_pk
-            elif game.player_black.pk:
-                connected_players.black_player_pk = user_pk
-
-            connected_players.save()
-            self.accept()
+        self.add_player_to_connected_players()
+        self.accept()
 
     def receive(self, text_data):
         """ Handles data sent in websocket """
@@ -59,6 +48,9 @@ class ChessConsumer(WebsocketConsumer):
                 self.handle_creating_new_board()
             else:
                 self.handle_loading_existing_board()
+
+        elif self.data_json['data_type'] == 'timeout':
+            self.handle_timeout()
 
     def handle_move_event(self):
         """ Handles moving piece """
@@ -100,6 +92,11 @@ class ChessConsumer(WebsocketConsumer):
         self.game_handler.recalculate_moves()
         self.database.update_time_left()
         self.trigger_send_board_state("move")
+
+    def handle_timeout(self):
+        if ChessGame.objects.filter(room_id=self.room_id).exists():
+            game = ChessGame.objects.get(room_id=self.room_id)
+            game.delete()
 
     def create_chess_notation(self, move_data):
         """ Handles creating chess move notation """
@@ -247,8 +244,21 @@ class ChessConsumer(WebsocketConsumer):
             'king_position': event['king_position']
         }))
 
-    def disconnect(self, code):
-        """ Removes user from disconnected websocket """
+    def add_player_to_connected_players(self):
+        if ChessGame.objects.filter(room_id=self.room_id).exists():
+            game = ChessGame.objects.get(room_id=self.room_id)
+            connected_players, created = ConnectedPlayers.objects.get_or_create(game_id=game)
+
+            user_pk = self.scope['user'].pk
+
+            if user_pk == game.player_white.pk:
+                connected_players.white_player_pk = user_pk
+            elif game.player_black.pk:
+                connected_players.black_player_pk = user_pk
+
+            connected_players.save()
+
+    def remove_player_from_connected_players(self):
         if ChessGame.objects.filter(room_id=self.room_id).exists():
             game = ChessGame.objects.get(room_id=self.room_id)
             connected_players, created = ConnectedPlayers.objects.get_or_create(game_id=game)
@@ -265,6 +275,9 @@ class ChessConsumer(WebsocketConsumer):
             if connected_players.white_player_pk == '' and connected_players.black_player_pk == '':
                 game.delete()
 
+    def disconnect(self, code):
+        """ Removes user from disconnected websocket """
+        self.remove_player_from_connected_players()
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name,
             self.channel_name
