@@ -307,8 +307,16 @@ class QueueConsumer(WebsocketConsumer):
             self.channel_name
         )
 
-        self.update_instance()
-        self.find_players_pair()
+        if self.player_has_no_active_games():
+            self.update_instance()
+            self.find_players_pair()
+
+    def player_has_no_active_games(self):
+        active_games = ChessGame.objects.filter().all()
+        for active_game in active_games:
+            if self.user_pk == str(active_game.player_white.pk) or self.user_pk == str(active_game.player_black.pk):
+                self.trigger_send_room_id(room_id=active_game.room_id)
+        return True
 
     def is_in_queue(self):
         if self.queue_instance.users_in_queue:
@@ -371,11 +379,26 @@ class QueueConsumer(WebsocketConsumer):
             }
         )
 
+    def trigger_send_room_id(self, room_id):
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'send_room_id',
+                'active_room_id': room_id
+            }
+        )
+
     def send_enemy_data(self, event):
         self.send(text_data=json.dumps({
             'type': 'enemy_data',
             'player_1': event['player_1'],
             'player_2': event['player_2'],
+        }))
+
+    def send_room_id(self, event):
+        self.send(text_data=json.dumps({
+            'type': 'room_id',
+            'active_room_id': event['active_room_id'],
         }))
 
     def disconnect(self, code):
