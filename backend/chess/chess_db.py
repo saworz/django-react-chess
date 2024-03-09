@@ -1,5 +1,5 @@
 from .models import ChessGame, WhitePieces, BlackPieces
-from .serializers import BlackBoardSerializer, WhiteBoardSerializer
+from .serializers import BlackBoardSerializer, WhiteBoardSerializer, ConnectedPlayersSerializer
 from .utils import deserialize_lists
 from django.utils import timezone
 
