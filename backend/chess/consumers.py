@@ -154,6 +154,8 @@ class ChessConsumer(WebsocketConsumer):
         game_object = ChessGame.objects.get(room_id=self.room_id)
         current_player = game_object.current_player
 
+        print(str(game_object.white_time))
+        print(str(game_object.white_time).split(".")[0])
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
