@@ -62,3 +62,13 @@ class BlackPieces(PiecesSetup):
 
 class PlayersQueue(models.Model):
     users_in_queue = models.TextField(default='', blank=True)
+
+
+class ConnectedPlayers(models.Model):
+    game_id = models.ForeignKey(ChessGame, on_delete=models.CASCADE)
+    white_player = models.ForeignKey(User,
+                                     on_delete=models.CASCADE,
+                                     related_name="player_white")
+    black_player = models.ForeignKey(User,
+                                     on_delete=models.CASCADE,
+                                     related_name="player_black")
