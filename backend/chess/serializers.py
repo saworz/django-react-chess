@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ChessGame, WhitePieces, BlackPieces, PlayersQueue
+from .models import ChessGame, WhitePieces, BlackPieces, PlayersQueue, ConnectedPlayers
 
 
 class ChessGameSerializer(serializers.ModelSerializer):
@@ -17,6 +17,12 @@ class WhiteBoardSerializer(serializers.ModelSerializer):
 class BlackBoardSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlackPieces
+        fields = "__all__"
+
+
+class ConnectedPlayersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConnectedPlayers
         fields = "__all__"
 
 

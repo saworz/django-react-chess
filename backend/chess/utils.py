@@ -19,6 +19,11 @@ NOTATION_MAPPING = {
 }
 
 
+def get_unique_room_id(pk_1: str, pk_2: str) -> str:
+    ids = sorted([pk_1, pk_2])
+    return ''.join(list(map(str, ids)))
+
+
 def deserialize_lists(lst: list) -> list:
     """ Deserializes lists """
     result = []

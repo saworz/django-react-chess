@@ -7,7 +7,7 @@ from rest_framework import status
 from django.contrib.auth.models import User
 from .models import ChessGame, PlayersQueue
 from rest_framework.exceptions import NotFound
-
+from .utils import get_unique_room_id
 
 @extend_schema(
     request=None
@@ -29,7 +29,7 @@ class CreateNewGameView(CreateAPIView):
         players = [logged_user.pk, other_user.pk]
         random.shuffle(players)
 
-        room_id = ''.join(sorted([str(logged_user.pk), str(other_user.pk)]))
+        room_id = get_unique_room_id(logged_user.pk, other_user.pk)
 
         game_data = {
             "player_white": players[0],
@@ -64,7 +64,7 @@ class RetrieveGameIdView(RetrieveAPIView):
         except User.DoesNotExist:
             raise NotFound({"message": "User with pk {} does not exist.".format(pk)})
 
-        room_id = ''.join(sorted([str(logged_user.pk), str(other_user.pk)]))
+        room_id = get_unique_room_id(logged_user.pk, other_user.pk)
         obj = self.queryset.filter(room_id=room_id).first()
 
         if obj is None:

@@ -1,7 +1,7 @@
 import random
 import json
 from channels.generic.websocket import WebsocketConsumer
-from .models import ChessGame, PlayersQueue
+from .models import ChessGame, PlayersQueue, ConnectedPlayers
 from .chess_game import GameHandler
 from .chess_db import DatabaseHandler
 from .utils import prepare_data, get_position_in_chess_notation, NOTATION_MAPPING
@@ -28,8 +28,8 @@ class ChessConsumer(WebsocketConsumer):
             self.channel_name
         )
 
-        if ChessGame.objects.filter(room_id=self.room_id).exists():
-            self.accept()
+        self.add_player_to_connected_players()
+        self.accept()
 
     def receive(self, text_data):
         """ Handles data sent in websocket """
@@ -48,6 +48,9 @@ class ChessConsumer(WebsocketConsumer):
                 self.handle_creating_new_board()
             else:
                 self.handle_loading_existing_board()
+
+        elif self.data_json['data_type'] == 'timeout':
+            self.handle_timeout()
 
     def handle_move_event(self):
         """ Handles moving piece """
@@ -89,6 +92,11 @@ class ChessConsumer(WebsocketConsumer):
         self.game_handler.recalculate_moves()
         self.database.update_time_left()
         self.trigger_send_board_state("move")
+
+    def handle_timeout(self):
+        if ChessGame.objects.filter(room_id=self.room_id).exists():
+            game = ChessGame.objects.get(room_id=self.room_id)
+            game.delete()
 
     def create_chess_notation(self, move_data):
         """ Handles creating chess move notation """
@@ -160,8 +168,8 @@ class ChessConsumer(WebsocketConsumer):
                 'type': 'send_board_state',
                 'current_player': current_player,
 
-                'white_time_left': str(game_object.white_time).split(".")[0],
-                'black_time_left': str(game_object.black_time).split(".")[0],
+                'white_time_left': str(game_object.white_time),
+                'black_time_left': str(game_object.black_time),
                 'white_pieces': white_pieces_data,
                 'black_pieces': black_pieces_data,
 
@@ -236,8 +244,40 @@ class ChessConsumer(WebsocketConsumer):
             'king_position': event['king_position']
         }))
 
+    def add_player_to_connected_players(self):
+        if ChessGame.objects.filter(room_id=self.room_id).exists():
+            game = ChessGame.objects.get(room_id=self.room_id)
+            connected_players, created = ConnectedPlayers.objects.get_or_create(game_id=game)
+
+            user_pk = self.scope['user'].pk
+
+            if user_pk == game.player_white.pk:
+                connected_players.white_player_pk = user_pk
+            elif game.player_black.pk:
+                connected_players.black_player_pk = user_pk
+
+            connected_players.save()
+
+    def remove_player_from_connected_players(self):
+        if ChessGame.objects.filter(room_id=self.room_id).exists():
+            game = ChessGame.objects.get(room_id=self.room_id)
+            connected_players, created = ConnectedPlayers.objects.get_or_create(game_id=game)
+
+            user_pk = self.scope['user'].pk
+
+            if user_pk == game.player_white.pk:
+                connected_players.white_player_pk = ''
+            elif game.player_black.pk:
+                connected_players.black_player_pk = ''
+
+            connected_players.save()
+
+            if connected_players.white_player_pk == '' and connected_players.black_player_pk == '':
+                game.delete()
+
     def disconnect(self, code):
         """ Removes user from disconnected websocket """
+        self.remove_player_from_connected_players()
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name,
             self.channel_name
@@ -267,8 +307,16 @@ class QueueConsumer(WebsocketConsumer):
             self.channel_name
         )
 
-        self.update_instance()
-        self.find_players_pair()
+        if self.player_has_no_active_games():
+            self.update_instance()
+            self.find_players_pair()
+
+    def player_has_no_active_games(self):
+        active_games = ChessGame.objects.filter().all()
+        for active_game in active_games:
+            if self.user_pk == str(active_game.player_white.pk) or self.user_pk == str(active_game.player_black.pk):
+                self.trigger_send_room_id(room_id=active_game.room_id)
+        return True
 
     def is_in_queue(self):
         if self.queue_instance.users_in_queue:
@@ -331,11 +379,26 @@ class QueueConsumer(WebsocketConsumer):
             }
         )
 
+    def trigger_send_room_id(self, room_id):
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'send_room_id',
+                'active_room_id': room_id
+            }
+        )
+
     def send_enemy_data(self, event):
         self.send(text_data=json.dumps({
             'type': 'enemy_data',
             'player_1': event['player_1'],
             'player_2': event['player_2'],
+        }))
+
+    def send_room_id(self, event):
+        self.send(text_data=json.dumps({
+            'type': 'room_id',
+            'active_room_id': event['active_room_id'],
         }))
 
     def disconnect(self, code):
