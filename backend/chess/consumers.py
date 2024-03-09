@@ -1,7 +1,7 @@
 import random
 import json
 from channels.generic.websocket import WebsocketConsumer
-from .models import ChessGame, PlayersQueue
+from .models import ChessGame, PlayersQueue, ConnectedPlayers
 from .chess_game import GameHandler
 from .chess_db import DatabaseHandler
 from .utils import prepare_data, get_position_in_chess_notation, NOTATION_MAPPING
@@ -30,6 +30,17 @@ class ChessConsumer(WebsocketConsumer):
 
         if ChessGame.objects.filter(room_id=self.room_id).exists():
             self.accept()
+            game = ChessGame.objects.get(room_id=self.room_id)
+            connected_players, created = ConnectedPlayers.objects.get_or_create(game_id=game)
+
+            user_pk = self.scope['user'].pk
+
+            if user_pk == game.player_white.pk:
+                connected_players.white_player_pk = user_pk
+            elif game.player_black.pk:
+                connected_players.black_player_pk = user_pk
+
+            connected_players.save()
 
     def receive(self, text_data):
         """ Handles data sent in websocket """

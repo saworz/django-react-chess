@@ -66,9 +66,5 @@ class PlayersQueue(models.Model):
 
 class ConnectedPlayers(models.Model):
     game_id = models.ForeignKey(ChessGame, on_delete=models.CASCADE)
-    white_player = models.ForeignKey(User,
-                                     on_delete=models.CASCADE,
-                                     related_name="player_white")
-    black_player = models.ForeignKey(User,
-                                     on_delete=models.CASCADE,
-                                     related_name="player_black")
+    white_player_pk = models.TextField(default='', blank=True, max_length=5)
+    black_player_pk = models.TextField(default='', blank=True, max_length=5)
