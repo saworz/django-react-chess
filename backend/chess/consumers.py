@@ -56,16 +56,12 @@ class ChessConsumer(WebsocketConsumer):
         """ Handles moving piece """
         db_game_state = self.database.read_board_from_db()
         self.game_handler.init_board_from_db(db_game_state)
-        error = self.game_handler.validate_move_request()
-
-        if error:
-            self.trigger_send_error(error)
-
+        self.game_handler.validate_move_request()
         self.database.update_player_turn()
         self.game_handler.recalculate_moves()
         self.database.save_board_state_to_db()
         self.create_chess_notation(self.data_json)
-        self.trigger_send_board_state("move")
+        self.handle_sending_board_state("move")
 
     def handle_castle_event(self):
         """ Handles executing castling """
@@ -76,14 +72,14 @@ class ChessConsumer(WebsocketConsumer):
         self.game_handler.recalculate_moves()
         self.database.save_board_state_to_db()
         self.create_chess_notation(self.data_json)
-        self.trigger_send_board_state("move")
+        self.handle_sending_board_state("move")
 
     def handle_creating_new_board(self):
         """ Handles creating new board """
         self.game_handler.initialize_board()
         self.database.save_board_state_to_db()
         self.game_handler.get_valid_moves()
-        self.trigger_send_board_state("init")
+        self.handle_sending_board_state("init")
 
     def handle_loading_existing_board(self):
         """ Handles loading existing board from database """
@@ -91,9 +87,10 @@ class ChessConsumer(WebsocketConsumer):
         self.game_handler.init_board_from_db(db_game_state)
         self.game_handler.recalculate_moves()
         self.database.update_time_left()
-        self.trigger_send_board_state("move")
+        self.handle_sending_board_state("move")
 
     def handle_timeout(self):
+        """ Removes game instance when time is over for one of the players """
         if ChessGame.objects.filter(room_id=self.room_id).exists():
             game = ChessGame.objects.get(room_id=self.room_id)
             game.delete()
@@ -142,109 +139,151 @@ class ChessConsumer(WebsocketConsumer):
 
         self.chess_notation = notation_creator.get_notation()
 
-    def trigger_send_error(self, error):
-        """ Triggers sending an error via websocket """
-        async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name,
-            {
-                'type': 'send_error',
-                'message': error['message'],
-                'king_position': error['king_position']
-            }
-        )
-
-    def trigger_send_board_state(self, send_type):
+    def handle_sending_board_state(self, send_type):
         """ Triggers send_board_state with chess pieces data """
         game = self.game_handler.game
         white_pieces_data = prepare_data(game.white_pieces.items())
         black_pieces_data = prepare_data(game.black_pieces.items())
+        game.is_draw(white_pieces_data, black_pieces_data)
 
+        self.trigger_send_players_data(game, send_type)
+        self.trigger_send_pieces_data(white_pieces_data, black_pieces_data)
+        self.trigger_send_endgame_status(game)
+        self.trigger_send_castle_data(game)
+        self.trigger_send_en_passant_data(game)
+
+    def trigger_send_players_data(self, game, send_type):
+        """ Triggers players relevant data sending """
         game_object = ChessGame.objects.get(room_id=self.room_id)
         current_player = game_object.current_player
 
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
-                'type': 'send_board_state',
+                'type': 'send_players_data',
                 'current_player': current_player,
-
                 'white_time_left': str(game_object.white_time),
                 'black_time_left': str(game_object.black_time),
+                'move_in_chess_notation': self.chess_notation,
+                'white_score': game.white_score,
+                'white_captured_pieces': game.white_captured_pieces,
+                'black_score': game.black_score,
+                'black_captured_pieces': game.black_captured_pieces,
+                'send_type': send_type,
+            }
+        )
+
+    def trigger_send_pieces_data(self, white_pieces_data, black_pieces_data):
+        """ Triggers sending data about chess pieces on board """
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'send_pieces_data',
                 'white_pieces': white_pieces_data,
                 'black_pieces': black_pieces_data,
+            }
+        )
 
+    def trigger_send_endgame_status(self, game):
+        """ Triggers sending engame conditions """
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'send_endgame_status',
                 'white_checked': game.white_check,
                 'white_checkmated': game.white_checkmate,
                 'black_checked': game.black_check,
                 'black_checkmated': game.black_checkmate,
+                'draw': game.draw,
+            }
+        )
 
+    def trigger_send_castle_data(self, game):
+        """ Triggers sending castle data """
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'send_castle_data',
                 'white_short_castle_legal': game.white_short_castle_legal,
                 'white_long_castle_legal': game.white_long_castle_legal,
                 'black_short_castle_legal': game.black_short_castle_legal,
                 'black_long_castle_legal': game.black_long_castle_legal,
+            }
+        )
 
+    def trigger_send_en_passant_data(self, game):
+        """ Triggers sending en_passant data """
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'send_en_passant_data',
                 'white_en_passant_valid': game.white_pawn_en_passant_val,
                 'white_en_passant_field': game.white_pawn_en_passant_field,
                 'white_en_passant_pawn_to_capture': game.white_pawn_en_passant_to_capture,
                 'black_en_passant_valid': game.black_pawn_en_passant_val,
                 'black_en_passant_field': game.black_pawn_en_passant_field,
                 'black_en_passant_pawn_to_capture': game.black_pawn_en_passant_to_capture,
-
-                'white_score': game.white_score,
-                'white_captured_pieces': game.white_captured_pieces,
-                'black_score': game.black_score,
-                'black_captured_pieces': game.black_captured_pieces,
-
-                'move_in_chess_notation': self.chess_notation,
-                'send_type': send_type,
             }
         )
 
-    def send_board_state(self, event):
-        """ Sends data about board """
+    def send_players_data(self, event):
+        """ Sends players data """
         self.send(text_data=json.dumps({
-            'type': event['send_type'],
+            'type': 'players_data',
             'current_player': event['current_player'],
             'white_time_left': event['white_time_left'],
             'black_time_left': event['black_time_left'],
             'move_in_chess_notation': event['move_in_chess_notation'],
+            'white_score': event['white_score'],
+            'white_captured_pieces': event['white_captured_pieces'],
+            'black_score': event['black_score'],
+            'black_captured_pieces': event['black_captured_pieces'],
+            'send_type': event['send_type'],
+        }))
 
-            'white_pieces': event['white_pieces'],
-            'black_pieces': event['black_pieces'],
+    def send_pieces_data(self, event):
+        """ Sends pieces data """
+        self.send(text_data=json.dumps({
+            'type': 'pieces_data',
+            'white_pieces': event['white_pieces_data'],
+            'black_pieces': event['black_pieces_data'],
+        }))
 
+    def send_endgame_status(self, event):
+        """ Sends endgame status """
+        self.send(text_data=json.dumps({
+            'type': 'endgame_status',
             'white_checked': event['white_checked'],
             'white_checkmated': event['white_checkmated'],
             'black_checked': event['black_checked'],
             'black_checkmated': event['black_checkmated'],
+            'draw': event['draw'],
+        }))
 
+    def send_castle_data(self, event):
+        """ Sends castle data """
+        self.send(text_data=json.dumps({
+            'type': 'castle_data',
             'white_short_castle_legal': event['white_short_castle_legal'],
             'white_long_castle_legal': event['white_long_castle_legal'],
             'black_short_castle_legal': event['black_short_castle_legal'],
             'black_long_castle_legal': event['black_long_castle_legal'],
+        }))
 
+    def send_en_passant_data(self, event):
+        """ Sends en passant data """
+        self.send(text_data=json.dumps({
+            'type': 'en_passant_data',
             'white_en_passant_valid': event['white_en_passant_valid'],
             'white_en_passant_field': event['white_en_passant_field'],
             'white_en_passant_pawn_to_capture': event['white_en_passant_pawn_to_capture'],
             'black_en_passant_valid': event['black_en_passant_valid'],
             'black_en_passant_field': event['black_en_passant_field'],
             'black_en_passant_pawn_to_capture': event['black_en_passant_pawn_to_capture'],
-
-            'white_score': event['white_score'],
-            'white_captured_pieces': event['white_captured_pieces'],
-            'black_score': event['black_score'],
-            'black_captured_pieces': event['black_captured_pieces'],
-
-        }))
-
-    def send_error(self, event):
-        """ Sends error """
-        self.send(text_data=json.dumps({
-            'type': 'error',
-            'message': event['message'],
-            'king_position': event['king_position']
         }))
 
     def add_player_to_connected_players(self):
+        """ Whenever player joins a game he is added to db as active player """
         if ChessGame.objects.filter(room_id=self.room_id).exists():
             game = ChessGame.objects.get(room_id=self.room_id)
             connected_players, created = ConnectedPlayers.objects.get_or_create(game_id=game)
@@ -259,6 +298,7 @@ class ChessConsumer(WebsocketConsumer):
             connected_players.save()
 
     def remove_player_from_connected_players(self):
+        """ Whenever player leaves a game he is removed from db as he is not an active player anymore """
         if ChessGame.objects.filter(room_id=self.room_id).exists():
             game = ChessGame.objects.get(room_id=self.room_id)
             connected_players, created = ConnectedPlayers.objects.get_or_create(game_id=game)
@@ -295,6 +335,7 @@ class QueueConsumer(WebsocketConsumer):
         self.send_enemy_data_task = None
 
     def connect(self):
+        """ Handles connecting to websocket """
         self.user_pk = self.scope['url_route']['kwargs']['user_pk']
 
         self.room_name = 'queue_room'
@@ -312,6 +353,7 @@ class QueueConsumer(WebsocketConsumer):
             self.find_players_pair()
 
     def player_has_no_active_games(self):
+        """ Checks if player has any active games when he joins queue """
         active_games = ChessGame.objects.filter().all()
         for active_game in active_games:
             if self.user_pk == str(active_game.player_white.pk) or self.user_pk == str(active_game.player_black.pk):
@@ -319,6 +361,7 @@ class QueueConsumer(WebsocketConsumer):
         return True
 
     def is_in_queue(self):
+        """ Checks whether user is already in queue """
         if self.queue_instance.users_in_queue:
             queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
             if int(self.user_pk) in queue_list:
@@ -326,6 +369,7 @@ class QueueConsumer(WebsocketConsumer):
         return False
 
     def update_instance(self):
+        """ Updates queue instance """
         self.setup_queue_instance()
         if not self.queue_instance.users_in_queue:
             update_value = str(self.user_pk)
@@ -337,6 +381,7 @@ class QueueConsumer(WebsocketConsumer):
             self.queue_instance.save()
 
     def remove_from_queue(self):
+        """ Removes user from queue object when he leaves it """
         self.setup_queue_instance()
         queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
         queue_list.remove(int(self.user_pk))
@@ -345,12 +390,14 @@ class QueueConsumer(WebsocketConsumer):
         self.queue_instance.save()
 
     def setup_queue_instance(self):
+        """ Sets queue instance """
         if PlayersQueue.objects.all().count() == 0:
             self.queue_instance = PlayersQueue.objects.create()
         else:
             self.queue_instance = PlayersQueue.objects.all().first()
 
     def find_players_pair(self):
+        """ Finds opponent for players in queue """
         self.setup_queue_instance()
         queue_list = [int(num) for num in self.queue_instance.users_in_queue.split(',')]
         enemy_players = queue_list.copy()
@@ -364,12 +411,14 @@ class QueueConsumer(WebsocketConsumer):
         return True
 
     def receive(self, text_data):
+        """ Handles received messages """
         data_json = json.loads(text_data)
         if data_json['data_type'] == 'find_opponent':
             if self.find_players_pair():
                 self.trigger_send_enemy_data()
 
     def trigger_send_enemy_data(self):
+        """ Sends data about oponnent """
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
@@ -380,6 +429,7 @@ class QueueConsumer(WebsocketConsumer):
         )
 
     def trigger_send_room_id(self, room_id):
+        """ Sends room it if player already has an active game """
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
@@ -389,6 +439,7 @@ class QueueConsumer(WebsocketConsumer):
         )
 
     def send_enemy_data(self, event):
+        """ Sends enemy data """
         self.send(text_data=json.dumps({
             'type': 'enemy_data',
             'player_1': event['player_1'],
@@ -396,12 +447,14 @@ class QueueConsumer(WebsocketConsumer):
         }))
 
     def send_room_id(self, event):
+        """ Sends room id """
         self.send(text_data=json.dumps({
             'type': 'room_id',
             'active_room_id': event['active_room_id'],
         }))
 
     def disconnect(self, code):
+        """ Handles disconnect from websocket"""
         if self.send_enemy_data_task:
             self.send_enemy_data_task.cancel()
         self.remove_from_queue()

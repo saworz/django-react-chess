@@ -15,7 +15,7 @@ class GameLoader:
         self.white_checkmate = False
         self.black_check = False
         self.black_checkmate = False
-
+        self.draw = False
         self.white_rook_1_moved = False
         self.white_rook_2_moved = False
         self.white_king_moved = False
@@ -218,3 +218,14 @@ class GameLoader:
                 self.black_pieces[name] = self.get_promoted_piece(color, last_position)
 
             self.promoting_move = True
+
+    def is_draw(self, white_moves, black_moves):
+        self.has_valid_moves(white_moves)
+        self.has_valid_moves(black_moves)
+
+    def has_valid_moves(self, pieces_data):
+        for piece, piece_data in pieces_data.items():
+            if len(piece_data['valid_moves']) > 0:
+                break
+        else:
+            self.draw = True
