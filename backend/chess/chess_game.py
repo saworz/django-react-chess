@@ -264,10 +264,10 @@ class GameHandler:
             for move in unpack_positions(piece.possible_moves):
                 possible_moves.append(move)
 
-        if number_of_moves == 0 and color == 'white':
+        if number_of_moves == 0 and color == 'white' and self.game.white_check:
             self.game.white_checkmate = True
             self.game.white_check = False
-        elif number_of_moves == 0 and color == 'black':
+        elif number_of_moves == 0 and color == 'black' and self.game.black_check:
             self.game.black_checkmate = True
             self.game.black_check = False
 

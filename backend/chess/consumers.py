@@ -158,6 +158,7 @@ class ChessConsumer(WebsocketConsumer):
         game = self.game_handler.game
         white_pieces_data = prepare_data(game.white_pieces.items())
         black_pieces_data = prepare_data(game.black_pieces.items())
+        game.is_draw(white_pieces_data, black_pieces_data)
 
         game_object = ChessGame.objects.get(room_id=self.room_id)
         current_player = game_object.current_player
@@ -177,6 +178,7 @@ class ChessConsumer(WebsocketConsumer):
                 'white_checkmated': game.white_checkmate,
                 'black_checked': game.black_check,
                 'black_checkmated': game.black_checkmate,
+                'draw': game.draw,
 
                 'white_short_castle_legal': game.white_short_castle_legal,
                 'white_long_castle_legal': game.white_long_castle_legal,
