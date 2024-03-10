@@ -103,15 +103,9 @@ class GameHandler:
             piece = self.game.black_pieces[self.socket_data['piece']]
 
         new_position = position_to_tuple(self.socket_data['new_position'])
-        possible_positions = unpack_positions(piece.possible_moves)
         possible_captures = piece.capturing_moves
 
         en_passant_field = self.get_en_passant_field()
-
-        if new_position not in (possible_positions + possible_captures + en_passant_field):
-            error_message = "Incorrect request"
-            error = {'message': error_message}
-            return error
 
         if new_position in possible_captures:
             piece_to_capture = piece.capture_piece(new_position)
