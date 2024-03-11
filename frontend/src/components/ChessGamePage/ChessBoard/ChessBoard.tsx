@@ -26,7 +26,7 @@ const ChessBoard = ({ webSocket, enemyDetails }: Types.IProps) => {
 
   const dispatch: AppDispatch = useDispatch();
   const { candidateMoves, chessBoard } = chess;
-  const checkedPlayer = chess.current_player[0];
+  const checkedPlayer = chess.playersData.current_player[0];
   const blackPlayerName =
     chess.gameDetails.player_black === user?.id
       ? user.username
@@ -39,7 +39,10 @@ const ChessBoard = ({ webSocket, enemyDetails }: Types.IProps) => {
   let soundComponent = null;
 
   useEffect(() => {
-    if (chess.black_checkmated || chess.white_checkmated) {
+    if (
+      chess.endGameStatus.black_checkmated ||
+      chess.endGameStatus.white_checkmated
+    ) {
       const sound = new Howl({
         src: "/sounds/game-end.mp3",
         format: "mp3",
@@ -57,7 +60,7 @@ const ChessBoard = ({ webSocket, enemyDetails }: Types.IProps) => {
       dispatch(openPopup());
       if (
         user?.id === chess.gameDetails.player_white &&
-        chess.white_checkmated
+        chess.endGameStatus.white_checkmated
       ) {
         dispatch(
           updatePlayerScore({
@@ -69,7 +72,7 @@ const ChessBoard = ({ webSocket, enemyDetails }: Types.IProps) => {
       }
       if (
         user?.id === chess.gameDetails.player_black &&
-        chess.black_checkmated
+        chess.endGameStatus.black_checkmated
       ) {
         dispatch(
           updatePlayerScore({
@@ -92,8 +95,11 @@ const ChessBoard = ({ webSocket, enemyDetails }: Types.IProps) => {
     .map((x, i) => i + 1);
 
   const isChecked = (() => {
-    const checkedPlayer = chess.current_player[0];
-    if (chess.black_checked || chess.white_checked) {
+    const checkedPlayer = chess.playersData.current_player[0];
+    if (
+      chess.endGameStatus.black_checked ||
+      chess.endGameStatus.white_checked
+    ) {
       soundComponent = (
         <SoundPlayer
           src="/sounds/move-check.mp3"
@@ -101,7 +107,7 @@ const ChessBoard = ({ webSocket, enemyDetails }: Types.IProps) => {
           format="mp3"
         />
       );
-      return getKingPosition(chess.piecesPosition, checkedPlayer);
+      return getKingPosition(chess.piecesData.piecesPosition, checkedPlayer);
     }
     return null;
   })();

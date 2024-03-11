@@ -63,7 +63,7 @@ const PromotionPopup = ({ webSocket }: Types.IProps) => {
   };
 
   const handleClick = (piece: string) => {
-    let updatedPiecesPosition = { ...chess.piecesPosition };
+    let updatedPiecesPosition = { ...chess.piecesData.piecesPosition };
 
     try {
       webSocket.send(

@@ -3,6 +3,9 @@ import {
   updateGame,
   createChessGame,
   initGame,
+  updatePiecesData,
+  updatePlayersData,
+  updateEndGameStatus,
 } from "../../features/chess/chessSlice";
 import ChessBoard from "../../components/ChessGamePage/ChessBoard";
 import { useNavigate, useParams } from "react-router-dom";
@@ -34,7 +37,7 @@ const ChessGamePage = () => {
   const isGameReady =
     chess.gameRoomId &&
     webSocket &&
-    chess.piecesPosition &&
+    chess.piecesData.piecesPosition &&
     isUserFound &&
     chess.gameDetails &&
     enemyDetails &&
@@ -51,11 +54,11 @@ const ChessGamePage = () => {
   const getPlayerPoints = (
     playerColor: string
   ): { piecesCaptured: string[]; points: number | null } => {
-    const whitePoints = chess.gameDetails.white_score;
-    const blackPoints = chess.gameDetails.black_score;
+    const whitePoints = chess.playersData.white_score;
+    const blackPoints = chess.playersData.black_score;
 
     if (playerColor === "white") {
-      let piecesCaptured = [...chess.gameDetails.white_captures];
+      let piecesCaptured = [...chess.playersData.white_captures];
       if (piecesCaptured.length > 0) {
         for (let i = 0; i < piecesCaptured.length; i++) {
           if (typeof piecesCaptured[i] === "string") {
@@ -68,7 +71,7 @@ const ChessGamePage = () => {
         points: whitePoints > blackPoints ? whitePoints - blackPoints : null,
       };
     } else {
-      let piecesCaptured = [...chess.gameDetails.black_captures];
+      let piecesCaptured = [...chess.playersData.black_captures];
       if (piecesCaptured.length > 0) {
         for (let i = 0; i < piecesCaptured.length; i++) {
           if (typeof piecesCaptured[i] === "string") {
@@ -149,7 +152,6 @@ const ChessGamePage = () => {
                 black_short_castle_legal:
                   dataFromServer.black_short_castle_legal,
                 black_captured_pieces: dataFromServer.black_captured_pieces,
-                black_score: dataFromServer.black_score,
                 white_checked: dataFromServer.white_checked,
                 white_checkmated: dataFromServer.white_checkmated,
                 white_en_passant_field: dataFromServer.white_en_passant_field,
@@ -159,8 +161,6 @@ const ChessGamePage = () => {
                 white_short_castle_legal:
                   dataFromServer.white_short_castle_legal,
                 white_captured_pieces: dataFromServer.white_captured_pieces,
-                white_score: dataFromServer.white_score,
-                current_player: dataFromServer.current_player,
                 black_pieces: isBlackPiecesLogged
                   ? Functions.transformBlackPiecesPosition(
                       Functions.mapPiecesToArray(dataFromServer.black_pieces)
@@ -171,7 +171,6 @@ const ChessGamePage = () => {
                       Functions.mapPiecesToArray(dataFromServer.white_pieces)
                     )
                   : Functions.mapPiecesToArray(dataFromServer.white_pieces),
-                move_in_chess_notation: dataFromServer.move_in_chess_notation,
               })
             );
           } else if (dataFromServer.type === "init") {
@@ -191,7 +190,6 @@ const ChessGamePage = () => {
                 black_checked: dataFromServer.black_checked,
                 white_checked: dataFromServer.white_checked,
                 white_checkmated: dataFromServer.white_checkmated,
-                current_player: dataFromServer.current_player,
                 copy_white_pieces: isBlackPiecesLogged
                   ? Functions.transformWhitePiecesPosition(
                       Functions.mapPiecesToArray(dataFromServer.white_pieces)
@@ -202,7 +200,48 @@ const ChessGamePage = () => {
                       Functions.mapPiecesToArray(dataFromServer.black_pieces)
                     )
                   : Functions.mapPiecesToArray(dataFromServer.black_pieces),
+              })
+            );
+          } else if (dataFromServer.type === "pieces_data") {
+            dispatch(
+              updatePiecesData({
+                white_pieces: isBlackPiecesLogged
+                  ? Functions.transformWhitePiecesPosition(
+                      Functions.mapPiecesToArray(dataFromServer.white_pieces)
+                    )
+                  : Functions.mapPiecesToArray(dataFromServer.white_pieces),
+                black_pieces: isBlackPiecesLogged
+                  ? Functions.transformBlackPiecesPosition(
+                      Functions.mapPiecesToArray(dataFromServer.black_pieces)
+                    )
+                  : Functions.mapPiecesToArray(dataFromServer.black_pieces),
+                copy_white_pieces: isBlackPiecesLogged
+                  ? Functions.transformWhitePiecesPosition(
+                      Functions.mapPiecesToArray(dataFromServer.white_pieces)
+                    )
+                  : Functions.mapPiecesToArray(dataFromServer.white_pieces),
+                copy_black_pieces: isBlackPiecesLogged
+                  ? Functions.transformBlackPiecesPosition(
+                      Functions.mapPiecesToArray(dataFromServer.black_pieces)
+                    )
+                  : Functions.mapPiecesToArray(dataFromServer.black_pieces),
+              })
+            );
+          } else if (dataFromServer.type === "endgame_status") {
+            dispatch(updateEndGameStatus({}));
+          } else if (dataFromServer.type === "castle_data") {
+          } else if (dataFromServer.type === "en_passant_data") {
+          } else if (dataFromServer.type === "players_data") {
+            dispatch(
+              updatePlayersData({
+                current_player: dataFromServer.current_player,
                 move_in_chess_notation: dataFromServer.move_in_chess_notation,
+                black_score: dataFromServer.black_score,
+                white_score: dataFromServer.white_score,
+                white_captured_pieces: dataFromServer.white_captured_pieces,
+                black_captured_pieces: dataFromServer.black_captured_pieces,
+                black_time_left: dataFromServer.black_time_left,
+                white_time_left: dataFromServer.white_time_left,
               })
             );
           }

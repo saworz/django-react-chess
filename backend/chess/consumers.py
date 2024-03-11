@@ -245,8 +245,8 @@ class ChessConsumer(WebsocketConsumer):
         """ Sends pieces data """
         self.send(text_data=json.dumps({
             'type': 'pieces_data',
-            'white_pieces': event['white_pieces_data'],
-            'black_pieces': event['black_pieces_data'],
+            'white_pieces': event['white_pieces'],
+            'black_pieces': event['black_pieces'],
         }))
 
     def send_endgame_status(self, event):

@@ -15,14 +15,13 @@ const Piece = ({ file, piece, rank }: Types.IProps) => {
   const { user } = useSelector((state: RootState) => state.auth);
   const dispatch: AppDispatch = useDispatch();
   const {
-    current_player,
-    piecesPosition,
     black_long_castle_legal,
     black_short_castle_legal,
     white_long_castle_legal,
     white_short_castle_legal,
     gameDetails,
   } = chess;
+  const { current_player } = chess.playersData;
   const isGameEnded = chess.gameStatus === Status.ongoing ? false : true;
   const isBlackCastleLegal =
     black_long_castle_legal || black_short_castle_legal;
@@ -31,6 +30,7 @@ const Piece = ({ file, piece, rank }: Types.IProps) => {
   let selectedPiece: SharedTypes.IBlackPiece | SharedTypes.IWhitePiece | null =
     null;
   const playerColor = user?.id === gameDetails.player_black ? "black" : "white";
+  const piecesPosition = chess.piecesData.piecesPosition;
 
   const onDragStart = (e: Types.DragEvent) => {
     if (current_player === playerColor) {

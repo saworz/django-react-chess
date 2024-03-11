@@ -26,35 +26,46 @@ export interface IChessState {
     gameRoomId: string;
     isGameStarted: boolean;
     chessBoard: string[][];
-    current_player: string;
-    piecesPosition: {
-      black_pieces: IBlackPiece[];
-      white_pieces: IWhitePiece[];
+    piecesData: {
+      piecesPosition: {
+        black_pieces: IBlackPiece[];
+        white_pieces: IWhitePiece[];
+      };
+      copyPiecesPosition: {
+        black_pieces: IBlackPiece[];
+        white_pieces: IWhitePiece[];
+      };
     };
-    copyPiecesPosition: {
-      black_pieces: IBlackPiece[];
-      white_pieces: IWhitePiece[];
+    endGameStatus: {
+      black_checked: boolean;
+      black_checkmated: boolean;
+      white_checked: boolean;
+      white_checkmated: boolean;
+      draw: boolean;
+    };
+    playersData: {
+      black_score: number;
+      white_score: number;
+      white_captures: string[];
+      black_captures: string[];
+      previousMoveNotation: string;
+      allGameMoves: string[];
+      current_player: string;
+      black_time_left: string;
+      white_time_left: string;
     };
     candidateMoves: number[][];
     selectedPiece: IBlackPiece | IWhitePiece | null;
-    black_checked: boolean;
-    black_checkmated: boolean;
     black_en_passant_field: number[];
     black_en_passant_pawn_to_capture: string | null;
     black_long_castle_legal: boolean;
     black_short_castle_legal: boolean;
-    black_score: number;
-    white_checked: boolean;
-    white_checkmated: boolean;
     white_en_passant_field: number[];
     white_en_passant_pawn_to_capture: string | null;
     white_long_castle_legal: boolean;
     white_short_castle_legal: boolean;
-    white_score: number;
     gameStatus: string;
     gameWinner: string;
-    previousMoveNotation: string;
-    allGameMoves: string[];
     promotionSquare: {
       x: number;
       y: number;
@@ -72,11 +83,6 @@ export interface IChessState {
 
 export interface IChessGameDetails {
   id: number;
-  white_score: number;
-  black_score: number;
-  white_captures: string[];
-  black_captures: string[];
-  current_player: string;
   room_id: string;
   player_white: number;
   player_black: number;

@@ -12,7 +12,7 @@ const GameDetailsWindow = () => {
   const [allMovesPairs, setAllMovesPairs] = useState<string[][]>([]);
   const allGameMovesList = useRef<HTMLDivElement>(null);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
-  const { allGameMoves } = chess;
+  const { allGameMoves } = chess.playersData;
 
   const scrollToBottom = () => {
     allGameMovesList.current?.scrollIntoView({ behavior: "smooth" });

@@ -8,11 +8,6 @@ const initialState: SharedTypes.IChessState = {
   chess: {
     gameDetails: {
       id: -1,
-      white_score: -1,
-      black_score: -1,
-      white_captures: [],
-      black_captures: [],
-      current_player: "",
       room_id: "",
       player_white: -1,
       player_black: -1,
@@ -22,35 +17,46 @@ const initialState: SharedTypes.IChessState = {
     gameRoomId: "",
     isGameStarted: false,
     chessBoard: [],
-    current_player: "",
-    piecesPosition: {
-      black_pieces: [],
-      white_pieces: [],
+    piecesData: {
+      piecesPosition: {
+        black_pieces: [],
+        white_pieces: [],
+      },
+      copyPiecesPosition: {
+        black_pieces: [],
+        white_pieces: [],
+      },
     },
-    copyPiecesPosition: {
-      black_pieces: [],
-      white_pieces: [],
+    endGameStatus: {
+      black_checked: false,
+      black_checkmated: false,
+      draw: false,
+      white_checked: false,
+      white_checkmated: false,
+    },
+    playersData: {
+      black_score: -1,
+      white_score: -1,
+      white_captures: [],
+      black_captures: [],
+      allGameMoves: [],
+      previousMoveNotation: "",
+      current_player: "",
+      white_time_left: "",
+      black_time_left: "",
     },
     candidateMoves: [],
     selectedPiece: null,
-    black_checked: false,
-    black_checkmated: false,
     black_en_passant_field: [],
     black_en_passant_pawn_to_capture: null,
     black_long_castle_legal: false,
     black_short_castle_legal: false,
-    black_score: 0,
-    white_checked: false,
-    white_checkmated: false,
     white_en_passant_field: [],
     white_en_passant_pawn_to_capture: null,
     white_long_castle_legal: false,
     white_short_castle_legal: false,
-    white_score: 0,
     gameStatus: Status.ongoing,
     gameWinner: "",
-    previousMoveNotation: "",
-    allGameMoves: [],
     promotionSquare: null,
   },
   isError: false,
@@ -159,8 +165,9 @@ export const chessSlice = createSlice({
       state = initialState;
     },
     updateGame: (state, action) => {
-      state.chess.black_checkmated = action.payload.black_checkmated;
-      state.chess.black_checked = action.payload.black_checked;
+      state.chess.endGameStatus.black_checkmated =
+        action.payload.black_checkmated;
+      state.chess.endGameStatus.black_checked = action.payload.black_checked;
       state.chess.black_en_passant_field =
         action.payload.black_en_passant_field;
       state.chess.black_en_passant_pawn_to_capture =
@@ -169,11 +176,10 @@ export const chessSlice = createSlice({
         action.payload.black_long_castle_legal;
       state.chess.black_short_castle_legal =
         action.payload.black_short_castle_legal;
-      state.chess.gameDetails.black_captures =
-        action.payload.black_captured_pieces;
-      state.chess.black_score = action.payload.black_score;
-      state.chess.white_checked = action.payload.white_checked;
-      state.chess.white_checkmated = action.payload.white_checkmated;
+
+      state.chess.endGameStatus.white_checked = action.payload.white_checked;
+      state.chess.endGameStatus.white_checkmated =
+        action.payload.white_checkmated;
       state.chess.white_en_passant_field =
         action.payload.white_en_passant_field;
       state.chess.white_en_passant_pawn_to_capture =
@@ -182,50 +188,71 @@ export const chessSlice = createSlice({
         action.payload.white_long_castle_legal;
       state.chess.white_short_castle_legal =
         action.payload.white_short_castle_legal;
-      state.chess.gameDetails.white_captures =
-        action.payload.white_captured_pieces;
-      state.chess.white_score = action.payload.white_score;
-      state.chess.current_player = action.payload.current_player;
-      state.chess.gameDetails!.black_score = action.payload.black_score;
-      state.chess.gameDetails!.white_score = action.payload.white_score;
-      state.chess.copyPiecesPosition.black_pieces = action.payload.black_pieces;
-      state.chess.copyPiecesPosition.white_pieces = action.payload.white_pieces;
-      state.chess.piecesPosition.black_pieces = action.payload.black_pieces;
-      state.chess.piecesPosition.white_pieces = action.payload.white_pieces;
-      state.chess.allGameMoves = [
-        ...state.chess.allGameMoves,
-        action.payload.move_in_chess_notation,
-      ];
-      state.chess.previousMoveNotation = action.payload.move_in_chess_notation;
+      state.chess.playersData.current_player = action.payload.current_player;
+      state.chess.playersData.black_score = action.payload.black_score;
+      state.chess.playersData.white_score = action.payload.white_score;
+      state.chess.piecesData.copyPiecesPosition.black_pieces =
+        action.payload.black_pieces;
+      state.chess.piecesData.copyPiecesPosition.white_pieces =
+        action.payload.white_pieces;
+      state.chess.piecesData.piecesPosition.black_pieces =
+        action.payload.black_pieces;
+      state.chess.piecesData.piecesPosition.white_pieces =
+        action.payload.white_pieces;
     },
     initGame: (state, action) => {
-      state.chess.copyPiecesPosition.black_pieces =
-        action.payload.copy_black_pieces;
-      state.chess.copyPiecesPosition.white_pieces =
-        action.payload.copy_white_pieces;
-      ///
-      state.chess.piecesPosition.white_pieces = action.payload.white_pieces;
-      state.chess.piecesPosition.black_pieces = action.payload.black_pieces;
-      state.chess.gameDetails.white_score = 0;
-      state.chess.gameDetails.black_score = 0;
-
-      state.chess.black_checkmated = action.payload.black_checkmated;
-      state.chess.black_checked = action.payload.black_checked;
-      state.chess.white_checked = action.payload.white_checked;
-      state.chess.white_checkmated = action.payload.white_checkmated;
-      state.chess.current_player = action.payload.current_player;
-      state.chess.previousMoveNotation = "";
+      state.chess.playersData.white_score = 0;
+      state.chess.playersData.black_score = 0;
+      state.chess.endGameStatus.black_checkmated =
+        action.payload.black_checkmated;
+      state.chess.endGameStatus.black_checked = action.payload.black_checked;
+      state.chess.endGameStatus.white_checked = action.payload.white_checked;
+      state.chess.endGameStatus.white_checkmated =
+        action.payload.white_checkmated;
+      state.chess.playersData.current_player = action.payload.current_player;
+      state.chess.playersData.previousMoveNotation = "";
       state.chess.candidateMoves = [];
-      state.chess.allGameMoves = [];
+      state.chess.playersData.allGameMoves = [];
       state.chess.gameStatus = Status.ongoing;
     },
+    updatePiecesData: (state, action) => {
+      state.chess.piecesData.piecesPosition.white_pieces =
+        action.payload.white_pieces;
+      state.chess.piecesData.piecesPosition.black_pieces =
+        action.payload.black_pieces;
+      state.chess.piecesData.copyPiecesPosition.black_pieces =
+        action.payload.copy_black_pieces;
+      state.chess.piecesData.copyPiecesPosition.white_pieces =
+        action.payload.copy_white_pieces;
+    },
+    updatePlayersData: (state, action) => {
+      state.chess.playersData.black_score = action.payload.black_score;
+      state.chess.playersData.white_score = action.payload.white_score;
+      state.chess.playersData.black_captures =
+        action.payload.black_captured_pieces;
+      state.chess.playersData.white_captures =
+        action.payload.white_captured_pieces;
+      state.chess.playersData.current_player = action.payload.current_player;
+      state.chess.playersData.allGameMoves = action.payload
+        .move_in_chess_notation
+        ? [
+            ...state.chess.playersData.allGameMoves,
+            action.payload.move_in_chess_notation,
+          ]
+        : [];
+      state.chess.playersData.previousMoveNotation =
+        action.payload.move_in_chess_notation;
+      state.chess.playersData.white_time_left = action.payload.white_time_left;
+      state.chess.playersData.black_time_left = action.payload.black_time_left;
+    },
+    updateEndGameStatus: (state, action) => {},
     setGameRoomId: (state, action) => {
       state.chess.gameRoomId = action.payload;
     },
     createChessGame: (state, action) => {
       state.chess.gameRoomId = action.payload.gameRoomId;
       state.chess.isGameStarted = action.payload.isGameStarted;
-      state.chess.current_player = "white";
+      state.chess.playersData.current_player = "white";
     },
     updateBoard: (state, action) => {
       state.chess.chessBoard = action.payload;
@@ -242,7 +269,7 @@ export const chessSlice = createSlice({
       state.chess.selectedPiece = action.payload;
     },
     updatePosition: (state, action) => {
-      state.chess.piecesPosition = action.payload;
+      state.chess.piecesData.piecesPosition = action.payload;
     },
     endGameByWin: (state, action) => {
       state.chess.gameStatus =
@@ -269,7 +296,7 @@ export const chessSlice = createSlice({
         state.isError = false;
         state.chess.gameRoomId = action.payload.room_id;
         state.chess.isGameStarted = true;
-        state.chess.current_player = "white";
+        state.chess.playersData.current_player = "white";
       })
       .addCase(postCreateChessGame.rejected, (state, action) => {
         state.isLoading = false;
@@ -289,13 +316,13 @@ export const chessSlice = createSlice({
         state.isSuccess = true;
         state.isError = false;
         state.chess.gameDetails.id = action.payload.id;
-        state.chess.gameDetails.white_score = action.payload.white_score;
-        state.chess.gameDetails.black_score = action.payload.black_score;
-        state.chess.gameDetails.white_captures =
+        state.chess.playersData.white_score = action.payload.white_score;
+        state.chess.playersData.black_score = action.payload.black_score;
+        state.chess.playersData.white_captures =
           whiteCaptures === null ? [] : whiteCaptures;
-        state.chess.gameDetails.black_captures =
+        state.chess.playersData.black_captures =
           blackCaptures === null ? [] : blackCaptures;
-        state.chess.gameDetails.current_player = action.payload.current_player;
+        state.chess.playersData.current_player = action.payload.current_player;
         state.chess.gameDetails.room_id = action.payload.room_id;
         state.chess.gameDetails.player_white = playerWhiteId;
         state.chess.gameDetails.player_black = playerBlackId;
@@ -346,5 +373,8 @@ export const {
   endGameByWin,
   updatePromotionSquare,
   changeGameStatus,
+  updatePiecesData,
+  updatePlayersData,
+  updateEndGameStatus,
 } = chessSlice.actions;
 export default chessSlice.reducer;

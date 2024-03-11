@@ -30,8 +30,8 @@ const Pieces = ({ webSocket }: Types.IProps) => {
     white_long_castle_legal,
     white_short_castle_legal,
     gameDetails,
-    current_player,
   } = chess;
+  const { current_player } = chess.playersData;
   const isGameEnded = chess.gameStatus === Status.ongoing ? false : true;
   const isBlackCastleLegal =
     black_long_castle_legal || black_short_castle_legal;
@@ -41,8 +41,10 @@ const Pieces = ({ webSocket }: Types.IProps) => {
   const areYouBlackPieces = chess.gameDetails.yourColor === "black";
 
   useEffect(() => {
-    dispatch(updateBoard(Functions.placeOnTheBoard(chess.piecesPosition)));
-  }, [chess.piecesPosition, dispatch]);
+    dispatch(
+      updateBoard(Functions.placeOnTheBoard(chess.piecesData.piecesPosition))
+    );
+  }, [chess.piecesData.piecesPosition, dispatch]);
 
   const ref = useRef<HTMLDivElement>(null);
 
@@ -99,7 +101,7 @@ const Pieces = ({ webSocket }: Types.IProps) => {
       const selectedPieceColor = chess.selectedPiece?.color;
       const selectedPieceId = chess.selectedPiece?.id;
 
-      let updatedPiecesPosition = { ...chess.piecesPosition };
+      let updatedPiecesPosition = { ...chess.piecesData.piecesPosition };
 
       let promoteTo: string | null = null;
 
