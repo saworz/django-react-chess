@@ -245,7 +245,15 @@ export const chessSlice = createSlice({
       state.chess.playersData.white_time_left = action.payload.white_time_left;
       state.chess.playersData.black_time_left = action.payload.black_time_left;
     },
-    updateEndGameStatus: (state, action) => {},
+    updateEndGameStatus: (state, action) => {
+      state.chess.endGameStatus.black_checked = action.payload.black_checked;
+      state.chess.endGameStatus.white_checked = action.payload.white_checked;
+      state.chess.endGameStatus.draw = action.payload.draw;
+      state.chess.endGameStatus.black_checkmated =
+        action.payload.black_checkmated;
+      state.chess.endGameStatus.white_checkmated =
+        action.payload.white_checkmated;
+    },
     setGameRoomId: (state, action) => {
       state.chess.gameRoomId = action.payload;
     },

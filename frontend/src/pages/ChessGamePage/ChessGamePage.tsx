@@ -228,7 +228,15 @@ const ChessGamePage = () => {
               })
             );
           } else if (dataFromServer.type === "endgame_status") {
-            dispatch(updateEndGameStatus({}));
+            dispatch(
+              updateEndGameStatus({
+                black_checked: dataFromServer.black_checked,
+                white_checked: dataFromServer.white_checked,
+                black_checkmated: dataFromServer.black_checkmated,
+                white_checkmated: dataFromServer.white_checkmated,
+                draw: dataFromServer.draw,
+              })
+            );
           } else if (dataFromServer.type === "castle_data") {
           } else if (dataFromServer.type === "en_passant_data") {
           } else if (dataFromServer.type === "players_data") {
